@@ -13,11 +13,16 @@ const getLinkPaymentByMerchantId = async (id) => {
     return await LinkPayment.find({ merchantId: Object(id) }).sort({ date: -1 });
 };
 const createLinkPayment = async (linkPaymentData, merchantId) => {
-    const linkPayment = new LinkPayment({
-        ...linkPaymentData,
-        merchantId,
-    });
-    return await linkPayment.save();
+    // console.log(linkPaymentData)
+    if (linkPaymentData.id != null) {
+        return await LinkPayment.findOneAndUpdate({ id: linkPaymentData.id }, linkPaymentData);
+    } else {
+        const linkPayment = new LinkPayment({
+            ...linkPaymentData,
+            merchantId,
+        });
+        return await linkPayment.save();
+    }
 };
 
 const updateLinkPayment = async (id, linkPaymentData) => {
@@ -43,11 +48,11 @@ const addWalletTriedPayment = async (paymentId, walletString = null, hash = null
         }
         if (hash != null) {
             linkPayment.hash.push(hash)
-            if(statusHash!=false){
+            if (statusHash != false) {
 
                 linkPayment.status = "paid";
-            }else{
-                
+            } else {
+
             }
         }
 

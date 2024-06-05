@@ -2,20 +2,21 @@
 const express = require('express');
 const router = express.Router();
 const transactionService = require('../services/transactionService');
+const { response } = require('../db');
 
 router.get('/', async (req, res) => {
     const transactions = await transactionService.getTransactions();
-    res.json(transactions);
+    res.json(response(transactions));
 });
 
 router.get('/:id', async (req, res) => {
     const transaction = await transactionService.getTransactionById(req.params.id);
-    res.json(transaction);
+    res.json(response(transaction));
 });
 
 router.post('/', async (req, res) => {
     const newTransaction = await transactionService.createTransaction(req.body);
-    res.json(newTransaction);
+    res.json(response(newTransaction));
 });
 
 router.put('/:id', async (req, res) => {

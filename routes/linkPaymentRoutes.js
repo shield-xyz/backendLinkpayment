@@ -5,6 +5,7 @@ const linkPaymentService = require('../services/linkPaymentService');
 const merchantService = require('../services/merchantService');
 const auth = require('../middleware/auth');
 const axios = require('axios');
+const { response } = require('../db');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -26,10 +27,11 @@ const getTransactionStatus = async (txHash) => {
 
         let data = await fetch('https://api.trongrid.io/wallet/gettransactioninfobyid', options)
         data = await data.json()
-        return data;
+        return response(data);
 
     } catch (error) {
         console.error('Error fetching transaction status:', error);
+        return response(error, "error")
     }
 };
 
@@ -42,14 +44,14 @@ router.get('/get/:id', async (req, res) => {
         }
         const merchant = await merchantService.getMerchantById(linkPayment.merchantId);
         if (!merchant) {
-            return res.status(404).json({ message: 'Merchant not found' });
+            return response('Merchant not found', "error")
         }
         // Convertir a objeto plano y eliminar la contraseña
         const merchantWithoutPassword = { ...merchant.toObject(), password: undefined };
         // Convertir linkPayment a objeto plano y agregar el merchant
         const linkPaymentWithMerchant = { ...linkPayment.toObject(), merchant: merchantWithoutPassword };
 
-        res.json(linkPaymentWithMerchant);
+        res.json(response(linkPaymentWithMerchant));
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -59,13 +61,13 @@ router.post('/walletTriedpayment', async (req, res) => {
     try {
 
         let statusTX = await getTransactionStatus(req.body.id);
-        if(statusTX.result == "CONFIRMED"){
-            
+        if (statusTX.result == "CONFIRMED") {
+
             const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
-        }else{
-            
+        } else {
+
         }
-        res.status(200).send({ status: 'success', response: [] });
+        res.status(200).send(response([]));
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -74,7 +76,7 @@ router.post('/walletTriedpayment', async (req, res) => {
 router.post('/save/:id', async (req, res) => {
     try {
         const linkPayment = await linkPaymentService.addWalletTriedPayment(req.params.id, null, req.body.hash);
-        res.status(200).send({ status: 'success', response: [] });
+        res.status(200).send(response([]));
 
     } catch (err) {
         console.error(err);
@@ -86,7 +88,7 @@ router.post('/all', auth, async (req, res) => {
     try {
         const linkPayment = await linkPaymentService.getLinkPaymentByMerchantId(req.merchant.id);
         if (!linkPayment) {
-            return res.status(404).json({ message: 'LinkPayment not found' });
+            return res.status(404).json(response('LinkPayment not found', "error"));
         }
         res.json(linkPayment);
     } catch (err) {
@@ -99,10 +101,10 @@ router.post('/', auth, async (req, res) => {
     try {
         const merchantId = req.merchant.id; // Obtener merchantId del token
         const newLinkPayment = await linkPaymentService.createLinkPayment(req.body, merchantId);
-        res.json(newLinkPayment);
+        res.json(response(newLinkPayment));
     } catch (err) {
         console.error(err);
-        res.status(500).send('Server Error');
+        res.status(500).send(response('Server Error', "error"));
     }
 });
 

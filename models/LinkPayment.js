@@ -37,6 +37,14 @@ const LinkPaymentSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
+    name: {
+        type: String,
+        default: ""
+    },
+    description: {
+        type: String,
+        default: ""
+    },
     walletsTriedPayment: {
         type: Array,
         default: []

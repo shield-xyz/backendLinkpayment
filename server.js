@@ -1,7 +1,7 @@
 // server.js
 const express = require('express');
 const bodyParser = require('body-parser');
-const connectDB = require('./db');
+// const connectDB = require('./db');
 require('dotenv').config();
 const transactionRoutes = require('./routes/transactionRoutes');
 const merchantRoutes = require('./routes/merchantRoutes');
@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes'); // Importar rutas de autentic
 const linkPaymentRoutes = require('./routes/linkPaymentRoutes'); // Importar rutas de linkPayment
 
 const cors = require('cors');
+const { connectDB } = require('./db');
 const app = express();
 // Conectar a la base de datos
 connectDB();

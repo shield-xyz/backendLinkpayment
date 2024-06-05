@@ -15,4 +15,8 @@ const connectDB = async () => {
     }
 };
 
-module.exports = connectDB;
+let response = (data, status = "success") => {
+    return { response: data, status: status }
+}
+
+module.exports = { connectDB, response };
