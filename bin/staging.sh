@@ -7,4 +7,4 @@ npm i
   npm i -g pm2
 }
 
-npm run start
+npm run start:server
