@@ -3,15 +3,22 @@
 const { ethers } = require('ethers');
 const { Response } = require('express');
 const { validate } = require('bitcoin-address-validation');
+const Airtable = require('airtable');
 
-const { CHAIN_TYPE, CRYPT_API_KEY } = require('../config');
+const { CHAIN_TYPE, CRYPT_API_KEY,
+  AIRTABLE_API_KEY,
+  AIRTABLE_BASE_ID,
+  AIRTABLE_TABLE_NAME,
+} = require('../config');
 const {
   RAMP_CLIENT_ID,
   RAMP_SECRET_ID,
   RAMP_API_URL,
   TOKENS,
 } = require('../config');
-const { baseDebitCards } = require('..');
+const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
+const baseDebitCards = base(AIRTABLE_TABLE_NAME);
+
 async function loadTronWeb() {
   const TronWeb = await import('tronweb');
   return TronWeb;
@@ -239,6 +246,8 @@ function getTransactionById(txId) {
   });
 }
 
+
+
 module.exports = {
   getRampToken,
   getRampUserId,
@@ -251,5 +260,6 @@ module.exports = {
   handleHttpError,
   validateResponse,
   getTransactionById,
+  baseDebitCards,
   ...require('./buildSyncResponse')
 };

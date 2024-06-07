@@ -1,6 +1,5 @@
 const logger = require('node-color-log');
 
-const { baseDebitCards } = require('..');
 
 const { RAMP_API_URL } = require('../config');
 const {
@@ -8,6 +7,7 @@ const {
   getRampUserId,
   handleError,
   validateResponse,
+  baseDebitCards,
 } = require('../utils');
 
 class DebitCardService {

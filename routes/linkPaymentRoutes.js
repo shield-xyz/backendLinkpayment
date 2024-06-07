@@ -38,7 +38,7 @@ const getTransactionStatus = async (txHash) => {
 router.get('/get/:id', async (req, res) => {
     try {
         const linkPayment = await linkPaymentService.getLinkPaymentById(req.params.id);
-        console.log(linkPayment, "p", req.params.id)
+        // console.log(linkPayment, "p", req.params.id)
         if (!linkPayment) {
             return res.status(404).json({ message: 'LinkPayment not found' });
         }

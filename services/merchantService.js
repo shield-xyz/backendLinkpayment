@@ -1,25 +1,27 @@
 // services/merchantService.js
 const Merchant = require('../models/Merchant');
+const UserModel = require('../models/user.model');
+
 
 const getMerchants = async () => {
-    return await Merchant.find();
+    return await UserModel.find();
 };
 
 const getMerchantById = async (id) => {
-    return await Merchant.findById(id);
+    return await UserModel.findById(id);
 };
 
 const createMerchant = async (merchantData) => {
-    const merchant = new Merchant(merchantData);
+    const merchant = new UserModel(merchantData);
     return await merchant.save();
 };
 
 const updateMerchant = async (id, merchantData) => {
-    return await Merchant.findByIdAndUpdate(id, merchantData, { new: true });
+    return await UserModel.findByIdAndUpdate(id, merchantData, { new: true });
 };
 
 const deleteMerchant = async (id) => {
-    return await Merchant.findByIdAndDelete(id);
+    return await UserModel.findByIdAndDelete(id);
 };
 
 module.exports = {

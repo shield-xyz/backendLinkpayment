@@ -1,7 +1,7 @@
 // server.js
 const express = require('express');
 const bodyParser = require('body-parser');
-// const connectDB = require('./db');
+
 require('dotenv').config();
 const transactionRoutes = require('./routes/transactionRoutes');
 const merchantRoutes = require('./routes/merchantRoutes');
@@ -21,6 +21,7 @@ const webhookRoutes = require('./routes/webhook.route');
 
 const cors = require('cors');
 const { connectDB } = require('./db');
+const { listChannelsAndJoinIfNotMember, fetchMessages } = require('./controllers/SlackController');
 const app = express();
 // Conectar a la base de datos
 connectDB();
@@ -46,6 +47,21 @@ app.use('/api/users', userRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/webhook', webhookRoutes);
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
+
+
+
+
+listChannelsAndJoinIfNotMember();
+
+try {
+    fetchMessages()
+    setInterval(fetchMessages(), 300000); // 300000 ms = 5 minutos
+
+} catch (error) {
+    console.log(error, "error en parte de slack ")
+}
+
+
 
 
 const PORT = process.env.PORT || 5000;
