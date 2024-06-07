@@ -6,14 +6,11 @@ const userSchema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     wallets: [{ type: Schema.Types.ObjectId, ref: 'wallets' }],
-    description: {
-      type: String,
-    },
-    image: {
+    logo: {
       type: String,
       trim: true,
     },
-    url: {
+    company: {
       type: String,
       trim: true,
     },

@@ -44,8 +44,11 @@ module.exports = {
     },
 
     async register(req, res) {
-        try {
-            const { email, password, user_name, description, url, image } = req.body;
+        // try {
+            const { user_name, email, password, company } = req.body;
+            // Obtener el nombre del archivo subido
+            const filename = req.file.filename;
+            // console.log(filename)
 
             const alreadyExists = await UserModel.findOne({ email: email });
 
@@ -64,6 +67,8 @@ module.exports = {
                 password: hashed_password,
                 user_name: user_name,
                 wallets: [],
+                logo: "uploads/" + filename,
+                company
             };
             const user = new UserModel(newUser);
             await user.save();
@@ -83,9 +88,10 @@ module.exports = {
 
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
 
-            res.json({ _id: user._id, user_name, email, token, image, url, description });
-        } catch (error) {
-            handleHttpError(error, res);
-        }
+            res.json({ _id: user._id, user_name, email, token, logo: "uploads/" + filename, company });
+        // } catch (error) {
+        //     console.log(error);
+        //     handleHttpError(error, res);
+        // }
     },
 };

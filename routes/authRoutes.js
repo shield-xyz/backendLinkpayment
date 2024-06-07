@@ -1,5 +1,6 @@
 // routes/authRoutes.js
 const express = require('express');
+const path = require('path');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -7,7 +8,7 @@ const Merchant = require('../models/Merchant');
 const User = require("../models/user.model");
 const authController = require('../controllers/auth.controller');
 const logRequest = require('../middleware/logRequest');
-
+const multer = require('multer');
 const router = express.Router();
 // Registro
 // router.post(
@@ -128,11 +129,25 @@ const router = express.Router();
 //         }
 //     }
 // );
+// Ruta para manejar la subida de la imagen
 
+
+// Configuración de almacenamiento de Multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 
 router.post('/login', logRequest, authController.login);
-router.post('/register', logRequest, authController.register);
+router.post('/register', upload.single('logo'), logRequest, authController.register);
 
 
 module.exports = router;

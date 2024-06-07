@@ -86,7 +86,8 @@ router.post('/save/:id', async (req, res) => {
 
 router.post('/all', auth, async (req, res) => {
     try {
-        const linkPayment = await linkPaymentService.getLinkPaymentByMerchantId(req.merchant.id);
+        // console.log(req)
+        const linkPayment = await linkPaymentService.getLinkPaymentByMerchantId(req.user.id);
         if (!linkPayment) {
             return res.status(404).json(response('LinkPayment not found', "error"));
         }
@@ -99,7 +100,7 @@ router.post('/all', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
     try {
-        const merchantId = req.merchant.id; // Obtener merchantId del token
+        const merchantId = req.user.id; // Obtener merchantId del token
         const newLinkPayment = await linkPaymentService.createLinkPayment(req.body, merchantId);
         res.json(response(newLinkPayment));
     } catch (err) {
