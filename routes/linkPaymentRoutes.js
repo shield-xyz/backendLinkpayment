@@ -37,7 +37,7 @@ const getTransactionStatus = async (txHash) => {
 
 router.get('/get/:id', async (req, res) => {
     try {
-        const linkPayment = await linkPaymentService.getLinkPaymentById(req.params.id);
+        const linkPayment = await linkPaymentService.getLinkPaymentById({ id: req.params.id, status: "pending" });
         // console.log(linkPayment, "p", req.params.id)
         if (!linkPayment) {
             return res.status(404).json({ message: 'LinkPayment not found' });
@@ -98,6 +98,18 @@ router.post('/all', auth, async (req, res) => {
     }
 });
 
+router.post('/pause', auth, async (req, res) => {
+    try {
+        console.log(req.user)
+        const linkPayment = await linkPaymentService.updateLinkPayment(req.body.id, req.user._id, { status: "Paused" });
+        res.status(200).send(response(linkPayment));
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
 router.post('/', auth, async (req, res) => {
     try {
         const merchantId = req.user.id; // Obtener merchantId del token
@@ -109,15 +121,6 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// router.put('/:id', auth, async (req, res) => {
-//     try {
-//         const updatedLinkPayment = await linkPaymentService.updateLinkPayment(req.params.id, req.body);
-//         res.json(updatedLinkPayment);
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).send('Server Error');
-//     }
-// });
 
 router.delete('/:id', auth, async (req, res) => {
     // try {

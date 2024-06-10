@@ -7,7 +7,7 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const merchantRoutes = require('./routes/merchantRoutes');
 const authRoutes = require('./routes/authRoutes'); // Importar rutas de autenticación
 const linkPaymentRoutes = require('./routes/linkPaymentRoutes'); // Importar rutas de linkPayment
-
+const path = require('path');
 const balanceRoutes = require('./routes/balance.route');
 const blockchainRoutes = require('./routes/blockchain.route');
 const cardRoutes = require('./routes/cards.route');
@@ -48,14 +48,15 @@ app.use('/api/wallets', walletRoutes);
 app.use('/api/webhook', webhookRoutes);
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 
-
+// Configurar la carpeta de archivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 listChannelsAndJoinIfNotMember();
 
 try {
     fetchMessages()
-    setInterval(fetchMessages(), 300000); // 300000 ms = 5 minutos
+    setInterval(fetchMessages, 300000); // 300000 ms = 5 minutos
 
 } catch (error) {
     console.log(error, "error en parte de slack ")

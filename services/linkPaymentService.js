@@ -5,8 +5,8 @@ const getLinkPayments = async () => {
     return await LinkPayment.find();
 };
 
-const getLinkPaymentById = async (id) => {
-    return await LinkPayment.findOne({ id: id });
+const getLinkPaymentById = async (query) => {
+    return await LinkPayment.findOne(query);
 };
 
 const getLinkPaymentByMerchantId = async (id) => {
@@ -25,10 +25,9 @@ const createLinkPayment = async (linkPaymentData, merchantId) => {
     }
 };
 
-const updateLinkPayment = async (id, linkPaymentData) => {
-    return await LinkPayment.findByIdAndUpdate(id, linkPaymentData, { new: true });
+const updateLinkPayment = async (id, userId, linkPaymentData) => {
+    return await LinkPayment.findOneAndUpdate({ id: id, merchantId: userId }, linkPaymentData);
 };
-
 const deleteLinkPayment = async (id) => {
     return await LinkPayment.findByIdAndDelete(id);
 };
