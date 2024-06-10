@@ -3,4 +3,4 @@
 .env.prod
 .env.dev
 .env
-/uploads
+/uploads/
