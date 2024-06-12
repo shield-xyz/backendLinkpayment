@@ -44,7 +44,7 @@ module.exports = {
     },
 
     async register(req, res) {
-        // try {
+        try {
             const { user_name, email, password, company } = req.body;
             // Obtener el nombre del archivo subido
             const filename = req.file.filename;
@@ -89,9 +89,9 @@ module.exports = {
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
 
             res.json({ _id: user._id, user_name, email, token, logo: "uploads/" + filename, company });
-        // } catch (error) {
-        //     console.log(error);
-        //     handleHttpError(error, res);
-        // }
+        } catch (error) {
+            console.log(error);
+            handleHttpError(error, res);
+        }
     },
 };
