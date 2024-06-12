@@ -36,7 +36,7 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // console.log("savefile")
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, req.merchant?._id ? req.merchant._id : uniqueSuffix + path.extname(file.originalname));
+    cb(null, req.merchant?._id ? req.merchant._id + "" : uniqueSuffix + path.extname(file.originalname));
   }
 });
 
