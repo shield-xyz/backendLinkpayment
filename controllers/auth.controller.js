@@ -89,7 +89,7 @@ module.exports = {
 
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
 
-            res.json({ _id: user._id, user_name, email, token, logo: "uploads/" + filename, company });
+            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company }, status: "success" });
         } catch (error) {
             console.log(error);
             handleHttpError(error, res);
