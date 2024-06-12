@@ -15,13 +15,13 @@ const PaymentController = {
         const payments = await Payment.findOne(filter);
         return payments;
     },
-    async findId(id){
+    async findId(id) {
         const payment = await Payment.findById(id);
         return payment;
     },
 
-    async updatePayment(id, data) {
-        const payment = await Payment.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+    async updatePayment(filter, data) {
+        const payment = await Payment.findOneAndUpdate(filter, data, { new: true, runValidators: true });
         return payment;
     },
 

@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const crypto = require('crypto');
 
 const userSchema = new Schema(
   {
@@ -19,11 +20,21 @@ const userSchema = new Schema(
       default: false,
       select: false,
     },
+    apiKey: {
+      type: String,
+      unique: true,
+    }
   },
   {
     collection: 'users',
     timestamps: true,
   }
 );
+userSchema.pre('save', function (next) {
+  if (!this.apiKey) {
+    this.apiKey = crypto.randomBytes(16).toString('hex');
+  }
+  next();
+});
 
 module.exports = model('User', userSchema);

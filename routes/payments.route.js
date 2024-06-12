@@ -3,9 +3,10 @@ const router = express.Router();
 const PaymentController = require('../controllers/payment.controller');
 const { handleHttpError, response, getTransactionById, getTransactionTron } = require('../utils');
 const auth = require('../middleware/auth');
+const apiKeyAuth = require('../middleware/apiKeyAuth');
 
 router.get('/', async (req, res) => {
-    console.log("get")
+   
     try {
         const payments = await PaymentController.getPayments();
         res.send(response(payments));
@@ -14,7 +15,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', apiKeyAuth, async (req, res) => {
     try {
         req.body.userId = req.user.id;
         const payment = await PaymentController.createPayment(req.body);
@@ -35,9 +36,10 @@ router.get('/get/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', apiKeyAuth, async (req, res) => {
     try {
-        const payment = await PaymentController.updatePayment(req.params.id, req.body);
+        console.log(req.merchant)
+        const payment = await PaymentController.updatePayment({ _id: req.params.id, userId: req.merchant._id }, req.body);
         if (!payment) {
             return res.status(404).send({ response: 'Payment not found', status: "error" });
         }
@@ -48,7 +50,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 
-router.get('/verify/:networkId/:hash', auth, async (req, res) => {
+router.get('/verify/:networkId/:hash', apiKeyAuth, async (req, res) => {
     try {
         let data = {};
         switch (req.params.networkId) {
