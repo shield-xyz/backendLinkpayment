@@ -21,6 +21,7 @@ const webhookRoutes = require('./routes/webhook.route');
 const assetRoutes = require('./routes/assets.route');
 const networksRoutes = require('./routes/networks.route');
 const paymentsRoutes = require('./routes/payments.route');
+const clientRoutes = require('./routes/clients.route');
 
 const cors = require('cors');
 const { connectDB } = require('./db');
@@ -52,7 +53,7 @@ app.use('/api/wallets', walletRoutes);
 app.use("/api/assets", assetRoutes)
 app.use("/api/networks", networksRoutes)
 app.use("/api/payments", paymentsRoutes)
-
+app.use('/api/clients', clientRoutes);
 
 
 app.use('/api/webhook', webhookRoutes);

@@ -32,11 +32,6 @@ const PaymentSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    userId: {
-        type: String,
-        required: true,
-        trim: true,
-    }
 });
 
 module.exports = mongoose.model('Payment', PaymentSchema);

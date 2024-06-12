@@ -3,10 +3,11 @@ const router = express.Router();
 const PaymentController = require('../controllers/payment.controller');
 const { handleHttpError, response, getTransactionById, getTransactionTron } = require('../utils');
 const auth = require('../middleware/auth');
-const apiKeyAuth = require('../middleware/apiKeyAuth');
+const apiKeyUser = require('../middleware/apiKeyUser');
+const apiKeyMaster = require('../middleware/apiKeyMaster');
 
-router.get('/', async (req, res) => {
-   
+router.get('/', apiKeyMaster, async (req, res) => {
+
     try {
         const payments = await PaymentController.getPayments();
         res.send(response(payments));
@@ -15,9 +16,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', apiKeyAuth, async (req, res) => {
+router.post('/', apiKeyUser, async (req, res) => {
     try {
-        req.body.userId = req.user.id;
+        req.body.clientId = req.client.id;
         const payment = await PaymentController.createPayment(req.body);
         res.status(201).send(response(payment));
     } catch (error) {
@@ -28,7 +29,7 @@ router.post('/', apiKeyAuth, async (req, res) => {
 
 router.get('/get/:id', async (req, res) => {
     try {
-        console.log(req, req.params, "te")
+        // console.log(req, req.params, "te")
         const payment = await PaymentController.findId(req.params.id);
         res.status(201).send(response(payment));
     } catch (error) {
@@ -36,10 +37,9 @@ router.get('/get/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', apiKeyAuth, async (req, res) => {
+router.put('/:id', apiKeyMaster, async (req, res) => {
     try {
-        console.log(req.merchant)
-        const payment = await PaymentController.updatePayment({ _id: req.params.id, userId: req.merchant._id }, req.body);
+        const payment = await PaymentController.updatePayment({ _id: req.params.id }, req.body);
         if (!payment) {
             return res.status(404).send({ response: 'Payment not found', status: "error" });
         }
@@ -50,7 +50,7 @@ router.put('/:id', apiKeyAuth, async (req, res) => {
 });
 
 
-router.get('/verify/:networkId/:hash', apiKeyAuth, async (req, res) => {
+router.get('/verify/:networkId/:hash', apiKeyMaster, async (req, res) => {
     try {
         let data = {};
         switch (req.params.networkId) {
