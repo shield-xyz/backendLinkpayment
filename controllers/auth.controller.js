@@ -17,14 +17,15 @@ module.exports = {
             const user = await UserModel.findOne({ email: email });
 
             if (!user) {
-                res.status(401).send({ error: 'Invalid credentials.' });
+                res.status(200).send({ response: 'Invalid credentials.', status: "error" });
+
                 return;
             }
 
             const isMatch = await bcrypt.compare(password, user.password);
 
             if (!isMatch) {
-                res.status(401).send({ error: 'Invalid credentials.' });
+                res.status(200).send({ response: 'Invalid credentials.', status: "error" });
                 return;
             }
 
@@ -37,7 +38,7 @@ module.exports = {
                 token,
             };
 
-            res.send(response);
+            res.send({ response: response, status: "success" });
         } catch (error) {
             handleHttpError(error, res);
         }
@@ -53,7 +54,7 @@ module.exports = {
             const alreadyExists = await UserModel.findOne({ email: email });
 
             if (alreadyExists) {
-                handleHttpError(new Error('Email already taken.'), res, 409);
+                handleHttpError(new Error('Email already taken.'), res, 200);
                 return;
             }
 

@@ -11,7 +11,7 @@ const PaymentSchema = new mongoose.Schema({
     },
     quote_amount: {
         type: Number,
-        required: true,
+        default: 0
     },
     status: {
         type: String,
@@ -24,8 +24,8 @@ const PaymentSchema = new mongoose.Schema({
     },
     assetId: {
         type: String,
-        required: true,
         trim: true,
+        default: ""
     },
     clientId: {
         type: String,
