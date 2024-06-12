@@ -18,6 +18,9 @@ const txOrphanedRoutes = require('./routes/txOrphaned.route');
 const userRoutes = require('./routes/user.route');
 const walletRoutes = require('./routes/wallet.route');
 const webhookRoutes = require('./routes/webhook.route');
+const assetRoutes = require('./routes/assets.route');
+const networksRoutes = require('./routes/networks.route');
+const paymentsRoutes = require('./routes/payments.route');
 
 const cors = require('cors');
 const { connectDB } = require('./db');
@@ -45,6 +48,13 @@ app.use('/api/tx-hash', txHash);
 app.use('/api/tx-orphaned', txOrphanedRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/wallets', walletRoutes);
+
+app.use("/api/assets", assetRoutes)
+app.use("/api/networks", networksRoutes)
+app.use("/api/payments", paymentsRoutes)
+
+
+
 app.use('/api/webhook', webhookRoutes);
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 

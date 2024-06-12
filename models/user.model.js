@@ -14,6 +14,11 @@ const userSchema = new Schema(
       type: String,
       trim: true,
     },
+    admin: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
   },
   {
     collection: 'users',

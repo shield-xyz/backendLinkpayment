@@ -12,6 +12,13 @@ module.exports = async function (req, res, next) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await userModel.findById(decoded.id).select('-password +admin');
+        console.log(user);
+        if (user.admin != true) {
+            res.status(401).json({
+                response: "You don't have the role necessary", status: "error"
+            });
+            return;
+        }
         req.merchant = user;
         req.user = user;
         next();

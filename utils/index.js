@@ -25,6 +25,8 @@ async function loadTronWeb() {
 };
 const https = require('https');
 const ccxt = require('ccxt');
+const TransactionLogController = require('../controllers/transactionsLogs.controller');
+// const TransactionsLogModel = require('../models/transactionsLog.model');
 
 async function getRampToken() {
   try {
@@ -195,9 +197,9 @@ function handleError(error, defaultMessage) {
 
 function handleHttpError(error, res, statusCode = 500) {
   if (error instanceof Error) {
-    res.status(statusCode).send({ error: error.message });
+    res.status(statusCode).send({ response: error.message, status: "error" });
   } else {
-    res.status(statusCode).send({ error: 'An error occurred' });
+    res.status(statusCode).send({ response: 'An error occurred', status: "error" });
   }
   console.error(error);
 }
@@ -245,7 +247,39 @@ function getTransactionById(txId) {
     req.end();
   });
 }
+let response = (data, status = "success") => {
+  return { response: data, status: status }
+}
 
+async function getTransactionTron(hash) {
+  try {
+    // URL de la API de TronGrid
+    let tx = await TransactionLogController.findOne({ hash: hash, network: "tron" })
+    // console.log(tx);
+    if (tx != undefined && tx != null) {
+      return tx;
+    }
+    // console.log("tx fond")
+    const options = {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify({ value: hash })
+    };
+
+    let data = await fetch('https://api.trongrid.io/wallet/gettransactioninfobyid', options)
+    data = await data.json();
+    data.hash = hash;
+    data.network = "tron";
+    await TransactionLogController.createTransaction(data);
+
+
+    return (data);
+
+  } catch (error) {
+    console.error('Error fetching transaction status:', error);
+    return "error not found";
+  }
+}
 
 
 module.exports = {
@@ -260,6 +294,6 @@ module.exports = {
   handleHttpError,
   validateResponse,
   getTransactionById,
-  baseDebitCards,
+  baseDebitCards, response, getTransactionTron,
   ...require('./buildSyncResponse')
 };
