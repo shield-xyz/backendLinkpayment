@@ -52,14 +52,14 @@ router.put('/:id', apiKeyMaster, async (req, res) => {
 });
 
 
-router.get('/verify/:networkId/:hash/:paymentId', apiKeyMaster, async (req, res) => {
+router.post('/verify', apiKeyMaster, async (req, res) => {
     try {
         let data = {};
-        switch (req.params.networkId) {
+        switch (req.body.networkId) {
             case "tron":
-                data = await getTransactionTron(req.params.hash)
+                data = await getTransactionTron(req.body.hash)
                 // validamos fecha de tx 
-                let payment = await PaymentController.findId(req.params.paymentId);
+                let payment = await PaymentController.findId(req.body.paymentId);
                 let asset = await AssetController.findOne({ assetId: payment.assetId });
                 let network = await NetworkController.findOne({ networkId: asset.networkId });
                 console.log(network)
