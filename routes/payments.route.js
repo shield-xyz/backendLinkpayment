@@ -18,7 +18,7 @@ router.get('/', apiKeyMaster, async (req, res) => {
 
 router.post('/', apiKeyUser, async (req, res) => {
     try {
-        req.body.clientId = req.client.id;
+        req.body.clientId = req.user.id;
         const payment = await PaymentController.createPayment(req.body);
         res.status(201).send(response(payment));
     } catch (error) {

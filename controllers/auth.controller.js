@@ -62,7 +62,6 @@ module.exports = {
 
             const salt = bcrypt.genSaltSync(10);
             const hashed_password = bcrypt.hashSync(password, salt);
-
             const newUser = {
                 email: email,
                 password: hashed_password,

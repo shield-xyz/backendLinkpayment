@@ -9,7 +9,7 @@ const apiKeyUser = async (req, res, next) => {
     }
 
     try {
-        const user = await clientsModel.findOne({ apiKey });
+        const user = await User.findOne({ apiKey });
         req.client = user;
         if (!user) {
             return res.status(401).json({ error: 'Invalid API key' });
