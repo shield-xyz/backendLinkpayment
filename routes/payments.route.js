@@ -88,7 +88,7 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
         }
         res.send(response("failed"));
     } catch (error) {
-        handleHttpError(error, res);
+        res.send(response("failed"));
     }
 });
 
