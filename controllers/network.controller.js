@@ -22,7 +22,10 @@ const NetworkController = {
         const network = await Network.findOneAndUpdate({ networkId: id }, data, { upsert: true });
         return network;
     },
-
+    async findOne(filter) {
+        const network = await Network.findOne(filter);
+        return network;
+    },
     async deleteNetwork(id) {
         const network = await Network.findByIdAndDelete(id);
         return network;

@@ -1,5 +1,5 @@
 const { TransactionsService } = require('../services');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 const TransactionModel = require('../models/transaction.model');
 
 const TransactionsController = {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ClientsController = require('../controllers/clients.controller');
-const { handleHttpError } = require('../utils'); // Asumiendo que tienes un manejador de errores
+const { handleHttpError } = require('../utils/index.js'); // Asumiendo que tienes un manejador de errores
 const { response } = require('../db'); // Asumiendo que tienes una función de respuesta
 const apiKeyMaster = require('../middleware/apiKeyMaster');
 

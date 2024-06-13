@@ -3,7 +3,7 @@ const {
   getRampUserId,
   handleError,
   validateResponse,
-} = require('../utils');
+} = require('../utils/index.js');
 const { BalanceService } = require('./balance.service');
 
 class LimitsService {

@@ -1,5 +1,5 @@
 const User = require('../models/user.model');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 
 const UserController = {
   async allUsers(req, res) {

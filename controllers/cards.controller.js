@@ -1,5 +1,5 @@
 const { DebitCardService } = require('../services');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 
 const CardsController = {
   async findCardsFromAirtable(req, res) {

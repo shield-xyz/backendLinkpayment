@@ -1,4 +1,4 @@
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 const { TxOrphanedService } = require('../services/txOrphaned.service');
 
 const TxOrphanedController = {

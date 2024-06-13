@@ -9,7 +9,7 @@ const {
   handleError,
   handleHttpError,
   validateWalletAddress,
-} = require('../utils');
+} = require('../utils/index.js');
 const { WalletService } = require('../services');
 
 const WalletController = {

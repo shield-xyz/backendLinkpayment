@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AssetController = require('../controllers/assets.controller');
-const { handleHttpError, response } = require('../utils');
+const { handleHttpError, response } = require('../utils/index.js');
 
 
 AssetController.createDefault();

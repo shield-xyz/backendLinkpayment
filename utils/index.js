@@ -4,7 +4,9 @@ const { ethers } = require('ethers');
 const { Response } = require('express');
 const { validate } = require('bitcoin-address-validation');
 const Airtable = require('airtable');
-
+const fetch = require('node-fetch');
+const base58 = require('bs58');
+const { Buffer } = require('buffer');
 const { CHAIN_TYPE, CRYPT_API_KEY,
   AIRTABLE_API_KEY,
   AIRTABLE_BASE_ID,
@@ -267,35 +269,69 @@ let response = (data, status = "success") => {
 
 async function getTransactionTron(hash) {
   try {
-    // URL de la API de TronGrid
-    let tx = await TransactionLogController.findOne({ hash: hash, network: "tron" })
-    // console.log(tx);
+    // Busca en la base de datos si la transacción ya está almacenada
+    let tx = await TransactionLogController.findOne({ hash: hash, network: "tron" });
+
+    // Si se encuentra en la base de datos, la devuelve
     if (tx != undefined && tx != null) {
       return tx;
     }
-    // console.log("tx fond")
-    const options = {
+
+    // // Consulta la API de TronGrid para obtener la información de la transacción
+    let options = {
       method: 'POST',
       headers: { accept: 'application/json', 'content-type': 'application/json' },
       body: JSON.stringify({ value: hash })
     };
 
-    let data = await fetch('https://api.trongrid.io/wallet/gettransactioninfobyid', options)
-    data = await data.json();
+    const apiKey = 'f79519c1-ed9c-4e07-8847-0a918bd2dc09';
+    const endpoint = 'https://apilist.tronscanapi.com/api/';
+
+    let response = await fetch(endpoint + "transaction-info?hash=" + hash, {
+      headers: {
+        'TRON-PRO-API-KEY': apiKey
+      }
+    })
+
+    // let response = await fetch('https://api.trongrid.io/wallet/gettransactioninfobyid', options);
+    // let response = await fetch('https://api.trongrid.io/v1/accounts/TTd9qHyjqiUkfTxe3gotbuTMpjU8LEbpkN/transactions/trc20', options);
+    options = { method: 'GET', headers: { accept: 'application/json' } };
+
+    // let response = await fetch('https://api.trongrid.io/v1/accounts/TXmgYw1jWsN4jSABtNxF6HwhasTPM39Cay/transactions/trc20?limit=200&only_to=true', options)
+
+    let data = await response.json();
+
     data.hash = hash;
     data.network = "tron";
+    // Guarda la transacción en la base de datos
     await TransactionLogController.createTransaction(data);
-
-
-    return (data);
+    return data;
 
   } catch (error) {
     console.error('Error fetching transaction status:', error);
-    return "error not found";
+    return { error: "error not found" };
   }
 }
 
+// Función para convertir direcciones de formato hexadecimal a Base58Check
+function convertHexToBase58(hexAddress) {
+  const addressBuffer = Buffer.from(hexAddress, 'hex');
+  const addressBase58 = base58.encode(addressBuffer);
+  return addressBase58;
+}
+function divideByDecimals(value, decimals) {
+  if (typeof value !== 'string' || typeof decimals !== 'number') {
+    throw new Error('Invalid input types. "value" should be a string and "decimals" should be a number.');
+  }
 
+  const numericValue = parseFloat(value);
+  if (isNaN(numericValue)) {
+    throw new Error('The provided value is not a valid number.');
+  }
+
+  const divisor = Math.pow(10, decimals);
+  return numericValue / divisor;
+}
 module.exports = {
   getRampToken,
   getRampUserId,
@@ -308,6 +344,6 @@ module.exports = {
   handleHttpError,
   validateResponse,
   getTransactionById,
-  baseDebitCards, response, getTransactionTron, upload,
+  baseDebitCards, response, getTransactionTron, upload,divideByDecimals,
   ...require('./buildSyncResponse')
 };

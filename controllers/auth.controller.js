@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const { DebitCardService } = require('../services/debit-cards.service');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 
 const secretKey = JWT_SECRET;
 

@@ -6,7 +6,7 @@ const BlockchainModel = require('../models/blockchain.model');
 const WalletModel = require('../models/wallet.model');
 
 
-const { handleError, handleHttpError } = require('../utils');
+const { handleError, handleHttpError } = require('../utils/index.js');
 
 const BalanceController = {
   async getAll(req, res) {

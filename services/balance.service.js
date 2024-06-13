@@ -4,7 +4,7 @@ const BalanceModel = require('../models/balance.model');
 const BlockchainModel = require('../models/blockchain.model');
 const WalletModel = require('../models/wallet.model');
 const TxOrphanedModel = require('../models/txOrphaned.model');
-const { getAllExchangeRates, handleError } = require('../utils');
+const { getAllExchangeRates, handleError } = require('../utils/index.js');
 
 class BalanceService {
   static async getBalancesByUserId(userId, session) {

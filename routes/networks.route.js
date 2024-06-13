@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const NetworkController = require('../controllers/network.controller');
-const { handleHttpError, response } = require('../utils');
+const { handleHttpError, response } = require('../utils/index.js');
 const authAdmin = require('../middleware/authAdmin');
 
 

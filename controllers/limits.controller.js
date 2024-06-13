@@ -1,5 +1,5 @@
 const { LimitsService } = require('../services');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 
 const LimitsController = {
   async allLimits(req, res) {

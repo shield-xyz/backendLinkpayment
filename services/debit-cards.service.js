@@ -8,7 +8,7 @@ const {
   handleError,
   validateResponse,
   baseDebitCards,
-} = require('../utils');
+} = require('../utils/index.js');
 
 class DebitCardService {
   static async create(data) {

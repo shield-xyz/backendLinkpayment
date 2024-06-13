@@ -1,4 +1,4 @@
-const { getAllExchangeRates, handleError } = require('../utils');
+const { getAllExchangeRates, handleError } = require('../utils/index.js');
 const Wallet = require('../models/wallet.model');
 
 class WalletService {

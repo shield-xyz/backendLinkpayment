@@ -10,7 +10,7 @@ const {
   validateResponse,
   getAllExchangeRates,
   buildSyncResponse,
-} = require('../utils');
+} = require('../utils/index.js');
 const { RAMP_API_URL, Token } = require('../config');
 const TransactionModel = require('../models/transaction.model');
 const BalanceModel = require('../models/balance.model');

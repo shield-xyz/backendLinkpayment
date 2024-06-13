@@ -3,7 +3,7 @@ const { ethers } = require('ethers');
 const mongoose = require('mongoose');
 
 const TxOrphanedModel = require('../models/txOrphaned.model');
-const { getExchangeRate, getRampUserId, handleError } = require('../utils');
+const { getExchangeRate, getRampUserId, handleError } = require('../utils/index.js');
 const txReceiptModel = require('../models/txReceipt.model');
 const { LimitsService } = require('./limits.service');
 const { BalanceService } = require('./balance.service');

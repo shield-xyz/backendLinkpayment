@@ -4,7 +4,7 @@ const merchantService = require('../services/merchantService');
 const auth = require('../middleware/auth');
 const { response } = require('../db');
 const authAdmin = require('../middleware/authAdmin');
-const { handleHttpError, upload } = require('../utils'); // Asumo que tienes un manejador de errores
+const { handleHttpError, upload } = require('../utils/index.js'); // Asumo que tienes un manejador de errores
 
 router.get('/', auth, async (req, res) => {
     try {

@@ -1,5 +1,5 @@
 const Blockchain = require('../models/blockchain.model');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 
 const blockchainController = {
   async getAll(req, res) {

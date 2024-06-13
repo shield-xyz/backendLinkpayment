@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const PaymentController = require('../controllers/payment.controller');
-const { handleHttpError, response, getTransactionById, getTransactionTron } = require('../utils');
+const { handleHttpError, response, getTransactionById, getTransactionTron, divideByDecimals } = require('../utils/index.js');
 const auth = require('../middleware/auth');
 const apiKeyUser = require('../middleware/apiKeyUser');
 const apiKeyMaster = require('../middleware/apiKeyMaster');
+const AssetController = require('../controllers/assets.controller');
+const NetworkController = require('../controllers/network.controller.js');
 
 router.get('/', apiKeyMaster, async (req, res) => {
 
@@ -50,19 +52,38 @@ router.put('/:id', apiKeyMaster, async (req, res) => {
 });
 
 
-router.get('/verify/:networkId/:hash', apiKeyMaster, async (req, res) => {
+router.get('/verify/:networkId/:hash/:paymentId', apiKeyMaster, async (req, res) => {
     try {
         let data = {};
         switch (req.params.networkId) {
             case "tron":
                 data = await getTransactionTron(req.params.hash)
+                // validamos fecha de tx 
+                let payment = await PaymentController.findId(req.params.paymentId);
+                let asset = await AssetController.findOne({ assetId: payment.assetId });
+                let network = await NetworkController.findOne({ networkId: asset.networkId });
+                console.log(network)
+                // validamos token enviado que sea correcto con el paymentID
+                let isValid = false;
 
-                break;
+                data.transfersAllList.map(x => {
+                    if (x.to_address.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+                        if (x.contract_address.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
+                            //validar la cantidad de token
+                            let quantity = divideByDecimals(x.amount_str, x.decimals);
+                            // console.log(quantity);
+                            if (quantity >= payment.quote_amount) {
+                                isValid = true;
+
+                            }
+                        }
+                })
+                res.send(response((isValid ? "success" : "failed"))); return;
+
             default:
                 res.send(response("This network is not available yet", "error")); return;
-                break;
         }
-        res.send(response(data));
+        res.send(response("failed"));
     } catch (error) {
         handleHttpError(error, res);
     }

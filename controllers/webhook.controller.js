@@ -8,7 +8,7 @@ const {
   getRampUserId,
   handleHttpError,
   getTransactionById,
-} = require('../utils');
+} = require('../utils/index.js');
 const { LimitsService } = require('../services/limits.service');
 const BlockchainModel = require('../models/blockchain.model');
 const { BalanceService } = require('../services');

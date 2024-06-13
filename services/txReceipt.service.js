@@ -1,7 +1,7 @@
 const logger = require('node-color-log');
 const { ClientSession } = require('mongoose');
 
-const { handleError } = require('../utils');
+const { handleError } = require('../utils/index.js');
 const TxReceiptModel = require('../models/txReceipt.model');
 
 class TxReceiptService {

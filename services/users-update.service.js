@@ -4,7 +4,7 @@ const userModel = require('../models/user.model');
 const { TransactionsService } = require('./transactions.service');
 const { SHIELD_USERID } = require('../config');
 const { LimitsService } = require('./limits.service');
-const { getRampUserId } = require('../utils');
+const { getRampUserId } = require('../utils/index.js');
 
 const minutes = 5; // Update as needed
 const everyTime = minutes * 60 * 1000;

@@ -1,6 +1,6 @@
 const TxHash = require('../models/txHash.model');
 const blockchainModel = require('../models/blockchain.model');
-const { handleHttpError } = require('../utils');
+const { handleHttpError } = require('../utils/index.js');
 
 const TxHashController = {
   async getAll(req, res) {

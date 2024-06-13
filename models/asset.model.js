@@ -35,7 +35,7 @@ const AssetSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    userId: {
+    address: {
         type: String,
         required: true,
         trim: true,
