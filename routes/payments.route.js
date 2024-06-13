@@ -74,6 +74,9 @@ router.get('/verify/:networkId/:hash/:paymentId', apiKeyMaster, async (req, res)
                             // console.log(quantity);
                             if (quantity >= payment.quote_amount) {
                                 isValid = true;
+                                payment.hash = data.hash;
+                                payment.status = "success";
+                                payment.save();
 
                             }
                         }

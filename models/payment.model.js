@@ -32,6 +32,10 @@ const PaymentSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    hash: {
+        type: String,
+        trim: true,
+    },
 });
 
 module.exports = mongoose.model('Payment', PaymentSchema);
