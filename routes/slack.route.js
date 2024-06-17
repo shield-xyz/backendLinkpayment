@@ -14,6 +14,7 @@ router.post('/challenge', async (req, res) => {
         //         "challenge": "3eZbrw1aBm2rZgRNFdxV2595E9CY3gmdALWMmHkvFXO7tYXAYM8P",
         //             "type": "url_verification"
         // };
+        console.log(JSON.stringify(req.body), "body slack");
         res.send({ challenge: req.body.challenge }); return;
 
     } catch (error) {
