@@ -267,7 +267,7 @@ let response = (data, status = "success") => {
   return { response: data, status: status }
 }
 
-async function getTransactionTron(hash) {
+async function getTransactionTron(hash, paymentId = null, linkpaymentId = null) {
   try {
     // Busca en la base de datos si la transacción ya está almacenada
     let tx = await TransactionLogController.findOne({ hash: hash, network: "tron" });
@@ -300,6 +300,10 @@ async function getTransactionTron(hash) {
     // let response = await fetch('https://api.trongrid.io/v1/accounts/TXmgYw1jWsN4jSABtNxF6HwhasTPM39Cay/transactions/trc20?limit=200&only_to=true', options)
 
     let data = await response.json();
+    if (paymentId != null)
+      data.paymentId = paymentId;
+    if (linkpaymentId != null)
+      data.linkpaymentId = linkpaymentId;
 
     data.hash = hash;
     data.network = "tron";
@@ -344,6 +348,6 @@ module.exports = {
   handleHttpError,
   validateResponse,
   getTransactionById,
-  baseDebitCards, response, getTransactionTron, upload,divideByDecimals,
+  baseDebitCards, response, getTransactionTron, upload, divideByDecimals,
   ...require('./buildSyncResponse')
 };

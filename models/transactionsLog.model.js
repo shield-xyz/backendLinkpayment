@@ -85,14 +85,16 @@ const TransactionLogsSchema = new Schema({
     signature_addresses: [String],
     ownerAddress: String,
     srConfirmList: { type: [SrConfirmListSchema], select: false },
-    hash: String,
     contractData: new Schema({
         data: { type: String, select: false }, // Campo oculto
         owner_address: String,
         contract_address: String
     }, { _id: false }),
     internal_transactions: Object,
-    network: String
+    hash: String,
+    network: String,
+    paymentId: String,
+    linkpaymentId: String,
 });
 
 

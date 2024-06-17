@@ -11,8 +11,8 @@ const AssetController = {
         }
     },
 
-    async getAssets() {
-        const assets = await Asset.find();
+    async getAssets(filter = {}) {
+        const assets = await Asset.find(filter);
         return assets;
     },
     async findOne(filter) {
@@ -35,15 +35,17 @@ const AssetController = {
 
     async createDefault() {
         let data = [
-            // {
-            //     "assetId": "usdt-ethereum",
-            //     "symbol": "USDT",
-            //     "name": "Tether USD",
-            //     "decimals": 6,
-            //     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
-            //     "active": false,
-            //     "networkId": "ethereum"
-            // },
+            {
+                "assetId": "usdt-ethereum",
+                "symbol": "USDT",
+                "name": "Tether USD",
+                "decimals": 6,
+                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
+                "active": false,
+                "networkId": "ethereum",
+                "address": null
+
+            },
             {
                 "assetId": "usdt-tron",
                 "symbol": "USDT",
@@ -55,33 +57,36 @@ const AssetController = {
                 "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
             },
 
-            // {
-            //     "assetId": "btc-bitcoin",
-            //     "symbol": "BTC",
-            //     "name": "Bitcoin",
-            //     "decimals": 8,
-            //     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-            //     "active": false,
-            //     "networkId": "bitcoin"
-            // },
-            // {
-            //     "assetId": "dai-ethereum",
-            //     "symbol": "DAI",
-            //     "name": "Dai",
-            //     "decimals": 18,
-            //     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png",
-            //     "active": false,
-            //     "networkId": "ethereum"
-            // },
-            // {
-            //     "assetId": "usdc-ethereum",
-            //     "symbol": "USDC",
-            //     "name": "USD Coin",
-            //     "decimals": 18,
-            //     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
-            //     "active": false,
-            //     "networkId": "ethereum"
-            // }
+            {
+                "assetId": "btc-bitcoin",
+                "symbol": "BTC",
+                "name": "Bitcoin",
+                "decimals": 8,
+                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
+                "active": false,
+                "networkId": "bitcoin",
+                "address": null
+            },
+            {
+                "assetId": "dai-ethereum",
+                "symbol": "DAI",
+                "name": "Dai",
+                "decimals": 18,
+                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png",
+                "active": false,
+                "networkId": "ethereum",
+                "address": null
+            },
+            {
+                "assetId": "usdc-ethereum",
+                "symbol": "USDC",
+                "name": "USD Coin",
+                "decimals": 18,
+                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
+                "active": false,
+                "networkId": "ethereum",
+                "address": null
+            }
         ];
 
         const networks = await this.getAssets();

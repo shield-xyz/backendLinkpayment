@@ -10,7 +10,7 @@ const app = new App({
 });
 
 // Escucha todos los mensajes en los canales
-app.message(async ({ message, say }) => {
+app.event("message", async ({ message, say }) => {
     console.log(`Mensaje recibido: ${message.text}`);
     // Puedes hacer algo con el mensaje aquí, por ejemplo, responder
     await say(`Recibí tu mensaje: ${message.text}`);
@@ -27,6 +27,7 @@ async function fetchMessages() {
         // Procesa los mensajes recibidos
         result.messages.forEach((message) => {
             console.log(`Mensaje: ${message.text}`);
+            let comand = "usuario -codigo- withdraw 1000 usdt"
         });
     } catch (error) {
         console.error(error);

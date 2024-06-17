@@ -22,6 +22,9 @@ const assetRoutes = require('./routes/assets.route');
 const networksRoutes = require('./routes/networks.route');
 const paymentsRoutes = require('./routes/payments.route');
 const clientRoutes = require('./routes/clients.route');
+const withdrawRoutes = require('./routes/withdraw.route');
+const accountRoutes = require('./routes/account.route');
+const slackRoutes = require('./routes/slack.route');
 
 const cors = require('cors');
 const { connectDB } = require('./db');
@@ -54,7 +57,12 @@ app.use("/api/assets", assetRoutes)
 app.use("/api/networks", networksRoutes)
 app.use("/api/payments", paymentsRoutes)
 app.use('/api/clients', clientRoutes);
+app.use('/api/slack', slackRoutes);
 
+
+// Tus otras configuraciones de middlewares y rutas
+app.use('/api/withdraws', withdrawRoutes);
+app.use('/api/accounts', accountRoutes);
 
 app.use('/api/webhook', webhookRoutes);
 app.get('/health-check', (req, res) => res.status(200).send('OK'));

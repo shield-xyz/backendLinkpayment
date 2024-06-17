@@ -1,3 +1,4 @@
+const balanceModel = require('../models/balance.model');
 const Payment = require('../models/payment.model');
 
 const PaymentController = {
@@ -28,6 +29,25 @@ const PaymentController = {
     async deletePayment(id) {
         const payment = await Payment.findByIdAndDelete(id);
         return payment;
+    },
+    async loadBalanceImported(idPayment) {
+        let payment = await Payment.findById(idPayment).populate("asset");
+        // console.log(payment.asset, "payment");
+        if (payment.balanceImported == false) {
+            let balance = await balanceModel.findOne({ userId: payment.clientId, assetId: payment.assetId })
+            if (!balance) {
+                balance = new balanceModel({
+                    amount: 0,
+                    networkId: payment.asset.networkId,
+                    assetId: payment.assetId,
+                    userId: payment.clientId,
+                })
+            }
+            balance.amount += payment.quote_amount;
+            balance.save();
+            payment.balanceImported = true;
+            payment.save();
+        }
     }
 };
 

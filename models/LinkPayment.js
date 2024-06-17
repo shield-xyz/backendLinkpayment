@@ -49,6 +49,10 @@ const LinkPaymentSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
+    balanceImported: {
+        type: Boolean,
+        default: false,
+    }
 });
 
 LinkPaymentSchema.pre('save', function (next) {

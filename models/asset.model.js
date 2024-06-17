@@ -37,10 +37,11 @@ const AssetSchema = new mongoose.Schema({
     },
     address: {
         type: String,
-        required: true,
         trim: true,
+        default: null,
     },
 
 });
+
 
 module.exports = mongoose.model('Asset', AssetSchema);

@@ -25,17 +25,29 @@ const PaymentSchema = new mongoose.Schema({
     assetId: {
         type: String,
         trim: true,
-        default: ""
+        default: "",
+        ref: "Asset"
     },
     clientId: {
         type: String,
         required: true,
         trim: true,
+        ref: "User"
     },
     hash: {
         type: String,
         trim: true,
     },
+    balanceImported: {
+        type: Boolean,
+        default: false,
+    }
+});
+PaymentSchema.virtual('asset', {
+    ref: 'Asset', // The model to use
+    localField: 'assetId', // Find people where `localField`
+    foreignField: 'assetId', // is equal to `foreignField`,
+    justOne: true
 });
 
 module.exports = mongoose.model('Payment', PaymentSchema);

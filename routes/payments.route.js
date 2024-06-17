@@ -58,7 +58,7 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
         let data = {};
         switch (req.body.networkId) {
             case "tron":
-                data = await getTransactionTron(req.body.hash)
+                data = await getTransactionTron(req.body.hash, req.body.paymentId)
                 // validamos fecha de tx 
                 let payment = await PaymentController.findId(req.body.paymentId);
                 let asset = await AssetController.findOne({ assetId: payment.assetId });
@@ -67,7 +67,7 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
                 // validamos token enviado que sea correcto con el paymentID
                 let isValid = false;
 
-                data.transfersAllList.map(x => {
+                data.transfersAllList.map(async x => {
                     logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
                     logger.fontColorLog('blue', x.to_address.toLowerCase() == network.deposit_address.toLowerCase());
                     if (x.to_address.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
@@ -80,7 +80,7 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
                                 payment.hash = data.hash;
                                 payment.status = "success";
                                 payment.save();
-
+                                await PaymentController.loadBalanceImported(req.body.paymentId);
                             }
                         }
                 })
