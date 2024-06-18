@@ -1,8 +1,8 @@
 // services/linkPaymentService.js
 const LinkPayment = require('../models/LinkPayment');
 
-const getLinkPayments = async () => {
-    return await LinkPayment.find();
+const getLinkPayments = async (filter = {}) => {
+    return await LinkPayment.find(filter);
 };
 
 const getLinkPaymentById = async (query) => {
@@ -13,7 +13,8 @@ const getLinkPaymentByMerchantId = async (id) => {
     return await LinkPayment.find({ merchantId: Object(id) }).sort({ date: -1 });
 };
 const createLinkPayment = async (linkPaymentData, merchantId) => {
-    // console.log(linkPaymentData)
+    // console.log(linkPaymentData)+
+    linkPaymentData.merchantId = merchantId;
     if (linkPaymentData.id != null) {
         return await LinkPayment.findOneAndUpdate({ id: linkPaymentData.id }, linkPaymentData);
     } else {

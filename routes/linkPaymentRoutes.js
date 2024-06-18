@@ -9,7 +9,8 @@ const { response } = require('../db');
 
 router.get('/', auth, async (req, res) => {
     try {
-        const linkPayments = await linkPaymentService.getLinkPayments();
+        console.log(req.user)
+        const linkPayments = await linkPaymentService.getLinkPayments({ merchantId: req.user._id });
         res.json(linkPayments);
     } catch (err) {
         console.error(err);
@@ -113,6 +114,7 @@ router.post('/pause', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
     try {
         const merchantId = req.user.id; // Obtener merchantId del token
+        console.log(merchantId, "merchant")
         const newLinkPayment = await linkPaymentService.createLinkPayment(req.body, merchantId);
         res.json(response(newLinkPayment));
     } catch (err) {

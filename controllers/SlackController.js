@@ -120,16 +120,18 @@ async function generateWithDraw(amount, balanceId) {
     console.log(balance, balance.asset, balance.network)
     if (!balance) {
         await sendMessage("balance not found");
+        return
 
     }
     if (amount > balance.amount) {
         await sendMessage("the amount exceeds the balance, balance: " + balance.amount);
+        return
 
     }
     let account = await accountModel.findOne({ userId: balance.userId, selected: true });
     if (!account) {
         await sendMessage("the user not have account");
-
+        return
     }
     let wt = await WithdrawController.createWithdraw({
         amount: amount,

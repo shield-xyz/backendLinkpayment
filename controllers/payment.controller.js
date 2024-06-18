@@ -8,8 +8,8 @@ const PaymentController = {
         return payment;
     },
 
-    async getPayments() {
-        const payments = await Payment.find();
+    async getPayments(filter = {}) {
+        const payments = await Payment.find(filter).populate("asset");
         return payments;
     },
     async getOne(filter) {

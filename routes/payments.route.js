@@ -18,7 +18,15 @@ router.get('/', apiKeyMaster, async (req, res) => {
         handleHttpError(error, res);
     }
 });
+router.get('/get/', auth, async (req, res) => {
 
+    try {
+        const payments = await PaymentController.getPayments({ userId: req.user.id });
+        res.send(response(payments));
+    } catch (error) {
+        handleHttpError(error, res);
+    }
+});
 router.post('/', apiKeyUser, async (req, res) => {
     try {
         req.body.clientId = req.user.id;

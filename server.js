@@ -45,11 +45,11 @@ app.use('/api/linkPayments', linkPaymentRoutes); // Usar rutas de linkPayment
 
 app.use('/api/balances', balanceRoutes);
 app.use('/api/blockchains', blockchainRoutes);
-app.use('/api/cards', cardRoutes);
-app.use('/api/limits', limitsRoutes);
-app.use('/api/transactions', transactionsRoutes);
-app.use('/api/tx-hash', txHash);
-app.use('/api/tx-orphaned', txOrphanedRoutes);
+// app.use('/api/cards', cardRoutes);
+// app.use('/api/limits', limitsRoutes);
+// app.use('/api/transactions', transactionsRoutes);
+// app.use('/api/tx-hash', txHash);
+// app.use('/api/tx-orphaned', txOrphanedRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/wallets', walletRoutes);
 

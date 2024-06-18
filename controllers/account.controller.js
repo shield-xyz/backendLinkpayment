@@ -17,13 +17,13 @@ const AccountController = {
         return account;
     },
 
-    async updateAccount(id, data) {
-        const account = await Account.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+    async updateAccount(filter, data) {
+        const account = await Account.findOneAndUpdate(filter, data, { new: true, runValidators: true });
         return account;
     },
 
-    async deleteAccount(id) {
-        const account = await Account.findByIdAndDelete(id);
+    async deleteAccount(filter) {
+        const account = await Account.findByIdAndDelete(filter);
         return account;
     }
 };
