@@ -71,15 +71,15 @@ app.get('/health-check', (req, res) => res.status(200).send('OK'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-listChannelsAndJoinIfNotMember();
+// listChannelsAndJoinIfNotMember();
 
-try {
-    fetchMessages()
-    setInterval(fetchMessages, 300000); // 300000 ms = 5 minutos
+// try {
+//     fetchMessages()
+//     setInterval(fetchMessages, 300000); // 300000 ms = 5 minutos
 
-} catch (error) {
-    console.log(error, "error en parte de slack ")
-}
+// } catch (error) {
+//     console.log(error, "error en parte de slack ")
+// }
 
 
 
