@@ -16,6 +16,7 @@ module.exports = async function (req, res, next) {
         if (apiKey) {
             const user = await userModel.findOne({ apiKey });
             req.client = user;
+            req.merchant = user;
             if (!user) {
                 return res.status(401).json({ error: 'Invalid API key' });
             }
