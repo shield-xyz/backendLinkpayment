@@ -29,7 +29,7 @@ const createLinkPayment = async (linkPaymentData, merchantId) => {
         paym = await linkPayment.save();
     }
 
-    if (paym.assetId != "") {
+    if (paym.assetId != "" && paym.assetId) {
         let asset = await AssetController.findOne({ id: paym.assetId });
         if (asset.decimals) {
 
