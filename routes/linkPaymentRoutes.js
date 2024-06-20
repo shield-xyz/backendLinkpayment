@@ -8,6 +8,8 @@ const axios = require('axios');
 const { response } = require('../db');
 const TransactionController = require('../controllers/transactions.controller');
 const networksModel = require('../models/networks.model');
+const NetworkController = require('../controllers/network.controller');
+const { loadBalanceImportedLinkPayment } = require('../controllers/payment.controller');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -78,16 +80,20 @@ router.post('/walletTriedpayment', async (req, res) => {
 router.post('/save/:id', async (req, res) => {
     try {
         const linkPayment = await linkPaymentService.addWalletTriedPayment(req.params.id, null, req.body.hash);
+        console.log(linkPayment.asset)
+        let network = await NetworkController.findOne({ id: linkPayment.assetId.networkId });
+        //TODO validar monto y cantidad = al link payment
         //add transaction create . 
         await TransactionController.createTransaction({
             // paymentId: req.body.paymentId,
             assetId: linkPayment.assetId,
-            networkId: linkPayment.asset.network?._id,
+            networkId: network?._id,
             linkPaymentId: linkPayment._id,
             userId: linkPayment.userId,
             amount: linkPayment.amount,
             hash: req.body.hash
         });
+        loadBalanceImportedLinkPayment(req.params.id)
         res.status(200).send(response([]));
 
     } catch (err) {

@@ -65,6 +65,12 @@ LinkPaymentSchema.virtual('user', {
     foreignField: '_id', // is equal to `foreignField`
     justOne: true
 });
+LinkPaymentSchema.virtual('asset', {
+    ref: 'Asset', // The model to use
+    localField: 'assetId', // Find people where `localField`
+    foreignField: 'assetId', // is equal to `foreignField`
+    justOne: true
+});
 LinkPaymentSchema.set('toObject', { virtuals: true });
 
 LinkPaymentSchema.pre('save', function (next) {

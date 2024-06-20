@@ -1,3 +1,4 @@
+const LinkPayment = require('../models/LinkPayment');
 const balanceModel = require('../models/balance.model');
 const Payment = require('../models/payment.model');
 
@@ -44,6 +45,25 @@ const PaymentController = {
                 })
             }
             balance.amount += payment.quote_amount;
+            balance.save();
+            payment.balanceImported = true;
+            payment.save();
+        }
+    },
+    async loadBalanceImportedLinkPayment(idLink) {
+        let payment = await LinkPayment.findOne({ id: idLink }).populate("asset");
+        console.log(payment.asset, "payment");
+        if (payment.balanceImported == false) {
+            let balance = await balanceModel.findOne({ userId: payment.merchantId, assetId: payment.assetId })
+            if (!balance) {
+                balance = new balanceModel({
+                    amount: 0,
+                    networkId: payment.asset.networkId,
+                    assetId: payment.assetId,
+                    userId: payment.merchantId,
+                })
+            }
+            balance.amount += payment.amount;
             balance.save();
             payment.balanceImported = true;
             payment.save();

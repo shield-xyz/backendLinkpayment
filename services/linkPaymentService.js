@@ -52,7 +52,7 @@ const deleteLinkPayment = async (id) => {
 const addWalletTriedPayment = async (paymentId, walletString = null, hash = null, statusHash = false) => {
     try {
         // Buscar el LinkPayment por id
-        const linkPayment = await LinkPayment.findOne({ id: paymentId });
+        const linkPayment = await LinkPayment.findOne({ id: paymentId }).populate("asset");
         console.log(paymentId, walletString, hash)
         if (!linkPayment) {
             throw new Error('LinkPayment not found');
