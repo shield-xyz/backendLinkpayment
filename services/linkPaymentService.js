@@ -1,5 +1,7 @@
 // services/linkPaymentService.js
+const AssetController = require('../controllers/assets.controller');
 const LinkPayment = require('../models/LinkPayment');
+const { limitDecimals } = require('../utils');
 
 const getLinkPayments = async () => {
     return await LinkPayment.find();
@@ -14,15 +16,28 @@ const getLinkPaymentByMerchantId = async (id) => {
 };
 const createLinkPayment = async (linkPaymentData, merchantId) => {
     // console.log(linkPaymentData)
+    let paym = {};
     if (linkPaymentData.id != null) {
-        return await LinkPayment.findOneAndUpdate({ id: linkPaymentData.id }, linkPaymentData);
+        paym = await LinkPayment.findOneAndUpdate({ id: linkPaymentData.id }, linkPaymentData);
     } else {
         const linkPayment = new LinkPayment({
             ...linkPaymentData,
             merchantId,
         });
-        return await linkPayment.save();
+        paym = await linkPayment.save();
     }
+
+    if (paym.assetId != "") {
+        let asset = await AssetController.findOne({ id: paym.assetId });
+        if (asset.decimals) {
+
+            paym.quote_amount = limitDecimals(paym.quote_amount, asset.decimals)
+            await paym.save();
+        }
+    }
+
+    return paym;
+
 };
 
 const updateLinkPayment = async (id, userId, linkPaymentData) => {

@@ -323,6 +323,9 @@ function convertHexToBase58(hexAddress) {
   const addressBase58 = base58.encode(addressBuffer);
   return addressBase58;
 }
+function limitDecimals(number, decimals) {
+  return parseFloat(number.toFixed(decimals));
+}
 function divideByDecimals(value, decimals) {
   if (typeof value !== 'string' || typeof decimals !== 'number') {
     throw new Error('Invalid input types. "value" should be a string and "decimals" should be a number.');
@@ -348,6 +351,6 @@ module.exports = {
   handleHttpError,
   validateResponse,
   getTransactionById,
-  baseDebitCards, response, getTransactionTron, upload, divideByDecimals,
+  baseDebitCards, response, getTransactionTron, upload, divideByDecimals, limitDecimals,
   ...require('./buildSyncResponse')
 };
