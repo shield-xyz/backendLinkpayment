@@ -41,9 +41,9 @@ const AssetController = {
                 "name": "Tether USD",
                 "decimals": 6,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
-                "active": true,
+                "active": false,
                 "networkId": "ethereum",
-                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                "address": ""
 
             },
             {
