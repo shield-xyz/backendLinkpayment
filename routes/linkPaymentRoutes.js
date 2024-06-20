@@ -6,6 +6,8 @@ const merchantService = require('../services/merchantService');
 const auth = require('../middleware/auth');
 const axios = require('axios');
 const { response } = require('../db');
+const TransactionController = require('../controllers/transactions.controller');
+const networksModel = require('../models/networks.model');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -60,13 +62,13 @@ router.get('/get/:id', async (req, res) => {
 router.post('/walletTriedpayment', async (req, res) => {
     try {
 
-        let statusTX = await getTransactionStatus(req.body.id);
-        if (statusTX.result == "CONFIRMED") {
+        // let statusTX = await getTransactionStatus(req.body.id);
+        // if (statusTX.result == "CONFIRMED") {
 
-            const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
-        } else {
+        const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
+        // } else {
 
-        }
+        // }
         res.status(200).send(response([]));
     } catch (err) {
         console.error(err);
@@ -76,6 +78,16 @@ router.post('/walletTriedpayment', async (req, res) => {
 router.post('/save/:id', async (req, res) => {
     try {
         const linkPayment = await linkPaymentService.addWalletTriedPayment(req.params.id, null, req.body.hash);
+        //add transaction create . 
+        await TransactionController.createTransaction({
+            // paymentId: req.body.paymentId,
+            assetId: linkPayment.assetId,
+            networkId: linkPayment.asset.network?._id,
+            linkPaymentId: linkPayment._id,
+            userId: linkPayment.userId,
+            amount: linkPayment.amount,
+            hash: req.body.hash
+        });
         res.status(200).send(response([]));
 
     } catch (err) {

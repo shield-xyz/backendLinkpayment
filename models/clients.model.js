@@ -12,6 +12,10 @@ const ClientSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    paymentLinkId: {
+        type: String,
+        ref: "PaymentLink"
+    }
     // apiKey: {
     //     type: String,
     //     unique: true,
