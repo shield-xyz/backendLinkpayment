@@ -5,8 +5,8 @@ require('dotenv').config();
 
 const LinkPaymentSchema = new mongoose.Schema({
     merchantId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Merchant',
+        type: String,
+        ref: 'User',
         required: true,
     },
     id: {
@@ -23,6 +23,10 @@ const LinkPaymentSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
+    },
+    assetId: {
+        type: String,
+        ref: "Asset"
     },
     date: {
         type: Date,
@@ -54,6 +58,14 @@ const LinkPaymentSchema = new mongoose.Schema({
         default: false,
     }
 });
+
+LinkPaymentSchema.virtual('user', {
+    ref: 'User', // The model to use
+    localField: 'userId', // Find people where `localField`
+    foreignField: '_id', // is equal to `foreignField`
+    justOne: true
+});
+LinkPaymentSchema.set('toObject', { virtuals: true });
 
 LinkPaymentSchema.pre('save', function (next) {
     // Generar un ID único para el link

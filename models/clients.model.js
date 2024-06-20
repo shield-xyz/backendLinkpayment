@@ -8,20 +8,24 @@ const ClientSchema = new mongoose.Schema({
         unique: true,
         trim: true
     },
-    password: {
+    name: {
         type: String,
         required: true,
     },
-    apiKey: {
+    paymentLinkId: {
         type: String,
-        unique: true,
+        ref: "PaymentLink"
     }
+    // apiKey: {
+    //     type: String,
+    //     unique: true,
+    // }
 });
 
 ClientSchema.pre('save', function (next) {
-    if (!this.apiKey) {
-        this.apiKey = crypto.randomBytes(16).toString('hex');
-    }
+    // if (!this.apiKey) {
+    //     // this.apiKey = crypto.randomBytes(16).toString('hex');
+    // }
     next();
 });
 

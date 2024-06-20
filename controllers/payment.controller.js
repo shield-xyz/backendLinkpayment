@@ -8,8 +8,8 @@ const PaymentController = {
         return payment;
     },
 
-    async getPayments() {
-        const payments = await Payment.find();
+    async getPayments(filter = {}) {
+        const payments = await Payment.find(filter).populate("asset");
         return payments;
     },
     async getOne(filter) {
@@ -34,13 +34,13 @@ const PaymentController = {
         let payment = await Payment.findById(idPayment).populate("asset");
         // console.log(payment.asset, "payment");
         if (payment.balanceImported == false) {
-            let balance = await balanceModel.findOne({ userId: payment.clientId, assetId: payment.assetId })
+            let balance = await balanceModel.findOne({ userId: payment.userId, assetId: payment.assetId })
             if (!balance) {
                 balance = new balanceModel({
                     amount: 0,
                     networkId: payment.asset.networkId,
                     assetId: payment.assetId,
-                    userId: payment.clientId,
+                    userId: payment.userId,
                 })
             }
             balance.amount += payment.quote_amount;

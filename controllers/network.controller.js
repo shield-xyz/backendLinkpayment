@@ -13,7 +13,8 @@ const NetworkController = {
     },
 
     async getNetworks(filter = {}) {
-        const networks = await Network.find(filter);
+        let networks = await Network.find(filter).populate("assets");
+        networks = networks.map(network => network.toObject({ virtuals: true })).filter(x => (x.assets.length > 0))
         return networks;
     },
 
@@ -39,8 +40,7 @@ const NetworkController = {
                     "networkId": "ethereum",
                     "name": "Ethereum",
                     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-                    "deposit_address": "",
-
+                    "deposit_address": "", // TODO change wallet to prod
                 },
                 {
                     "networkId": "tron",

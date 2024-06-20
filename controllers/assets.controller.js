@@ -41,9 +41,9 @@ const AssetController = {
                 "name": "Tether USD",
                 "decimals": 6,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
-                "active": false,
+                "active": true,
                 "networkId": "ethereum",
-                "address": null
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
 
             },
             {
@@ -83,10 +83,11 @@ const AssetController = {
                 "name": "USD Coin",
                 "decimals": 18,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
-                "active": false,
+                "active": true,
                 "networkId": "ethereum",
-                "address": null
-            }
+                "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            },
+
         ];
 
         const networks = await this.getAssets();

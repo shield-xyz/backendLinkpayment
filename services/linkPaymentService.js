@@ -3,8 +3,8 @@ const AssetController = require('../controllers/assets.controller');
 const LinkPayment = require('../models/LinkPayment');
 const { limitDecimals } = require('../utils');
 
-const getLinkPayments = async () => {
-    return await LinkPayment.find();
+const getLinkPayments = async (filter = {}) => {
+    return await LinkPayment.find(filter);
 };
 
 const getLinkPaymentById = async (query) => {
@@ -17,6 +17,8 @@ const getLinkPaymentByMerchantId = async (id) => {
 const createLinkPayment = async (linkPaymentData, merchantId) => {
     // console.log(linkPaymentData)
     let paym = {};
+    // console.log(linkPaymentData)+
+    linkPaymentData.merchantId = merchantId;
     if (linkPaymentData.id != null) {
         paym = await LinkPayment.findOneAndUpdate({ id: linkPaymentData.id }, linkPaymentData);
     } else {

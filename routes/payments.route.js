@@ -8,6 +8,7 @@ const apiKeyMaster = require('../middleware/apiKeyMaster');
 const AssetController = require('../controllers/assets.controller');
 const NetworkController = require('../controllers/network.controller.js');
 const logger = require('node-color-log');
+const TransactionController = require('../controllers/transactions.controller.js');
 
 router.get('/', apiKeyMaster, async (req, res) => {
 
@@ -18,10 +19,18 @@ router.get('/', apiKeyMaster, async (req, res) => {
         handleHttpError(error, res);
     }
 });
+router.get('/get/', auth, async (req, res) => {
 
+    try {
+        const payments = await PaymentController.getPayments({ userId: req.user.id });
+        res.send(response(payments));
+    } catch (error) {
+        handleHttpError(error, res);
+    }
+});
 router.post('/', apiKeyUser, async (req, res) => {
     try {
-        req.body.clientId = req.user.id;
+        req.body.userId = req.user.id;
         const payment = await PaymentController.createPayment(req.body);
         res.status(201).send(response(payment));
     } catch (error) {
@@ -66,6 +75,14 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
                 // console.log(data)
                 // validamos token enviado que sea correcto con el paymentID
                 let isValid = false;
+                const transactionTimestamp = new Date(data.timestamp);
+                const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
+                // Validar que la transacción sea de hace 10 minutos o menos
+                if (transactionTimestamp < tenMinutesAgo) {
+                    res.send(response("failed", "error"));
+                    return;
+                }
 
                 data.transfersAllList.map(async x => {
                     logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
@@ -80,6 +97,15 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
                                 payment.hash = data.hash;
                                 payment.status = "success";
                                 payment.save();
+                                await TransactionController.createTransaction({
+                                    paymentId: req.body.paymentId,
+                                    assetId: asset._id,
+                                    networkId: network._id,
+                                    linkPaymentId: null,
+                                    userId: payment.userId,
+                                    amount: quantity,
+                                    hash: req.body.hash
+                                });
                                 await PaymentController.loadBalanceImported(req.body.paymentId);
                             }
                         }
@@ -88,10 +114,11 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
                     res.send(response(payment)); return;
 
                 } else {
-
                     res.send(response("failed")); return;
                 }
+            case "ethereum":
 
+                break;
             default:
                 res.send(response("This network is not available yet", "error")); return;
         }

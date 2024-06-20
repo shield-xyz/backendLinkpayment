@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const { DebitCardService } = require('../services/debit-cards.service');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
-const { handleHttpError } = require('../utils/index.js');
+const { handleHttpError, response } = require('../utils/index.js');
 
 const secretKey = JWT_SECRET;
 
@@ -56,6 +56,16 @@ module.exports = {
             if (alreadyExists) {
                 handleHttpError(new Error('Email already taken.'), res, 200);
                 return;
+            }
+            // Validar la contraseña
+            const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
+            }
+            // Validar el email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json(response('Invalid email format.', "error"));
             }
 
             logger.info({ email, password, user_name });

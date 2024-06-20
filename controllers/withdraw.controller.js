@@ -8,7 +8,7 @@ const WithdrawController = {
     },
 
     async getWithdraws() {
-        const withdraws = await Withdraw.find();
+        const withdraws = await Withdraw.find().populate("asset user");
         return withdraws;
     },
 

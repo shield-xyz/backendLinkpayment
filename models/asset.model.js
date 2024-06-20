@@ -42,6 +42,12 @@ const AssetSchema = new mongoose.Schema({
     },
 
 });
+AssetSchema.virtual('network', {
+    ref: 'Network', // The model to use
+    localField: 'networkId', // Find people where `localField`
+    foreignField: 'networkId', // is equal to `foreignField`,
+    justOne: true
+});
 
 
 module.exports = mongoose.model('Asset', AssetSchema);
