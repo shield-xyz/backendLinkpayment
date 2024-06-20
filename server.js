@@ -3,7 +3,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 require('dotenv').config();
-const transactionRoutes = require('./routes/transactionRoutes');
 const merchantRoutes = require('./routes/merchantRoutes');
 const authRoutes = require('./routes/authRoutes'); // Importar rutas de autenticación
 const linkPaymentRoutes = require('./routes/linkPaymentRoutes'); // Importar rutas de linkPayment
@@ -39,7 +38,6 @@ app.use(cors()); // Permite todas las solicitudes CORS
 app.use(bodyParser.json());
 
 // Rutas
-app.use('/api/transactions', transactionRoutes);
 app.use('/api/merchants', merchantRoutes);
 app.use('/api/auth', authRoutes); // Usar rutas de autenticación
 app.use('/api/linkPayments', linkPaymentRoutes); // Usar rutas de linkPayment
@@ -55,6 +53,8 @@ app.use("/api/networks", networksRoutes)
 app.use("/api/payments", paymentsRoutes)
 app.use('/api/clients', clientRoutes);
 app.use('/api/slack', slackRoutes);
+app.use('/api/transactions', transactionsRoutes);
+
 
 
 // Tus otras configuraciones de middlewares y rutas

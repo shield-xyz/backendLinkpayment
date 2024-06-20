@@ -4,3 +4,5 @@
 .env.dev
 .env
 /uploads/
+.env.production
+.env.main
