@@ -6,6 +6,7 @@ const merchantService = require('../services/merchantService');
 const auth = require('../middleware/auth');
 const axios = require('axios');
 const { response } = require('../db');
+const { getTransactionTron } = require('../utils');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -62,6 +63,23 @@ router.post('/walletTriedpayment', async (req, res) => {
 
         let statusTX = await getTransactionStatus(req.body.id);
         if (statusTX.result == "CONFIRMED") {
+
+            const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
+        } else {
+
+        }
+        res.status(200).send(response([]));
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+router.post('/loadhash', async (req, res) => {
+    try {
+
+        let statusTX = await getTransactionTron(req.body.hash);
+
+        if (statusTX.contractRet == "SUCCESS") {
 
             const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
         } else {
