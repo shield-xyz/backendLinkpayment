@@ -28,7 +28,7 @@ const PaymentSchema = new mongoose.Schema({
         default: "",
         ref: "Asset"
     },
-    clientId: {
+    userId: {
         type: String,
         required: true,
         trim: true,

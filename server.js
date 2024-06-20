@@ -29,6 +29,7 @@ const slackRoutes = require('./routes/slack.route');
 const cors = require('cors');
 const { connectDB } = require('./db');
 const { listChannelsAndJoinIfNotMember, fetchMessages } = require('./controllers/SlackController');
+const EthereumNetworkUtils = require('./utils/EthereumNetworkUtils');
 const app = express();
 // Conectar a la base de datos
 connectDB();
@@ -45,11 +46,7 @@ app.use('/api/linkPayments', linkPaymentRoutes); // Usar rutas de linkPayment
 
 app.use('/api/balances', balanceRoutes);
 app.use('/api/blockchains', blockchainRoutes);
-// app.use('/api/cards', cardRoutes);
-// app.use('/api/limits', limitsRoutes);
-// app.use('/api/transactions', transactionsRoutes);
-// app.use('/api/tx-hash', txHash);
-// app.use('/api/tx-orphaned', txOrphanedRoutes);
+
 app.use('/api/users', userRoutes);
 app.use('/api/wallets', walletRoutes);
 
@@ -71,17 +68,9 @@ app.get('/health-check', (req, res) => res.status(200).send('OK'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
-// listChannelsAndJoinIfNotMember();
-
-// try {
-//     fetchMessages()
-//     setInterval(fetchMessages, 300000); // 300000 ms = 5 minutos
-
-// } catch (error) {
-//     console.log(error, "error en parte de slack ")
-// }
-
-
+// EthereumNetworkUtils.getTransactionDetails("0xc933b043360b9e9da4066cd06751c07633d7fff660e02a0a8db75200423d2340").then(res => {
+//     console.log(res, "balance")
+// })
 
 
 const PORT = process.env.PORT || 5000;

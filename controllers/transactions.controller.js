@@ -1,72 +1,51 @@
-const { TransactionsService } = require('../services');
-const { handleHttpError } = require('../utils/index.js');
-const TransactionModel = require('../models/transaction.model');
+const Transaction = require('../models/transaction.model');
 
-const TransactionsController = {
-  async getAllTransactions(req, res) {
+const TransactionController = {
+  async createTransaction(data) {
     try {
-      const transactions = await TransactionModel.find();
-      res.send(transactions);
+      const transaction = new Transaction(data);
+      await transaction.save();
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async getByCurrentUserFromRamp(req, res) {
+  async getTransactions(filter = {}) {
     try {
-      const userId = req.body.user.id;
-      const transactions = await TransactionsService.findFromRamp(userId);
-      res.send(transactions);
+      const transactions = await Transaction.find(filter);
+      return transactions;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async getNotSyncedByCurrentUser(req, res) {
+  async getTransactionById(id) {
     try {
-      const userId = req.body.user.id;
-      const transactions = await TransactionsService.notSynced(userId);
-      res.send(transactions);
+      const transaction = await Transaction.findById(id);
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async syncByCurrentUser(req, res) {
+  async updateTransaction(id, data) {
     try {
-      const userId = req.body.user.id;
-      const transactions = await TransactionsService.syncTransactions(userId);
-
-      if (transactions.numberOfTransactions === 0) {
-        return res.send({ message: 'No new transactions found' });
-      }
-
-      res.send(transactions);
+      const transaction = await Transaction.findByIdAndUpdate(id, data, { new: true });
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async syncMockTransactionsByCurrentUser(req, res) {
+  async deleteTransaction(id) {
     try {
-      const userId = req.body.user.id;
-      const data = req.body.transactions;
-
-      if (!data || !data.length) {
-        return res.send({ message: 'No transactions provided' });
-      }
-
-      const transactions = await TransactionsService.syncMockTransactions(userId, data);
-
-      if (transactions.numberOfTransactions === 0) {
-        return res.send({ message: 'No new transactions found' });
-      }
-
-      res.send(transactions);
+      const transaction = await Transaction.findByIdAndDelete(id);
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
-  },
+  }
 };
 
-module.exports = TransactionsController;
+module.exports = TransactionController;

@@ -284,8 +284,8 @@ async function getTransactionTron(hash, paymentId = null, linkpaymentId = null) 
       body: JSON.stringify({ value: hash })
     };
 
-    const apiKey = 'f79519c1-ed9c-4e07-8847-0a918bd2dc09';
-    const endpoint = 'https://apilist.tronscanapi.com/api/';
+    const apiKey = process.env.TRON_API_KEY;
+    const endpoint = process.env.TRON_END_POINT;//'https://apilist.tronscanapi.com/api/';
 
     let response = await fetch(endpoint + "transaction-info?hash=" + hash, {
       headers: {

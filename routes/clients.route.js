@@ -5,7 +5,7 @@ const { handleHttpError } = require('../utils/index.js'); // Asumiendo que tiene
 const { response } = require('../db'); // Asumiendo que tienes una función de respuesta
 const apiKeyMaster = require('../middleware/apiKeyMaster');
 
-router.post('/', apiKeyMaster, async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const client = await ClientsController.createClient(req.body);
         res.json(response(client, 'success'));
