@@ -134,10 +134,10 @@ module.exports = {
             };
 
             await transporter.sendMail(mailOptions);
-            res.status(200).json({ message: 'Password reset email sent' });
+            res.status(200).json(response('Password reset email sent'));
         } catch (error) {
             console.log(error)
-            res.status(500).json({ message: 'Error on forgot password', error });
+            res.status(500).json(response('Error on forgot password', "error"));
         }
     },
 
