@@ -1,12 +1,12 @@
 const logger = require('node-color-log');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
+const crypto = require('crypto');
 const { DebitCardService } = require('../services/debit-cards.service');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
 const { handleHttpError, response } = require('../utils/index.js');
-
+const transporter = require('../utils/Email');
 const secretKey = JWT_SECRET;
 
 module.exports = {
@@ -107,4 +107,69 @@ module.exports = {
             handleHttpError(error, res);
         }
     },
+    async forgotPassword(req, res) {
+        try {
+            const { email } = req.body;
+            const user = await UserModel.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Generar y guardar el token de restablecimiento
+            const resetToken = crypto.randomBytes(32).toString('hex');
+            user.resetPasswordToken = resetToken;
+            user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
+            await user.save();
+            console.log(user.email, "token", resetToken)
+            // Enviar email con el token de restablecimiento
+            const resetUrl = `http://${process.env.URL_FRONT}/reset-password/${resetToken}`;
+            const mailOptions = {
+                to: user.email,
+                from: process.env.EMAIL_USER,
+                subject: 'Password Reset',
+                text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+                       Please click on the following link, or paste this into your browser to complete the process:\n\n
+                       ${resetUrl}\n\n
+                       If you did not request this, please ignore this email and your password will remain unchanged.\n`
+            };
+
+            await transporter.sendMail(mailOptions);
+            res.status(200).json({ message: 'Password reset email sent' });
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ message: 'Error on forgot password', error });
+        }
+    },
+
+    async resetPassword(req, res) {
+        try {
+            const { token } = req.params;
+            const { password } = req.body;
+
+            const user = await UserModel.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            });
+
+            if (!user) {
+                return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
+            }
+            // Validar la contraseña
+            const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
+            }
+            // Actualizar la contraseña
+            const salt = bcrypt.genSaltSync(10);
+            user.password = bcrypt.hashSync(password, salt);
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+
+            res.status(200).json({ message: 'Password has been reset' });
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ message: 'Error on reset password', error });
+        }
+    }
 };

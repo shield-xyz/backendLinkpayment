@@ -44,6 +44,13 @@ router.get('/me/', auth, async (req, res) => {
 
 router.put('/me/', auth, upload.single('logo'), async (req, res) => {
     try {
+        // Validar la contraseña
+        if (req.body.password) {
+            const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+            if (!passwordRegex.test(req.body.password)) {
+                return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
+            }
+        }
         const updatedMerchant = await merchantService.updateMerchant(req.merchant._id, req.body, req);
         res.json(response(updatedMerchant));
     } catch (error) {

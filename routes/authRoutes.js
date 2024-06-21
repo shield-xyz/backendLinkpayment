@@ -12,6 +12,8 @@ const crypto = require('crypto');
 
 router.post('/login', logRequest, authController.login);
 router.post('/register', upload.single('logo'), logRequest, authController.register);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password/:token', authController.resetPassword);
 router.post('/generate-api-key', auth, async (req, res) => {
     try {
         const user = req.merchant; // Asumimos que el middleware `auth` añade el usuario a la solicitud
