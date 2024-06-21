@@ -51,7 +51,7 @@ const AssetController = {
                 "name": "USD Coin",
                 "decimals": 6,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
-                "active": false,
+                "active": true,
                 "networkId": "ethereum",
                 "address": process.env.USDC_ADDRESS_ETHEREUM
             },
