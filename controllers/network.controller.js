@@ -40,7 +40,7 @@ const NetworkController = {
                     "networkId": "ethereum",
                     "name": "Ethereum",
                     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-                    "deposit_address": "", // TODO change wallet to prod
+                    "deposit_address": "0xAb816fD46dEf5518dd615d863463A2226ef1745A", // TODO change wallet to prod
                 },
                 {
                     "networkId": "tron",

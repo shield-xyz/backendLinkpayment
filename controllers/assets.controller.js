@@ -41,10 +41,19 @@ const AssetController = {
                 "name": "Tether USD",
                 "decimals": 6,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
+                "active": true,
+                "networkId": "ethereum",
+                "address": process.env.USDT_ADDRESS_ETHEREUM
+            },
+            {
+                "assetId": "usdc-ethereum",
+                "symbol": "USDC",
+                "name": "USD Coin",
+                "decimals": 6,
+                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
                 "active": false,
                 "networkId": "ethereum",
-                "address": ""
-
+                "address": process.env.USDC_ADDRESS_ETHEREUM
             },
             {
                 "assetId": "usdt-tron",
@@ -77,16 +86,7 @@ const AssetController = {
                 "networkId": "ethereum",
                 "address": null
             },
-            {
-                "assetId": "usdc-ethereum",
-                "symbol": "USDC",
-                "name": "USD Coin",
-                "decimals": 18,
-                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
-                "active": false,
-                "networkId": "ethereum",
-                "address": ""
-            },
+
 
         ];
 

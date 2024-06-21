@@ -8,15 +8,8 @@ const authRoutes = require('./routes/authRoutes'); // Importar rutas de autentic
 const linkPaymentRoutes = require('./routes/linkPaymentRoutes'); // Importar rutas de linkPayment
 const path = require('path');
 const balanceRoutes = require('./routes/balance.route');
-const blockchainRoutes = require('./routes/blockchain.route');
-const cardRoutes = require('./routes/cards.route');
-const limitsRoutes = require('./routes/limits.route');
 const transactionsRoutes = require('./routes/transactions.route');
-const txHash = require('./routes/txHash.route');
-const txOrphanedRoutes = require('./routes/txOrphaned.route');
 const userRoutes = require('./routes/user.route');
-const walletRoutes = require('./routes/wallet.route');
-const webhookRoutes = require('./routes/webhook.route');
 const assetRoutes = require('./routes/assets.route');
 const networksRoutes = require('./routes/networks.route');
 const paymentsRoutes = require('./routes/payments.route');
@@ -43,10 +36,7 @@ app.use('/api/auth', authRoutes); // Usar rutas de autenticación
 app.use('/api/linkPayments', linkPaymentRoutes); // Usar rutas de linkPayment
 
 app.use('/api/balances', balanceRoutes);
-app.use('/api/blockchains', blockchainRoutes);
-
 app.use('/api/users', userRoutes);
-app.use('/api/wallets', walletRoutes);
 
 app.use("/api/assets", assetRoutes)
 app.use("/api/networks", networksRoutes)
@@ -60,8 +50,8 @@ app.use('/api/transactions', transactionsRoutes);
 // Tus otras configuraciones de middlewares y rutas
 app.use('/api/withdraws', withdrawRoutes);
 app.use('/api/accounts', accountRoutes);
+app.use('/', (req, res) => res.status(200).send('Api Shield 1.0'));
 
-app.use('/api/webhook', webhookRoutes);
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 
 // Configurar la carpeta de archivos estáticos

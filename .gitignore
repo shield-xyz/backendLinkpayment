@@ -3,6 +3,7 @@
 .env.prod
 .env.dev
 .env
-/uploads/
+uploads/*
+!uploads/default.jpg
 .env.production
 .env.main

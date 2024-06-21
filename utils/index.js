@@ -7,6 +7,8 @@ const Airtable = require('airtable');
 const fetch = require('node-fetch');
 const base58 = require('bs58');
 const { Buffer } = require('buffer');
+const TronNetworkUtils = require("./TronNetworkUtils");
+const EthereumNetworkUtils = require("./EthereumNetworkUtils");
 const { CHAIN_TYPE, CRYPT_API_KEY,
   AIRTABLE_API_KEY,
   AIRTABLE_BASE_ID,
@@ -20,17 +22,16 @@ const {
 } = require('../config');
 const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
 const baseDebitCards = base(AIRTABLE_TABLE_NAME);
-
 async function loadTronWeb() {
   const TronWeb = await import('tronweb');
   return TronWeb;
 };
 const https = require('https');
 const ccxt = require('ccxt');
-const TransactionLogController = require('../controllers/transactionsLogs.controller');
 // const TransactionsLogModel = require('../models/transactionsLog.model');
 const multer = require('multer');
 const path = require('path');
+const logger = require('node-color-log');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
@@ -267,55 +268,6 @@ let response = (data, status = "success") => {
   return { response: data, status: status }
 }
 
-async function getTransactionTron(hash, paymentId = null, linkpaymentId = null) {
-  try {
-    // Busca en la base de datos si la transacción ya está almacenada
-    let tx = await TransactionLogController.findOne({ hash: hash, network: "tron" });
-
-    // Si se encuentra en la base de datos, la devuelve
-    if (tx != undefined && tx != null) {
-      return tx;
-    }
-
-    // // Consulta la API de TronGrid para obtener la información de la transacción
-    let options = {
-      method: 'POST',
-      headers: { accept: 'application/json', 'content-type': 'application/json' },
-      body: JSON.stringify({ value: hash })
-    };
-
-    const apiKey = process.env.TRON_API_KEY;
-    const endpoint = process.env.TRON_END_POINT;//'https://apilist.tronscanapi.com/api/';
-
-    let response = await fetch(endpoint + "transaction-info?hash=" + hash, {
-      headers: {
-        'TRON-PRO-API-KEY': apiKey
-      }
-    })
-
-    // let response = await fetch('https://api.trongrid.io/wallet/gettransactioninfobyid', options);
-    // let response = await fetch('https://api.trongrid.io/v1/accounts/TTd9qHyjqiUkfTxe3gotbuTMpjU8LEbpkN/transactions/trc20', options);
-    options = { method: 'GET', headers: { accept: 'application/json' } };
-
-    // let response = await fetch('https://api.trongrid.io/v1/accounts/TXmgYw1jWsN4jSABtNxF6HwhasTPM39Cay/transactions/trc20?limit=200&only_to=true', options)
-
-    let data = await response.json();
-    if (paymentId != null)
-      data.paymentId = paymentId;
-    if (linkpaymentId != null)
-      data.linkpaymentId = linkpaymentId;
-
-    data.hash = hash;
-    data.network = "tron";
-    // Guarda la transacción en la base de datos
-    await TransactionLogController.createTransaction(data);
-    return data;
-
-  } catch (error) {
-    console.error('Error fetching transaction status:', error);
-    return { error: "error not found" };
-  }
-}
 
 // Función para convertir direcciones de formato hexadecimal a Base58Check
 function convertHexToBase58(hexAddress) {
@@ -339,6 +291,94 @@ function divideByDecimals(value, decimals) {
   const divisor = Math.pow(10, decimals);
   return numericValue / divisor;
 }
+
+
+async function validatePayment(hash, amount, network, asset, linkId = null, paymentId = null) {
+
+  let transactionLog, transactionTimestamp, tenMinutesAgo;
+  switch (network.networkId) {
+    case "tron":
+      transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
+      if (transactionLog.error) {
+        return response("error transaction log", "error");
+      }
+      if (!transactionLog.hash || transactionLog.network) {//guardamos la informacion del a transaccion log
+        transactionLog.paymentId = paymentId;
+        transactionLog.linkpaymentId = linkId;
+        transactionLog.hash = hash;
+        transactionLog.network = network.networkId;
+      }
+      await transactionLog.save();
+      transactionTimestamp = new Date(transactionLog.timestamp);
+      tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+      // Validar que la transacción sea de hace 10 minutos o menos
+      if (transactionTimestamp < tenMinutesAgo) {
+        return response("date greater than 10 minutes", "error");
+      }
+      for (let iData = 0; iData < transactionLog.transfersAllList.length; iData++) {
+        const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .
+        logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
+        logger.fontColorLog('blue', x.to_address.toLowerCase() == network.deposit_address.toLowerCase());
+        if (x.to_address.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+          if (x.contract_address.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
+            //validar la cantidad de token
+            let quantity = divideByDecimals(x.amount_str, x.decimals);
+            console.log(quantity);
+            if (quantity >= amount) {
+              isValid = true;
+              // payment.hash = hash;
+              // payment.status = "success";
+              // payment.save();
+              // await TransactionController.createTransaction(transactionBody);
+              // await PaymentController.loadBalanceImported(req.body.paymentId);
+              return response("correct transaction");
+            }
+          }
+      }
+      return response("incorrect transaction", "error");
+
+
+      break;
+    case "ethereum":
+      transactionLog = await EthereumNetworkUtils.getTransactionDetails(hash);
+      console.log(transactionLog);
+      if (!transactionLog.network) {
+
+        transactionLog.paymentId = paymentId;
+        transactionLog.linkpaymentId = linkId;
+        transactionLog.hash = hash;
+        transactionLog.network = network.networkId;
+      }
+      await transactionLog.save();
+
+      if (transactionLog?.applied == true) {
+        return response("transaciont used for another payment", "error");
+      }
+      logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
+      logger.fontColorLog('blue', transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase());
+      if (transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+        if (transactionLog.tokenContract.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
+          //validar la cantidad de token
+          let quantity = divideByDecimals(transactionLog.value, asset.decimals);
+          console.log("qty :; ", quantity);
+          if (quantity >= amount) {
+            isValid = true;
+            // payment.hash = hash;
+            // payment.status = "success";
+            // payment.save();
+            // await TransactionController.createTransaction(transactionBody);
+            // await PaymentController.loadBalanceImported(req.body.paymentId);
+            return response("correct transaction");
+          }
+        }
+      return response("incorrect transaction", "error");
+
+      console.log(transactionLog, "tx log ethereum");
+      break;
+    default: return response("network not found", "error");
+  }
+
+}
 module.exports = {
   getRampToken,
   getRampUserId,
@@ -351,6 +391,6 @@ module.exports = {
   handleHttpError,
   validateResponse,
   getTransactionById,
-  baseDebitCards, response, getTransactionTron, upload, divideByDecimals, limitDecimals,
+  baseDebitCards, response, upload, divideByDecimals, limitDecimals, validatePayment,
   ...require('./buildSyncResponse')
 };

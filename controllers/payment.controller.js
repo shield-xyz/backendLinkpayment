@@ -50,9 +50,9 @@ const PaymentController = {
             payment.save();
         }
     },
-    async loadBalanceImportedLinkPayment(idLink) {
-        let payment = await LinkPayment.findOne({ id: idLink }).populate("asset");
-        console.log(payment.asset, "payment");
+    async loadBalanceImportedLinkPayment(payment) {
+        // let payment = await LinkPayment.findOne({ id: idLink }).populate("asset");
+        // console.log(payment.asset, "payment");
         if (payment.balanceImported == false) {
             let balance = await balanceModel.findOne({ userId: payment.merchantId, assetId: payment.assetId })
             if (!balance) {
@@ -64,9 +64,9 @@ const PaymentController = {
                 })
             }
             balance.amount += payment.amount;
-            balance.save();
+            await balance.save();
             payment.balanceImported = true;
-            payment.save();
+            await payment.save();
         }
     }
 };

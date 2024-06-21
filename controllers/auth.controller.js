@@ -36,6 +36,9 @@ module.exports = {
                 user_name: user.user_name,
                 email: user.email,
                 token,
+                logo: user.logo,
+                company: user.company,
+                apiKey: user.apiKey,
             };
 
             res.send({ response: response, status: "success" });
@@ -48,7 +51,7 @@ module.exports = {
         try {
             const { user_name, email, password, company } = req.body;
             // Obtener el nombre del archivo subido
-            const filename = req.file.filename;
+            const filename = (req.file?.filename) ? req.file?.filename : "default.jpg";
             // console.log(filename)
 
             const alreadyExists = await UserModel.findOne({ email: email });
@@ -98,7 +101,7 @@ module.exports = {
 
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
 
-            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company }, status: "success" });
+            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey }, status: "success" });
         } catch (error) {
             console.log(error);
             handleHttpError(error, res);

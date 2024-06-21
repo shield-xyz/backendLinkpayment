@@ -10,10 +10,11 @@ const TransactionController = require('../controllers/transactions.controller');
 const networksModel = require('../models/networks.model');
 const NetworkController = require('../controllers/network.controller');
 const { loadBalanceImportedLinkPayment } = require('../controllers/payment.controller');
+const LinkPayment = require('../models/LinkPayment');
+const { validatePayment } = require('../utils');
 
 router.get('/', auth, async (req, res) => {
     try {
-        console.log(req.user)
         const linkPayments = await linkPaymentService.getLinkPayments({ merchantId: req.user._id });
         res.json(linkPayments);
     } catch (err) {
@@ -63,14 +64,11 @@ router.get('/get/:id', async (req, res) => {
 });
 router.post('/walletTriedpayment', async (req, res) => {
     try {
-
-        // let statusTX = await getTransactionStatus(req.body.id);
-        // if (statusTX.result == "CONFIRMED") {
-
-        const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
-        // } else {
-
-        // }
+        const linkPayment = await LinkPayment.findOne({ id: req.body.id }).populate("asset");
+        if (req.body.wallet != null) {
+            linkPayment.walletsTriedPayment.push(req.body.wallet);
+        }
+        await linkPayment.save();
         res.status(200).send(response([]));
     } catch (err) {
         console.error(err);
@@ -79,21 +77,37 @@ router.post('/walletTriedpayment', async (req, res) => {
 });
 router.post('/save/:id', async (req, res) => {
     try {
-        const linkPayment = await linkPaymentService.addWalletTriedPayment(req.params.id, null, req.body.hash);
-        console.log(linkPayment.asset)
-        let network = await NetworkController.findOne({ id: linkPayment.assetId.networkId });
-        //TODO validar monto y cantidad = al link payment
-        //add transaction create . 
-        await TransactionController.createTransaction({
-            // paymentId: req.body.paymentId,
-            assetId: linkPayment.assetId,
-            networkId: network?._id,
-            linkPaymentId: linkPayment._id,
-            userId: linkPayment.userId,
-            amount: linkPayment.amount,
-            hash: req.body.hash
-        });
-        loadBalanceImportedLinkPayment(req.params.id)
+        //se obtiene el link
+        let linkPayment = await LinkPayment.findOne({ id: req.params.id }).populate("asset");
+        linkPayment.toObject();
+
+        let network = await NetworkController.findOne({ networkId: linkPayment.asset.networkId });
+        if (!linkPayment.assetId) {
+            res.status(200).send(response("asset not defined", "error"));
+            return;
+        }
+        let resp = await validatePayment(req.body.hash, linkPayment.amount, network, linkPayment.asset, linkPayment.id, null);
+        if (resp.status == "success") {
+            linkPayment.hash.push(req.body.hash);
+            linkPayment.status = "paid";
+            await linkPayment.save();
+            // payment.hash = req.body.hash;
+            // payment.status = "success";
+            // payment.save();
+            await TransactionController.createTransaction({
+                // paymentId: req.body.paymentId,
+                assetId: linkPayment.assetId,
+                networkId: network?._id,
+                linkPaymentId: linkPayment._id,
+                userId: linkPayment.userId,
+                amount: linkPayment.amount,
+                hash: req.body.hash
+            });
+            await loadBalanceImportedLinkPayment(linkPayment)
+        } else {
+            isValid = false;
+        }
+
         res.status(200).send(response([]));
 
     } catch (err) {
@@ -104,7 +118,6 @@ router.post('/save/:id', async (req, res) => {
 
 router.post('/all', auth, async (req, res) => {
     try {
-        // console.log(req)
         const linkPayment = await linkPaymentService.getLinkPaymentByMerchantId(req.user.id);
         if (!linkPayment) {
             return res.status(404).json(response('LinkPayment not found', "error"));
@@ -118,7 +131,6 @@ router.post('/all', auth, async (req, res) => {
 
 router.post('/pause', auth, async (req, res) => {
     try {
-        console.log(req.user)
         const linkPayment = await linkPaymentService.updateLinkPayment(req.body.id, req.user._id, { status: "Paused" });
         res.status(200).send(response(linkPayment));
 
@@ -131,7 +143,6 @@ router.post('/pause', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
     try {
         const merchantId = req.user.id; // Obtener merchantId del token
-        console.log(merchantId, "merchant")
         const newLinkPayment = await linkPaymentService.createLinkPayment(req.body, merchantId);
         res.json(response(newLinkPayment));
     } catch (err) {
