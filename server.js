@@ -50,12 +50,12 @@ app.use('/api/transactions', transactionsRoutes);
 // Tus otras configuraciones de middlewares y rutas
 app.use('/api/withdraws', withdrawRoutes);
 app.use('/api/accounts', accountRoutes);
-app.use('/', (req, res) => res.status(200).send('Api Shield 1.0'));
 
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 
 // Configurar la carpeta de archivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/', (req, res) => res.status(200).send('Api Shield 1.0'));
 
 
 // EthereumNetworkUtils.getTransactionDetails("0xc933b043360b9e9da4066cd06751c07633d7fff660e02a0a8db75200423d2340").then(res => {
