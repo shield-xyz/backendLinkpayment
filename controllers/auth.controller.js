@@ -8,7 +8,9 @@ const { JWT_SECRET } = require('../config');
 const { handleHttpError, response } = require('../utils/index.js');
 const transporter = require('../utils/Email');
 const secretKey = JWT_SECRET;
-
+const fs = require('fs');
+const path = require('path');
+const handlebars = require('handlebars');
 module.exports = {
     async login(req, res) {
         try {
@@ -122,17 +124,23 @@ module.exports = {
             await user.save();
             console.log(user.email, "token", resetToken)
             // Enviar email con el token de restablecimiento
-            const resetUrl = `http://${process.env.URL_FRONT}/reset-password/${resetToken}`;
+            // Leer el template de email
+            const templatePath = path.join(__dirname, '../templates/emailTemplate.html');
+            const source = fs.readFileSync(templatePath, 'utf-8').toString();
+            const template = handlebars.compile(source);
+
+
+
+            const resetUrl = `${process.env.URL_FRONT}/reset-password/${resetToken}`;
+            const htmlToSend = template({ resetUrl });
+
+            // Enviar email con el token de restablecimiento
             const mailOptions = {
                 to: user.email,
                 from: process.env.EMAIL_USER,
                 subject: 'Password Reset',
-                text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
-                       Please click on the following link, or paste this into your browser to complete the process:\n\n
-                       ${resetUrl}\n\n
-                       If you did not request this, please ignore this email and your password will remain unchanged.\n`
+                html: htmlToSend
             };
-
             await transporter.sendMail(mailOptions);
             res.status(200).json(response('Password reset email sent'));
         } catch (error) {
