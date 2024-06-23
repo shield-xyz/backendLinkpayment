@@ -43,7 +43,7 @@ const getTransactionStatus = async (txHash) => {
 
 router.get('/get/:id', async (req, res) => {
     try {
-        const linkPayment = await linkPaymentService.getLinkPaymentById({ id: req.params.id, status: "pending" });
+        let linkPayment = await linkPaymentService.getLinkPaymentById({ id: req.params.id, status: "pending" });
         if (!linkPayment) {
             return res.status(404).json({ message: 'LinkPayment not found' });
         }
@@ -51,12 +51,13 @@ router.get('/get/:id', async (req, res) => {
         if (!merchant) {
             return response('Merchant not found', "error")
         }
-        // Convertir a objeto plano y eliminar la contraseña
-        const merchantWithoutPassword = { ...merchant.toObject(), password: undefined };
-        // Convertir linkPayment a objeto plano y agregar el merchant
-        const linkPaymentWithMerchant = { ...linkPayment.toObject(), merchant: merchantWithoutPassword };
-
-        res.json(response(linkPaymentWithMerchant));
+        // // Convertir a objeto plano y eliminar la contraseña
+        // const merchantWithoutPassword = { ...merchant.toObject(), password: undefined };
+        // // Convertir linkPayment a objeto plano y agregar el merchant
+        // const linkPaymentWithMerchant = { ...linkPayment.toObject(), merchant: merchantWithoutPassword };
+        linkPayment = linkPayment.toObject()
+        console.log(linkPayment)
+        res.json(response(linkPayment));
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');

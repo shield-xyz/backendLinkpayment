@@ -61,9 +61,10 @@ const LinkPaymentSchema = new mongoose.Schema({
 
 LinkPaymentSchema.virtual('user', {
     ref: 'User', // The model to use
-    localField: 'userId', // Find people where `localField`
+    localField: 'merchantId', // Find people where `localField`
     foreignField: '_id', // is equal to `foreignField`
-    justOne: true
+    justOne: true,
+
 });
 LinkPaymentSchema.virtual('asset', {
     ref: 'Asset', // The model to use

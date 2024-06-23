@@ -11,6 +11,7 @@ const secretKey = JWT_SECRET;
 const fs = require('fs');
 const path = require('path');
 const handlebars = require('handlebars');
+const { ensureWalletNetworkUsersForUser } = require('./walletNetworkUser.controller.js');
 module.exports = {
     async login(req, res) {
         try {
@@ -102,7 +103,8 @@ module.exports = {
             });
 
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
-
+            //creamos wallets defaults : 
+            await ensureWalletNetworkUsersForUser(user._id);
             res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey }, status: "success" });
         } catch (error) {
             console.log(error);

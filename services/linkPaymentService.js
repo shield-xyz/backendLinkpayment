@@ -8,7 +8,7 @@ const getLinkPayments = async (filter = {}) => {
 };
 
 const getLinkPaymentById = async (query) => {
-    return await LinkPayment.findOne(query);
+    return await LinkPayment.findOne(query).populate({ path: "user", select: "-apiKey -resetPasswordExpires -resetPasswordToken -__v -createdAt -updatedAt" });
 };
 
 const getLinkPaymentByMerchantId = async (id) => {
