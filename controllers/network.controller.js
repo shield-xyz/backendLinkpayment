@@ -58,9 +58,9 @@ const NetworkController = {
                 }
             ];
 
+            const networks = await this.getNetworks();
         for (let i = 0; i < data.length; i++) {
             const element = data[i];
-            const networks = await this.getNetworks();
             let exist = networks.find(x => x.networkId == element.networkId);
             if (exist != undefined)
                 await this.updateNetwork(element.networkId, element);

@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:server": "pm2 start ./bin/ecosystem.config.js",
-    "import-transactions": "node scripts/ImportTransactions.js"
+    "import-transactions": "node scripts/ImportTransactions.js",
+    "executeone": "node scripts/ExecuteOneTime.js"
   },
   "keywords": [],
   "author": "",

@@ -20,9 +20,8 @@ const slackRoutes = require('./routes/slack.route');
 const walletNetworkUserRoutes = require('./routes/walletNetworkUser.route');
 const cors = require('cors');
 const { connectDB } = require('./db');
-const { listChannelsAndJoinIfNotMember, fetchMessages } = require('./controllers/SlackController');
-const EthereumNetworkUtils = require('./utils/EthereumNetworkUtils');
 const app = express();
+const configurationsRoutes = require("./routes/configuration.route");
 // Conectar a la base de datos
 connectDB();
 
@@ -51,6 +50,7 @@ app.use('/api/transactions', transactionsRoutes);
 app.use('/api/withdraws', withdrawRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/walletsUser', walletNetworkUserRoutes);
+app.use('/api/configurations', configurationsRoutes);
 
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 

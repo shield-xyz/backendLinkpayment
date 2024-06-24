@@ -5,7 +5,6 @@ const { handleHttpError, response } = require('../utils/index.js');
 const authAdmin = require('../middleware/authAdmin');
 
 
-NetworkController.createDefault();
 
 router.post('/', authAdmin, async (req, res) => {
     try {

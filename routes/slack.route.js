@@ -11,7 +11,6 @@ const SlackController = require('../controllers/SlackController.js');
 const WithdrawController = require('../controllers/withdraw.controller.js');
 const accountModel = require('../models/account.model.js');
 
-NetworkController.createDefault();
 
 router.post('/challenge', async (req, res) => {
     try {

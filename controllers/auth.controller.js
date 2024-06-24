@@ -6,12 +6,9 @@ const { DebitCardService } = require('../services/debit-cards.service');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
 const { handleHttpError, response } = require('../utils/index.js');
-const transporter = require('../utils/Email');
 const secretKey = JWT_SECRET;
-const fs = require('fs');
-const path = require('path');
-const handlebars = require('handlebars');
 const { ensureWalletNetworkUsersForUser } = require('./walletNetworkUser.controller.js');
+const { sendPasswordResetEmail } = require('./email.controller.js');
 module.exports = {
     async login(req, res) {
         try {
@@ -126,24 +123,9 @@ module.exports = {
             await user.save();
             console.log(user.email, "token", resetToken)
             // Enviar email con el token de restablecimiento
-            // Leer el template de email
-            const templatePath = path.join(__dirname, '../templates/emailTemplate.html');
-            const source = fs.readFileSync(templatePath, 'utf-8').toString();
-            const template = handlebars.compile(source);
-
-
 
             const resetUrl = `${process.env.URL_FRONT}/reset-password/${resetToken}`;
-            const htmlToSend = template({ resetUrl });
-
-            // Enviar email con el token de restablecimiento
-            const mailOptions = {
-                to: user.email,
-                from: process.env.EMAIL_USER,
-                subject: 'Password Reset',
-                html: htmlToSend
-            };
-            await transporter.sendMail(mailOptions);
+            await sendPasswordResetEmail(user.email, resetUrl);
             res.status(200).json(response('Password reset email sent'));
         } catch (error) {
             console.log(error)
