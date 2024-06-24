@@ -9,19 +9,13 @@ const base58 = require('bs58');
 const { Buffer } = require('buffer');
 const TronNetworkUtils = require("./TronNetworkUtils");
 const EthereumNetworkUtils = require("./EthereumNetworkUtils");
+const BitcoinNetworkUtils = require("./BitcoinNetworkUtils");
 const { CHAIN_TYPE, CRYPT_API_KEY,
   AIRTABLE_API_KEY,
   AIRTABLE_BASE_ID,
   AIRTABLE_TABLE_NAME,
 } = require('../config');
-const {
-  RAMP_CLIENT_ID,
-  RAMP_SECRET_ID,
-  RAMP_API_URL,
-  TOKENS,
-} = require('../config');
-const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
-const baseDebitCards = base(AIRTABLE_TABLE_NAME);
+
 async function loadTronWeb() {
   const TronWeb = await import('tronweb');
   return TronWeb;
@@ -39,6 +33,7 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // console.log("savefile")
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    console.log("file . ", req.merchant?._id ? req.merchant._id + path.extname(file.originalname) : uniqueSuffix + path.extname(file.originalname), req.merchant)
     cb(null, req.merchant?._id ? req.merchant._id + path.extname(file.originalname) : uniqueSuffix + path.extname(file.originalname));
   }
 });
@@ -294,89 +289,127 @@ function divideByDecimals(value, decimals) {
 
 
 async function validatePayment(hash, amount, network, asset, linkId = null, paymentId = null) {
+  try {
+    let transactionLog, transactionTimestamp, tenMinutesAgo;
+    let isValid = false;
+    switch (network.networkId) {
+      case "tron":
+        transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
+        if (transactionLog.error) {
+          return response("error transaction log", "error");
+        }
+        if (!transactionLog.hash || transactionLog.network) {//guardamos la informacion del a transaccion log
 
-  let transactionLog, transactionTimestamp, tenMinutesAgo;
-  switch (network.networkId) {
-    case "tron":
-      transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
-      if (transactionLog.error) {
-        return response("error transaction log", "error");
-      }
-      if (!transactionLog.hash || transactionLog.network) {//guardamos la informacion del a transaccion log
-        transactionLog.paymentId = paymentId;
-        transactionLog.linkpaymentId = linkId;
-        transactionLog.hash = hash;
-        transactionLog.network = network.networkId;
-      }
-      await transactionLog.save();
-      transactionTimestamp = new Date(transactionLog.timestamp);
-      tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-      // Validar que la transacción sea de hace 10 minutos o menos
-      if (transactionTimestamp < tenMinutesAgo) {
-        return response("date greater than 10 minutes", "error");
-      }
-      for (let iData = 0; iData < transactionLog.transfersAllList.length; iData++) {
-        const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .
+          transactionLog.hash = hash;
+          transactionLog.network = network.networkId;
+        }
+        await transactionLog.save();
+        transactionTimestamp = new Date(transactionLog.timestamp);
+        tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        // Validar que la transacción sea de hace 10 minutos o menos
+        if (transactionTimestamp < tenMinutesAgo) {
+          return response("date greater than 10 minutes", "error");
+        }
+        for (let iData = 0; iData < transactionLog.transfersAllList.length; iData++) {
+          const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .
+          logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
+          logger.fontColorLog('blue', x.to_address.toLowerCase() == network.deposit_address.toLowerCase());
+          if (x.to_address.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+            if (x.contract_address.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
+              //validar la cantidad de token
+              let quantity = divideByDecimals(x.amount_str, x.decimals);
+              console.log(quantity);
+              if (quantity >= amount) {
+                isValid = true;
+                // payment.hash = hash;
+                // payment.status = "success";
+                // payment.save();
+                // await TransactionController.createTransaction(transactionBody);
+                // await PaymentController.loadBalanceImported(req.body.paymentId);
+                return response("correct transaction");
+              }
+            }
+        }
+        return response("incorrect transaction", "error");
+
+
+        break;
+      case "ethereum":
+        transactionLog = await EthereumNetworkUtils.getTransactionDetails(hash);
+        console.log(transactionLog);
+        if (!transactionLog?.network) {
+
+          transactionLog.paymentId = paymentId;
+          transactionLog.linkpaymentId = linkId;
+          transactionLog.hash = hash;
+          transactionLog.network = network.networkId;
+        }
+        await transactionLog.save();
+
+        if (transactionLog?.applied == true) {
+          return response("transaciont used for another payment", "error");
+        }
         logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
-        logger.fontColorLog('blue', x.to_address.toLowerCase() == network.deposit_address.toLowerCase());
-        if (x.to_address.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
-          if (x.contract_address.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
+        logger.fontColorLog('blue', transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase());
+        if (transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+          if (transactionLog.tokenContract.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
             //validar la cantidad de token
-            let quantity = divideByDecimals(x.amount_str, x.decimals);
-            console.log(quantity);
+            let quantity = divideByDecimals(transactionLog.value, asset.decimals);
             if (quantity >= amount) {
               isValid = true;
-              // payment.hash = hash;
-              // payment.status = "success";
-              // payment.save();
-              // await TransactionController.createTransaction(transactionBody);
-              // await PaymentController.loadBalanceImported(req.body.paymentId);
+              transactionLog.applied = true;
+              await transactionLog.save();
               return response("correct transaction");
             }
           }
-      }
-      return response("incorrect transaction", "error");
+        return response("incorrect transaction", "error");
+        break;
+      case "bitcoin":
+        transactionLog = await BitcoinNetworkUtils.getTransactionDetails(hash);
+        console.log(transactionLog);
 
+        if (!transactionLog?.network) {
 
-      break;
-    case "ethereum":
-      transactionLog = await EthereumNetworkUtils.getTransactionDetails(hash);
-      console.log(transactionLog);
-      if (!transactionLog.network) {
+          transactionLog.paymentId = paymentId;
+          transactionLog.linkpaymentId = linkId;
+          transactionLog.hash = hash;
+          transactionLog.network = network.networkId;
+        }
+        await transactionLog.save();
+        // no fue ya aplicada
+        if (transactionLog?.applied == true) {
+          return response("transaciont used for another payment", "error");
+        }
+        // fecha no mas vieja a 10 minutos.
+        transactionTimestamp = new Date(transactionLog.received);
+        tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        // Validar que la transacción sea de hace 10 minutos o menos
+        // if (transactionTimestamp < tenMinutesAgo) {
+        //   return response("date greater than 10 minutes", "error");
+        // }
 
-        transactionLog.paymentId = paymentId;
-        transactionLog.linkpaymentId = linkId;
-        transactionLog.hash = hash;
-        transactionLog.network = network.networkId;
-      }
-      await transactionLog.save();
+        for (let i = 0; i < transactionLog.outputs.length; i++) {//recorrer los outputs (salidas de btc a wallets) 
+          let output = transactionLog.outputs[i];
+          if (output.addresses[0].toLowerCase() == network.deposit_address.toLowerCase()) { //si coincide con la nuestra 
+            if (output.value >= amount) {   // coincide el monto
+              isValid = true;
+              transactionLog.applied = true;
+              await transactionLog.save();
+              return response("correct transaction");
+            }
 
-      if (transactionLog?.applied == true) {
-        return response("transaciont used for another payment", "error");
-      }
-      logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
-      logger.fontColorLog('blue', transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase());
-      if (transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
-        if (transactionLog.tokenContract.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
-          //validar la cantidad de token
-          let quantity = divideByDecimals(transactionLog.value, asset.decimals);
-          console.log("qty :; ", quantity);
-          if (quantity >= amount) {
-            isValid = true;
-            // payment.hash = hash;
-            // payment.status = "success";
-            // payment.save();
-            // await TransactionController.createTransaction(transactionBody);
-            // await PaymentController.loadBalanceImported(req.body.paymentId);
-            return response("correct transaction");
           }
         }
-      return response("incorrect transaction", "error");
+        return response("incorrect transaction", "error");
+        break;
+      default: return response("network not found", "error");
+    }
+  } catch (error) {
+    console.log(error)
+    return response("incorrect transaction", "error");
 
-      console.log(transactionLog, "tx log ethereum");
-      break;
-    default: return response("network not found", "error");
   }
+
 
 }
 module.exports = {
@@ -390,7 +423,6 @@ module.exports = {
   handleError,
   handleHttpError,
   validateResponse,
-  getTransactionById,
-  baseDebitCards, response, upload, divideByDecimals, limitDecimals, validatePayment,
+  getTransactionById, response, upload, divideByDecimals, limitDecimals, validatePayment,
   ...require('./buildSyncResponse')
 };

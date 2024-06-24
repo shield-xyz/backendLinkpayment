@@ -10,6 +10,10 @@ const NetworkController = require('../controllers/network.controller.js');
 const logger = require('node-color-log');
 const TransactionController = require('../controllers/transactions.controller.js');
 const getTransactionTron = require('../utils/Tronweb.js');
+const { sendTransactionSuccessEmail, sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
+const ConfigurationUser = require('../models/configurationUser.model.js');
+const { CONFIGURATIONS } = require('../config/index.js');
+const ConfigurationUserController = require('../controllers/configurationUser.controller.js');
 
 router.get('/', apiKeyMaster, async (req, res) => {
 
@@ -69,24 +73,28 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
         let asset = await AssetController.findOne({ assetId: payment.assetId });
         let network = await NetworkController.findOne({ networkId: asset.networkId });
         let isValid = false;
-
+        let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(payment.userId, CONFIGURATIONS.EMAIL_NAME);
         let resp = await validatePayment(req.body.hash, payment.quote_amount, network, asset, null, req.body.paymentId);
-        logger.fontColorLog("green", resp);
+        logger.fontColorLog("green", JSON.stringify(resp),);
         if (resp.status == "success") {
 
             isValid = true;
             payment.hash = req.body.hash;
             payment.status = "success";
             payment.save();
-            await TransactionController.createTransaction({
+            let transact = await TransactionController.createTransaction({
                 paymentId: req.body.paymentId,
                 assetId: asset._id,
                 networkId: network._id,
                 linkPaymentId: null,
                 userId: payment.userId,
-                amount: quantity,
+                amount: payment.quote_amount,
                 hash: req.body.hash
             });
+            if (userConf.length > 0 && payment?.user?.email && userConf[0]?.value == "true") {
+                await sendPaymentReceivedPaymentEmail(payment.user.email, network.txView + req.body.hash, payment.quote_amount, asset.symbol, network.name, transact._id);
+            }
+
             await PaymentController.loadBalanceImported(req.body.paymentId);
         } else {
             isValid = false;

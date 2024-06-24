@@ -1,6 +1,6 @@
 const ConfigurationUser = require('../models/configurationUser.model');
 const ConfigurationController = require('./configuration.controller');
-
+const mongoose = require("mongoose")
 const ConfigurationUserController = {
     async createConfigurationUser(data) {
         try {
@@ -51,10 +51,10 @@ const ConfigurationUserController = {
     },
     async createDefault(userId) {
         let configurations = await ConfigurationController.getConfigurations();
-        const configurationUser = (await this.getConfigurationUsers({ userId: userId })).map(x => x.configurationId);
-        const networksToCreate = configurations.filter(conf => !configurationUser.includes(conf._id));
+        const configurationUser = (await this.getConfigurationUsers({ userId: userId })).map(x => x.configurationId.toString());
+        const configurationsToCreate = configurations.filter(conf => !configurationUser.includes(conf._id.toString()));
         await Promise.all(
-            networksToCreate.map(async (conf) => {
+            configurationsToCreate.map(async (conf) => {
                 await this.createConfigurationUser({
                     userId: userId,
                     configurationId: conf._id,
@@ -63,6 +63,39 @@ const ConfigurationUserController = {
                 });
             })
         )
+    },
+    async userConfigForUserAndConfigName(userId, configName) {
+        try {
+            const userObjectId = new mongoose.Types.ObjectId(userId);
+            const results = await ConfigurationUser.aggregate([
+                {
+                    $match: {
+                        userId: userObjectId
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'configurations',
+                        localField: 'configurationId',
+                        foreignField: '_id',
+                        as: 'configuration'
+                    }
+                },
+                {
+                    $unwind: '$configuration'
+                },
+                {
+                    $match: {
+                        'configuration.name': configName
+                    }
+                }
+            ]);
+
+            return results;
+        } catch (error) {
+            console.error('Error fetching configuration users:', error);
+            throw error;
+        }
     }
 };
 

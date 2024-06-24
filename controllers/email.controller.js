@@ -36,12 +36,12 @@ const sendEmail = async (to, subject, replacements) => {
 };
 
 const EmailController = {
-    async sendTransactionSuccessEmail(to, transactionDetails) {
+    async sendTransactionSuccessEmail(to, urlHash, amount, token, networkId, linkPaymentId, idTransaction) {
         const subject = 'Transaction Successful';
         const body = `
           <h1>Transaction Successful</h1>
-          <p>Your transaction of ${transactionDetails.amount} to ${transactionDetails.recipient} was successful. Transaction ID: ${transactionDetails.txId}.</p>
-          <a href="${transactionDetails.transactionUrl}" class="button">View Transaction</a>
+          <p>Your transaction of ${amount} ${token} - ${networkId} for <a href="${process.env.URL_FRONT}paylink?id=${linkPaymentId}" target="_blank" >Link Payment</a>. Transaction ID: ${idTransaction}.</p>
+          <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
         `;
 
         const replacements = {
@@ -51,7 +51,21 @@ const EmailController = {
 
         await sendEmail(to, subject, replacements);
     },
+    async sendPaymentReceivedPaymentEmail(to, urlHash, amount, token, networkId, idTransaction) {
+        const subject = 'Payment Received';
+        const body = `
+          <h1>Payment Received</h1>
+          <p>You have received a payment of ${amount} ${token} - ${networkId}. Transaction ID: ${idTransaction}.</p>
+          <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
+        `;
 
+        const replacements = {
+            title: 'Payment Received',
+            body
+        };
+
+        await sendEmail(to, subject, replacements);
+    },
     async sendPaymentReceivedEmail(to, transactionDetails) {
         const subject = 'Payment Received';
         const body = `

@@ -19,6 +19,9 @@ const NetworkSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    txView: {
+        type: String,
+    }
 });
 NetworkSchema.virtual('assets', {
     ref: 'Asset', // The model to use

@@ -1,3 +1,4 @@
+const { CONFIGURATIONS } = require('../config');
 const Configuration = require('../models/configuration.model');
 
 const ConfigurationController = {
@@ -62,7 +63,7 @@ const ConfigurationController = {
                     ]
                 },
                 {
-                    name: "email notifications",
+                    name: CONFIGURATIONS.EMAIL_NAME,
                     description: "If you want to receive payment notifications by email",
                     json: {},
                     value: true,
@@ -75,8 +76,6 @@ const ConfigurationController = {
         let exists = await this.getConfigurations();
         for (let i = 0; i < data.length; i++) {
             let exist = exists.find(x => x.name == data[i].name);
-            console.log(data[i].name, exist)
-
             if (exist == undefined)
                 await this.createConfiguration(data[i])
         }

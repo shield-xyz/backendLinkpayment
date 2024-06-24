@@ -49,5 +49,12 @@ PaymentSchema.virtual('asset', {
     foreignField: 'assetId', // is equal to `foreignField`,
     justOne: true
 });
+PaymentSchema.virtual('user', {
+    ref: 'User', // The model to use
+    localField: 'userId', // Find people where `localField`
+    foreignField: '_id', // is equal to `foreignField`,
+    justOne: true
+});
+
 
 module.exports = mongoose.model('Payment', PaymentSchema);

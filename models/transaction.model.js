@@ -35,6 +35,24 @@ const transactionSchema = new mongoose.Schema({
     required: true
   }
 });
-
+transactionSchema.virtual('asset', {
+  ref: 'Asset', // The model to use
+  localField: 'assetId', // Find people where `localField`
+  foreignField: 'assetId', // is equal to `foreignField`
+  justOne: true
+});
+transactionSchema.virtual('network', {
+  ref: 'Network', // The model to use
+  localField: 'networkId', // Find people where `localField`
+  foreignField: 'networkId', // is equal to `foreignField`
+  justOne: true
+});
+transactionSchema.virtual('user', {
+  ref: 'User', // The model to use
+  localField: 'userId', // Find people where `localField`
+  foreignField: '_id', // is equal to `foreignField`
+  justOne: true
+});
+transactionSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('transactions', transactionSchema);

@@ -13,8 +13,8 @@ const TransactionController = {
 
   async getTransactions(filter = {}) {
     try {
-      const transactions = await Transaction.find(filter);
-      return transactions;
+      const transactions = await Transaction.find(filter).populate({ path: "network", select: "-deposit_address" }).populate("asset");
+      return transactions.map(x => x.toObject());
     } catch (error) {
       return error.message;
     }

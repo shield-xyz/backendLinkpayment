@@ -35,6 +35,12 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+
+userSchema.virtual('configurations', {
+  ref: 'ConfigurationUser', // The model to use
+  localField: '_id', // Find people where `localField`
+  foreignField: 'userId', // is equal to `foreignField`,
+});
 // Método para comparar contraseñas
 userSchema.methods.comparePassword = function (password) {
   return bcrypt.compareSync(password, this.password);

@@ -72,9 +72,9 @@ const AssetController = {
                 "name": "Bitcoin",
                 "decimals": 8,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-                "active": false,
+                "active": true,
                 "networkId": "bitcoin",
-                "address": null
+                "address": "null"
             },
             {
                 "assetId": "dai-ethereum",

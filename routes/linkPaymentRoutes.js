@@ -12,6 +12,11 @@ const NetworkController = require('../controllers/network.controller');
 const { loadBalanceImportedLinkPayment } = require('../controllers/payment.controller');
 const LinkPayment = require('../models/LinkPayment');
 const { validatePayment } = require('../utils');
+const AssetController = require('../controllers/assets.controller');
+const { sendTransactionSuccessEmail, sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller');
+const ClientsController = require('../controllers/clients.controller');
+const ConfigurationUserController = require('../controllers/configurationUser.controller');
+const { CONFIGURATIONS } = require('../config');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -78,38 +83,65 @@ router.post('/walletTriedpayment', async (req, res) => {
 });
 router.post('/save/:id', async (req, res) => {
     try {
+
+        // deberia venir assetId, networkId, 
+        let { hash, assetId, email, name } = req.body;
+
         //se obtiene el link
-        let linkPayment = await LinkPayment.findOne({ id: req.params.id }).populate("asset");
+        let linkPayment = await LinkPayment.findOne({ id: req.params.id }).populate("asset user");
+        let asset = await AssetController.findOne({ assetId: assetId });
         linkPayment.toObject();
 
-        let network = await NetworkController.findOne({ networkId: linkPayment.asset.networkId });
-        if (!linkPayment.assetId) {
+        let network = await NetworkController.findOne({ networkId: asset.networkId });
+        if (!asset.assetId) {
             res.status(200).send(response("asset not defined", "error"));
             return;
         }
-        let resp = await validatePayment(req.body.hash, linkPayment.amount, network, linkPayment.asset, linkPayment.id, null);
+        let resp = await validatePayment(hash, linkPayment.amount, network, asset, linkPayment.id, null);
+        console.log(resp, "respuesta validatePayment")
         if (resp.status == "success") {
-            linkPayment.hash.push(req.body.hash);
+            linkPayment.hash.push(hash);
             linkPayment.status = "paid";
+            linkPayment.assetId = asset.assetId;
+            linkPayment.networkId = asset.networkId;
             await linkPayment.save();
             // payment.hash = req.body.hash;
             // payment.status = "success";
             // payment.save();
-            await TransactionController.createTransaction({
+            let transact = await TransactionController.createTransaction({
                 // paymentId: req.body.paymentId,
-                assetId: linkPayment.assetId,
-                networkId: network?._id,
+                assetId: asset.assetId,
+                networkId: asset.networkId,
                 linkPaymentId: linkPayment._id,
-                userId: linkPayment.userId,
+                userId: linkPayment.merchantId,
                 amount: linkPayment.amount,
-                hash: req.body.hash
+                hash: hash
             });
+
+            if (email) {
+                await sendTransactionSuccessEmail(email, network.txView + hash, linkPayment.amount, asset.symbol, network.name, linkPayment.id, transact._id);
+                try {
+                    await ClientsController.createClient({
+                        email: email, name: name, paymentLinkId: linkPayment.id
+                    })
+
+                } catch (error) {
+                }
+            }
+            let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(linkPayment.merchantId, CONFIGURATIONS.EMAIL_NAME);
+            if (userConf.length > 0 && linkPayment?.user?.email && userConf[0]?.value == "true") {
+                await sendPaymentReceivedPaymentEmail(linkPayment.user.email, network.txView + hash, linkPayment.amount, asset.symbol, network.name, transact._id);
+            }
+
             await loadBalanceImportedLinkPayment(linkPayment)
+            res.status(200).send(resp);
+
         } else {
-            isValid = false;
+            // isValid = false;
+            res.status(200).send((resp));
         }
 
-        res.status(200).send(response([]));
+
 
     } catch (err) {
         console.error(err);
@@ -151,6 +183,7 @@ router.post('/', auth, async (req, res) => {
         res.status(500).send(response('Server Error', "error"));
     }
 });
+
 
 
 router.delete('/:id', auth, async (req, res) => {

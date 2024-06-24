@@ -16,7 +16,8 @@ const runScript = async () => {
     logger.fontColorLog("green", "creating  configurations");
     await ConfigurationsController.createDefault();
     logger.fontColorLog("green", "creating configurations finish");
-
+    // await ConfigurationUserController.createDefault("667477f6769e23782b7c2984");
+    // return;
     logger.fontColorLog("green", "creating configurations from users " + users.length);
     logger.fontColorLog("green", "creating networks from users " + users.length);
     await Promise.all(users.map(async (user) => {

@@ -18,7 +18,13 @@ const PaymentController = {
         return payments;
     },
     async findId(id) {
-        const payment = await Payment.findById(id);
+        const payment = await Payment.findById(id).populate({
+            path: 'user',
+            // populate: {
+            //     path: 'configurations',
+            //     model: 'ConfigurationUser'
+            // }
+        });
         return payment;
     },
 

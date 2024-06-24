@@ -40,25 +40,27 @@ const NetworkController = {
                     "networkId": "ethereum",
                     "name": "Ethereum",
                     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-                    "deposit_address": "0xAb816fD46dEf5518dd615d863463A2226ef1745A", // TODO change wallet to prod
+                    "deposit_address": process.env.WALLET_ETHEREUM_DEPOSIT, // TODO change wallet to prod
+                    "txView": "https://etherscan.io/tx/",
                 },
                 {
                     "networkId": "tron",
                     "name": "Tron",
                     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png",
                     "deposit_address": process.env.WALLET_TRON_DEPOSIT,
+                    "txView": "https://tronscan.org/#/transaction/",
 
                 },
                 {
                     "networkId": "bitcoin",
                     "name": "Bitcoin",
                     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-                    "deposit_address": "",
-
+                    "deposit_address": process.env.WALLET_BITCOIN_DEPOSIT,
+                    "txView": "https://www.blockchain.com/es/explorer/transactions/btc/",
                 }
             ];
 
-            const networks = await this.getNetworks();
+        const networks = await this.getNetworks();
         for (let i = 0; i < data.length; i++) {
             const element = data[i];
             let exist = networks.find(x => x.networkId == element.networkId);
