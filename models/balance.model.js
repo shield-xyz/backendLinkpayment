@@ -41,4 +41,6 @@ BalanceSchema.virtual('network', {
   foreignField: 'networkId', // is equal to `foreignField`,
   justOne: true
 });
+BalanceSchema.set('toObject', { virtuals: true });
+
 module.exports = model('Balance', BalanceSchema);

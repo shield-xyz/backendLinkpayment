@@ -9,6 +9,7 @@ const { handleHttpError, response } = require('../utils/index.js');
 const secretKey = JWT_SECRET;
 const { ensureWalletNetworkUsersForUser } = require('./walletNetworkUser.controller.js');
 const { sendPasswordResetEmail } = require('./email.controller.js');
+const BalanceController = require('./balance.controller.js');
 module.exports = {
     async login(req, res) {
         try {
@@ -98,7 +99,7 @@ module.exports = {
                     cardCVV: '',
                 }),
             });
-
+            await BalanceController.createBalancesPerUser(user._id);
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
             //creamos wallets defaults : 
             await ensureWalletNetworkUsersForUser(user._id);

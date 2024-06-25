@@ -7,6 +7,7 @@ const { connectDB } = require("../db");
 const userModel = require("../models/user.model");
 const logger = require('node-color-log');
 const ConfigurationUserController = require("../controllers/configurationUser.controller");
+const BalanceController = require("../controllers/balance.controller");
 // const walletNetworkUserController = require('../controllers/walletNetworkUser.controller');
 
 const runScript = async () => {
@@ -35,6 +36,10 @@ const runScript = async () => {
     await AssetController.createDefault();
     logger.fontColorLog("green", "creating/updating asets finish");
 
+    //crear balances x user
+    await Promise.all(users.map(async (user) => {
+        await BalanceController.createBalancesPerUser(user._id);
+    }));
 
 
 

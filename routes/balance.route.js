@@ -16,16 +16,7 @@ router.get('/', auth, async (req, res) => {
   try {
     const assets = await AssetController.getAssets({ active: true });
     const balances = await BalanceController.findMany({ userId: req.user.id });
-    for (let i = 0; i < assets.length; i++) {
-      const asset = assets[i];
-      if (balances.find(x => x.assetId == asset.assetId) == undefined) {
-        let b = await BalanceController.createBalance({
-          amount: 0, networkId: asset.networkId, assetId: asset.assetId, userId: req.user.id
-        })
-        balances.push(b);
-      }
-
-    }
+   
     res.json(response(balances, 'success'));
   } catch (error) {
     handleHttpError(error, res);
