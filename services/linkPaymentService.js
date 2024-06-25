@@ -8,7 +8,7 @@ const getLinkPayments = async (filter = {}) => {
 };
 
 const getLinkPaymentById = async (query) => {
-    return await LinkPayment.findOne(query).populate({ path: "user", select: "-apiKey -resetPasswordExpires -resetPasswordToken -__v -createdAt -updatedAt" });
+    return await LinkPayment.findOne(query).populate({ path: "user", select: "-apiKey -resetPasswordExpires -resetPasswordToken -__v -createdAt -updatedAt" }).populate("asset");
 };
 
 const getLinkPaymentByMerchantId = async (id) => {
@@ -31,7 +31,7 @@ const createLinkPayment = async (linkPaymentData, merchantId) => {
 
     if (paym.assetId != "" && paym.assetId) {
         let asset = await AssetController.findOne({ id: paym.assetId });
-        if (asset.decimals) {
+        if (asset?.decimals) {
 
             paym.quote_amount = limitDecimals(paym.quote_amount, asset.decimals)
             await paym.save();
