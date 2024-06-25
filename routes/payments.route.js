@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const PaymentController = require('../controllers/payment.controller');
-const { handleHttpError, response, getTransactionById, divideByDecimals, validatePayment } = require('../utils/index.js');
+const { handleHttpError, response, validatePayment } = require('../utils/index.js');
 const auth = require('../middleware/auth');
 const apiKeyUser = require('../middleware/apiKeyUser');
 const apiKeyMaster = require('../middleware/apiKeyMaster');
@@ -10,7 +10,7 @@ const NetworkController = require('../controllers/network.controller.js');
 const logger = require('node-color-log');
 const TransactionController = require('../controllers/transactions.controller.js');
 const getTransactionTron = require('../utils/Tronweb.js');
-const { sendTransactionSuccessEmail, sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
+const {  sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
 const ConfigurationUser = require('../models/configurationUser.model.js');
 const { CONFIGURATIONS, NOTIFICATIONS } = require('../config/index.js');
 const ConfigurationUserController = require('../controllers/configurationUser.controller.js');

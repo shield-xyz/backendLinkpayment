@@ -2,7 +2,6 @@ const logger = require('node-color-log');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { DebitCardService } = require('../services/debit-cards.service');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
 const { handleHttpError, response } = require('../utils/index.js');

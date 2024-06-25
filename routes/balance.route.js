@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const BalanceController = require('../controllers/balance.controller');
-const { handleHttpError } = require('../utils'); // Asumiendo que tienes un manejador de errores
+const { handleHttpError, getPrices, limitDecimals } = require('../utils'); // Asumiendo que tienes un manejador de errores
 const { response } = require('../utils/index'); // Asumiendo que tienes una función de respuesta
 const auth = require("../middleware/auth");
 const AssetController = require('../controllers/assets.controller');
@@ -14,9 +14,21 @@ const AssetController = require('../controllers/assets.controller');
 // })
 router.get('/', auth, async (req, res) => {
   try {
-    const assets = await AssetController.getAssets({ active: true });
     const balances = await BalanceController.findMany({ userId: req.user.id });
-   
+
+    const prices = await getPrices();
+    balances.map(x => {
+      if (x.assetId.includes("usdt-") || x.assetId.includes("usdc-")) {
+
+        x.usdValue = 1;
+      }
+      else {
+        if (x.assetId == "btc-bitcoin") {
+          x.usdValue = (prices?.BTCUSDT) ?? "---";
+        }
+      }
+
+    })
     res.json(response(balances, 'success'));
   } catch (error) {
     handleHttpError(error, res);
