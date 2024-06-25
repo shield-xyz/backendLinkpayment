@@ -6,6 +6,8 @@ const balanceModel = require('../models/balance.model.js');
 const userModel = require('../models/user.model.js');
 const WithdrawController = require('../controllers/withdraw.controller.js');
 const accountModel = require('../models/account.model.js');
+const { NOTIFICATIONS } = require('../config/index.js');
+const NotificationsController = require('../controllers/NotificationsUser.controller.js');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
@@ -141,7 +143,10 @@ async function generateWithDraw(amount, balanceId) {
         status: "pending",
         balanceId: balance._id
     });
-
+    await NotificationsController.createNotification({
+        ...NOTIFICATIONS.NEW_WITHDRAW(amount, wt._id),
+        userId: balance.userId
+    });
     balance.amount -= amount;
     balance.save();
     await sendMessage("Withdraw created, id : " + wt._id);

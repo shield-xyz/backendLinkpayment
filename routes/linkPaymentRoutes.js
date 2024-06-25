@@ -16,7 +16,8 @@ const AssetController = require('../controllers/assets.controller');
 const { sendTransactionSuccessEmail, sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller');
 const ClientsController = require('../controllers/clients.controller');
 const ConfigurationUserController = require('../controllers/configurationUser.controller');
-const { CONFIGURATIONS } = require('../config');
+const { CONFIGURATIONS, NOTIFICATIONS } = require('../config');
+const NotificationsController = require('../controllers/NotificationsUser.controller.js');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -56,10 +57,7 @@ router.get('/get/:id', async (req, res) => {
         if (!merchant) {
             return response('Merchant not found', "error")
         }
-        // // Convertir a objeto plano y eliminar la contraseña
-        // const merchantWithoutPassword = { ...merchant.toObject(), password: undefined };
-        // // Convertir linkPayment a objeto plano y agregar el merchant
-        // const linkPaymentWithMerchant = { ...linkPayment.toObject(), merchant: merchantWithoutPassword };
+
         linkPayment = linkPayment.toObject()
         console.log(linkPayment)
         res.json(response(linkPayment));
@@ -118,6 +116,10 @@ router.post('/save/:id', async (req, res) => {
                 hash: hash
             });
 
+            await NotificationsController.createNotification({
+                ...NOTIFICATIONS.NEW_TRANSACTION(linkPayment.amount, asset.symbol, network.name),
+                userId: payment.userId
+            });
             if (email) {
                 await sendTransactionSuccessEmail(email, network.txView + hash, linkPayment.amount, asset.symbol, network.name, linkPayment.id, transact._id);
                 try {

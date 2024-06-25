@@ -34,28 +34,28 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
-    try {
-        const withdraw = await WithdrawController.updateWithdraw(req.params.id, req.body);
-        if (!withdraw) {
-            return res.status(404).json(response('Withdraw not found', 'error'));
-        }
-        res.json(response(withdraw, 'success'));
-    } catch (error) {
-        handleHttpError(error, res);
-    }
-});
+// router.put('/:id', async (req, res) => {
+//     try {
+//         const withdraw = await WithdrawController.updateWithdraw(req.params.id, req.body);
+//         if (!withdraw) {
+//             return res.status(404).json(response('Withdraw not found', 'error'));
+//         }
+//         res.json(response(withdraw, 'success'));
+//     } catch (error) {
+//         handleHttpError(error, res);
+//     }
+// });
 
-router.delete('/:id', async (req, res) => {
-    try {
-        const withdraw = await WithdrawController.deleteWithdraw(req.params.id);
-        if (!withdraw) {
-            return res.status(404).json(response('Withdraw not found', 'error'));
-        }
-        res.json(response('Withdraw deleted', 'success'));
-    } catch (error) {
-        handleHttpError(error, res);
-    }
-});
+// router.delete('/:id', async (req, res) => {
+//     try {
+//         const withdraw = await WithdrawController.deleteWithdraw(req.params.id);
+//         if (!withdraw) {
+//             return res.status(404).json(response('Withdraw not found', 'error'));
+//         }
+//         res.json(response('Withdraw deleted', 'success'));
+//     } catch (error) {
+//         handleHttpError(error, res);
+//     }
+// });
 
 module.exports = router;

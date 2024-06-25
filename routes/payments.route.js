@@ -12,8 +12,9 @@ const TransactionController = require('../controllers/transactions.controller.js
 const getTransactionTron = require('../utils/Tronweb.js');
 const { sendTransactionSuccessEmail, sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
 const ConfigurationUser = require('../models/configurationUser.model.js');
-const { CONFIGURATIONS } = require('../config/index.js');
+const { CONFIGURATIONS, NOTIFICATIONS } = require('../config/index.js');
 const ConfigurationUserController = require('../controllers/configurationUser.controller.js');
+const NotificationsController = require('../controllers/NotificationsUser.controller.js');
 
 router.get('/', apiKeyMaster, async (req, res) => {
 
@@ -90,6 +91,10 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
                 userId: payment.userId,
                 amount: payment.quote_amount,
                 hash: req.body.hash
+            });
+            await NotificationsController.createNotification({
+                ...NOTIFICATIONS.NEW_TRANSACTION(payment.quote_amount, asset.symbol, network.name),
+                userId: payment.userId
             });
             if (userConf.length > 0 && payment?.user?.email && userConf[0]?.value == "true") {
                 await sendPaymentReceivedPaymentEmail(payment.user.email, network.txView + req.body.hash, payment.quote_amount, asset.symbol, network.name, transact._id);
