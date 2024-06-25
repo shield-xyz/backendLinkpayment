@@ -86,19 +86,6 @@ module.exports = {
             };
             const user = new UserModel(newUser);
             await user.save();
-
-            await DebitCardService.create({
-                userId: user._id.toString(),
-                rampUserId: '',
-                userName: user_name,
-                userEmail: email,
-                card1: JSON.stringify({
-                    cardNumber: '',
-                    cardName: '',
-                    cardExpiry: '',
-                    cardCVV: '',
-                }),
-            });
             await BalanceController.createBalancesPerUser(user._id);
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
             //creamos wallets defaults : 
