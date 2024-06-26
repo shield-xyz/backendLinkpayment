@@ -83,26 +83,41 @@ function divideByDecimals(value, decimals) {
 }
 
 async function getPrices() {
-  try {
-    const symbols = [
-      // 'ETHUSDT',
-      'BTCUSDT',
-      'BNBUSDT'
-    ]; // Puedes añadir más símbolos aquí
-    const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`);
-    const data = await response.json();
-    console.log(data);
-    const prices = data.reduce((acc, ticker) => {
-      acc[ticker.symbol] = ticker.price;
-      return acc;
-    }, {});
+  const symbols = [
+    // 'ETHUSDT',
+    'BTCUSDT',
+    'BNBUSDT'
+  ]; // Puedes añadir más símbolos aquí
+  const url = `https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD&api_key=${process.env.CRYPTO_COMPARE_API}`;
 
-    console.log('Precios de los tokens:', prices);
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    let prices = {};
+    if (data.USD) {
+      console.log(`El precio de 1 BTC es $${data.USD} USD.`);
+      prices.BTCUSDT = data.USD;
+    } else {
+      console.error('Error al obtener el precio de BTC:', data);
+      return {};
+    }
     return prices;
   } catch (error) {
-    console.error('Error al obtener los precios:', error);
+    console.error('Error al realizar la solicitud:', error);
     return {};
+
   }
+
+  // const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`);
+  // const data = await response.json();
+  // console.log(data);
+  // const prices = data.reduce((acc, ticker) => {
+  //   acc[ticker.symbol] = ticker.price;
+  //   return acc;
+  // }, {});
+
+  // console.log('Precios de los tokens:', prices);
+
 }
 
 
