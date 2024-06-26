@@ -86,12 +86,12 @@ async function getPrices() {
   try {
     const symbols = [
       // 'ETHUSDT',
-       'BTCUSDT',
+      'BTCUSDT',
       'BNBUSDT'
     ]; // Puedes añadir más símbolos aquí
     const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`);
     const data = await response.json();
-
+    console.log(data);
     const prices = data.reduce((acc, ticker) => {
       acc[ticker.symbol] = ticker.price;
       return acc;
