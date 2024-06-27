@@ -118,7 +118,7 @@ router.post('/save/:id', async (req, res) => {
 
             await NotificationsController.createNotification({
                 ...NOTIFICATIONS.NEW_TRANSACTION(linkPayment.amount, asset.symbol, network.name),
-                userId: payment.userId
+                userId: linkPayment.merchantId
             });
             if (email) {
                 await sendTransactionSuccessEmail(email, network.txView + hash, linkPayment.amount, asset.symbol, network.name, linkPayment.id, transact._id);
