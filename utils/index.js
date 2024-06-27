@@ -24,6 +24,7 @@ const storage = multer.diskStorage({
     cb(null, req.merchant?._id ? req.merchant._id + path.extname(file.originalname) : uniqueSuffix + path.extname(file.originalname));
   }
 });
+const walletNetworkUser = require("../models/walletNetworkUser.model")
 
 const upload = multer({ storage: storage });
 
@@ -124,10 +125,11 @@ async function getPrices() {
 
 
 
-async function validatePayment(hash, amount, network, asset, linkId = null, paymentId = null) {
+async function validatePayment(hash, amount, network, asset, userId, linkId = null, paymentId = null) {
   try {
     let transactionLog, transactionTimestamp, tenMinutesAgo;
     let isValid = false;
+    let addressTopay = await walletNetworkUser.findOne({ userId: userId, networkId: network.networkId });
     switch (network.networkId) {
       case "tron":
         transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
@@ -148,9 +150,9 @@ async function validatePayment(hash, amount, network, asset, linkId = null, paym
         }
         for (let iData = 0; iData < transactionLog.transfersAllList.length; iData++) {
           const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .
-          logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
-          logger.fontColorLog('blue', x.to_address.toLowerCase() == network.deposit_address.toLowerCase());
-          if (x.to_address.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+          logger.fontColorLog("blue", "network address ->" + addressTopay.address.toLowerCase())
+          logger.fontColorLog('blue', x.to_address.toLowerCase() == addressTopay.address.toLowerCase());
+          if (x.to_address.toLowerCase() == addressTopay.address.toLowerCase()) //network.deposit_address.toLowerCase() validamos que el que recibio el token es nuestra wallet de tx.
             if (x.contract_address.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
               //validar la cantidad de token
               let quantity = divideByDecimals(x.amount_str, x.decimals);
@@ -185,9 +187,9 @@ async function validatePayment(hash, amount, network, asset, linkId = null, paym
         if (transactionLog?.applied == true) {
           return response("transaciont used for another payment", "error");
         }
-        logger.fontColorLog("blue", "network address ->" + network.deposit_address.toLowerCase())
-        logger.fontColorLog('blue', transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase());
-        if (transactionLog.to.toLowerCase() == network.deposit_address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
+        logger.fontColorLog("blue", "network address ->" + addressTopay.address.toLowerCase())
+        logger.fontColorLog('blue', transactionLog.to.toLowerCase() == addressTopay.address.toLowerCase());
+        if (transactionLog.to.toLowerCase() == addressTopay.address.toLowerCase()) // validamos que el que recibio el token es nuestra wallet de tx.
           if (transactionLog.tokenContract.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
             //validar la cantidad de token
             let quantity = divideByDecimals(transactionLog.value, asset.decimals);
@@ -226,7 +228,7 @@ async function validatePayment(hash, amount, network, asset, linkId = null, paym
 
         for (let i = 0; i < transactionLog.outputs.length; i++) {//recorrer los outputs (salidas de btc a wallets) 
           let output = transactionLog.outputs[i];
-          if (output.addresses[0].toLowerCase() == network.deposit_address.toLowerCase()) { //si coincide con la nuestra 
+          if (output.addresses[0].toLowerCase() == addressTopay.address.toLowerCase()) { //si coincide con la nuestra 
             if (output.value >= amount) {   // coincide el monto
               isValid = true;
               transactionLog.applied = true;

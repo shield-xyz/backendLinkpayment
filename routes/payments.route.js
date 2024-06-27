@@ -10,7 +10,7 @@ const NetworkController = require('../controllers/network.controller.js');
 const logger = require('node-color-log');
 const TransactionController = require('../controllers/transactions.controller.js');
 const getTransactionTron = require('../utils/Tronweb.js');
-const {  sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
+const { sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
 const ConfigurationUser = require('../models/configurationUser.model.js');
 const { CONFIGURATIONS, NOTIFICATIONS } = require('../config/index.js');
 const ConfigurationUserController = require('../controllers/configurationUser.controller.js');
@@ -75,7 +75,7 @@ router.post('/verify', apiKeyMaster, async (req, res) => {
         let network = await NetworkController.findOne({ networkId: asset.networkId });
         let isValid = false;
         let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(payment.userId, CONFIGURATIONS.EMAIL_NAME);
-        let resp = await validatePayment(req.body.hash, payment.quote_amount, network, asset, null, req.body.paymentId);
+        let resp = await validatePayment(req.body.hash, payment.quote_amount, network, asset, payment.userId, null, req.body.paymentId);
         logger.fontColorLog("green", JSON.stringify(resp),);
         if (resp.status == "success") {
 

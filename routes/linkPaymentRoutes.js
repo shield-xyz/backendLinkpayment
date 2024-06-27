@@ -95,7 +95,7 @@ router.post('/save/:id', async (req, res) => {
             res.status(200).send(response("asset not defined", "error"));
             return;
         }
-        let resp = await validatePayment(hash, linkPayment.amount, network, asset, linkPayment.id, null);
+        let resp = await validatePayment(hash, linkPayment.amount, network, asset, linkPayment.merchantId, linkPayment.id, null);
         console.log(resp, "respuesta validatePayment")
         if (resp.status == "success") {
             linkPayment.hash.push(hash);
