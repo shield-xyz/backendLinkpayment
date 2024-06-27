@@ -16,10 +16,20 @@ const readHTMLFile = (filePath) => {
     });
 };
 
-const sendEmail = async (to, subject, replacements) => {
+const sendEmail = async (to, subject, replacements, fileName = "emailTemplate.html") => {
     try {
-        const html = await readHTMLFile(path.join(__dirname, '../templates/emailTemplate.html'));
+        const html = await readHTMLFile(path.join(__dirname, '../templates/' + fileName));
         const template = handlebars.compile(html);
+        replacements = {
+            ...replacements,
+            EMAIL_CONTACT_US: process.env.EMAIL_CONTACT_US,
+            PHONE_CONTACT_US: process.env.PHONE_CONTACT_US,
+            FACEBOOK_LINK: process.env.FACEBOOK_LINK,
+            INSTAGRAM_LINK: process.env.INSTAGRAM_LINK,
+            TWITTER_LINK: process.env.TWITTER_LINK,
+            PRIVACY_LINK: process.env.PRIVACY_LINK,
+            TERMS_LINK: process.env.TERMS_LINK,
+        }
         const htmlToSend = template(replacements);
 
         const mailOptions = {
@@ -38,18 +48,21 @@ const sendEmail = async (to, subject, replacements) => {
 const EmailController = {
     async sendTransactionSuccessEmail(to, urlHash, amount, token, networkId, linkPaymentId, idTransaction) {
         const subject = 'Transaction Successful';
-        const body = `
-          <h1>Transaction Successful</h1>
-          <p>Your transaction of ${amount} ${token} - ${networkId} for <a href="${process.env.URL_FRONT}paylink?id=${linkPaymentId}" target="_blank" >Link Payment</a>. Transaction ID: ${idTransaction}.</p>
-          <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
-        `;
+        // const body = `
+        //   <h1>Transaction Successful</h1>
+        //   <p>Your transaction of ${amount} ${token} - ${networkId} for <a href="${process.env.URL_FRONT}paylink?id=${linkPaymentId}" target="_blank" >Link Payment</a>. Transaction ID: ${idTransaction}.</p>
+        //   <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
+        // `;
 
         const replacements = {
             title: 'Transaction Successful',
-            body
+            amount,
+            token,urlHash,
+            networkId, idTransaction,
+            linkPayment: `${process.env.URL_FRONT}paylink?id=${linkPaymentId}`
         };
 
-        await sendEmail(to, subject, replacements);
+        await sendEmail(to, subject, replacements, "TransactionReceived.html");
     },
     async sendPaymentReceivedPaymentEmail(to, urlHash, amount, token, networkId, idTransaction) {
         const subject = 'Payment Received';
@@ -84,21 +97,13 @@ const EmailController = {
 
     async sendPasswordResetEmail(to, resetUrl) {
         const subject = 'Password Reset Request';
-        const body = `
-          <h1>Password Reset Request</h1>
-          <p>Hello,</p>
-          <p>You are receiving this email because we received a password reset request for your account.</p>
-          <p>Please click the button below to reset your password:</p>
-          <a href="${resetUrl}" class="button">Reset Password</a>
-          <p>If you did not request a password reset, no further action is required.</p>
-        `;
 
         const replacements = {
             title: 'Password Reset Request',
-            body
+            resetUrl: resetUrl,
         };
 
-        await sendEmail(to, subject, replacements);
+        await sendEmail(to, subject, replacements, "PasswordResets.html");
     }
 };
 
