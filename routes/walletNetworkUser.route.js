@@ -3,24 +3,25 @@ const router = express.Router();
 const walletNetworkUserController = require('../controllers/walletNetworkUser.controller');
 const { response } = require('../db');
 const auth = require('../middleware/auth');
+const WalletNetworkUser = require('../models/walletNetworkUser.model');
 
-router.get('/', auth, async (req, res) => {
+router.get('/wallet/:userId/:networkId', async (req, res) => {
     try {
-        const walletNetworkUsers = await walletNetworkUserController.getWalletNetworkUsers({ userId: req.user._id });
-        res.json(response(walletNetworkUsers, "success"));
+        const walletNetwork = await WalletNetworkUser.findOne({ userId: req.params.userId, networkId: req.params.networkId });
+        res.json(response(walletNetwork, "success"));
     } catch (error) {
         res.status(500).json(response('Error fetching wallet network users', 'error'));
     }
 });
 
-router.get('/:id', auth, async (req, res) => {
-    try {
-        const walletNetworkUser = await walletNetworkUserController.getWalletNetworkUsers({ _id: req.params.id, userId: req.user._id });
-        res.json(response(walletNetworkUser, "success"));
-    } catch (error) {
-        res.status(500).json(response('Error fetching wallet network user', 'error'));
-    }
-});
+// router.get('/:id', auth, async (req, res) => {
+//     try {
+//         const walletNetworkUser = await walletNetworkUserController.getWalletNetworkUsers({ _id: req.params.id, userId: req.user._id });
+//         res.json(response(walletNetworkUser, "success"));
+//     } catch (error) {
+//         res.status(500).json(response('Error fetching wallet network user', 'error'));
+//     }
+// });
 
 
 // Endpoint para asegurar que cada usuario tenga una wallet por network
