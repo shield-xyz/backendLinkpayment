@@ -4,7 +4,8 @@ const LinkPayment = require('../models/LinkPayment');
 const { limitDecimals } = require('../utils');
 
 const getLinkPayments = async (filter = {}) => {
-    return await LinkPayment.find(filter);
+    let items = (await LinkPayment.find(filter).populate("asset"));
+    return items.map(x => x.toObject());
 };
 
 const getLinkPaymentById = async (query) => {
