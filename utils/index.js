@@ -222,9 +222,9 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         transactionTimestamp = new Date(transactionLog.received);
         tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // Validar que la transacción sea de hace 10 minutos o menos
-        // if (transactionTimestamp < tenMinutesAgo) {
-        //   return response("date greater than 10 minutes", "error");
-        // }
+        if (transactionTimestamp < tenMinutesAgo) {
+          return response("date greater than 10 minutes", "error");
+        }
 
         for (let i = 0; i < transactionLog.outputs.length; i++) {//recorrer los outputs (salidas de btc a wallets) 
           let output = transactionLog.outputs[i];
