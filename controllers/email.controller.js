@@ -57,7 +57,7 @@ const EmailController = {
         const replacements = {
             title: 'Transaction Successful',
             amount,
-            token,urlHash,
+            token, urlHash,
             networkId, idTransaction,
             linkPayment: `${process.env.URL_FRONT}paylink?id=${linkPaymentId}`
         };
@@ -66,15 +66,33 @@ const EmailController = {
     },
     async sendPaymentReceivedPaymentEmail(to, urlHash, amount, token, networkId, idTransaction) {
         const subject = 'Payment Received';
-        const body = `
-          <h1>Payment Received</h1>
-          <p>You have received a payment of ${amount} ${token} - ${networkId}. Transaction ID: ${idTransaction}.</p>
-          <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
-        `;
+        // const body = `
+        //   <h1>Payment Received</h1>
+        //   <p>You have received a payment of ${amount} ${token} - ${networkId}. Transaction ID: ${idTransaction}.</p>
+        //   <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
+        // `;
 
         const replacements = {
             title: 'Payment Received',
-            body
+            amount,
+            token, urlHash,
+            networkId, idTransaction,
+        };
+
+        await sendEmail(to, subject, replacements, "PaymentReceived.html");
+    },
+    async sendProcessingWithdraw(to, amount, asset, withdraw) {
+        const subject = 'Withdraw in Progress';
+        // const body = `
+        //   <h1>Payment Received</h1>
+        //   <p>You have received a payment of ${amount} ${token} - ${networkId}. Transaction ID: ${idTransaction}.</p>
+        //   <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
+        // `;
+
+        const replacements = {
+            title: 'Withdraw in Progress',
+            amount, symbol: asset.symbol,
+            withdrawId: withdraw._id, date: withdraw.date
         };
 
         await sendEmail(to, subject, replacements);

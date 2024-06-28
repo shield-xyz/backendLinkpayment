@@ -6,8 +6,10 @@ const balanceModel = require('../models/balance.model.js');
 const userModel = require('../models/user.model.js');
 const WithdrawController = require('../controllers/withdraw.controller.js');
 const accountModel = require('../models/account.model.js');
-const { NOTIFICATIONS } = require('../config/index.js');
+const { NOTIFICATIONS, CONFIGURATIONS } = require('../config/index.js');
 const NotificationsController = require('../controllers/NotificationsUser.controller.js');
+const ConfigurationUserController = require('./configurationUser.controller.js');
+const { sendProcessingWithdraw } = require('./email.controller.js');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
@@ -117,7 +119,7 @@ function padRightTo(text, quantity = 30) {
     return text + '-'.repeat(desiredLength - text.length);  // Agrega espacios hasta alcanzar los 26 caracteres
 }
 async function generateWithDraw(amount, balanceId) {
-    let balance = await balanceModel.findById(balanceId).populate("asset network");
+    let balance = await balanceModel.findById(balanceId).populate("asset network user");
 
     console.log(balance, balance.asset, balance.network)
     if (!balance) {
@@ -132,13 +134,13 @@ async function generateWithDraw(amount, balanceId) {
     }
     let account = await accountModel.findOne({ userId: balance.userId, selected: true });
     if (!account) {
-        await sendMessage("the user not have account");
-        return
+        // await sendMessage("the user not have account");
+        // return
     }
     let wt = await WithdrawController.createWithdraw({
         amount: amount,
         assetId: balance.assetId,
-        accountId: account._id,
+        accountId: account?._id,
         userId: balance.userId,
         status: "pending",
         balanceId: balance._id
@@ -147,6 +149,12 @@ async function generateWithDraw(amount, balanceId) {
         ...NOTIFICATIONS.NEW_WITHDRAW(amount, wt._id),
         userId: balance.userId
     });
+    let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
+
+    if (userConf.length > 0 && userConf[0]?.value == "true") {
+        await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
+    }
+
     balance.amount -= amount;
     balance.save();
     await sendMessage("Withdraw created, id : " + wt._id);
