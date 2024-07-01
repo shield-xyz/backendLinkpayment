@@ -71,12 +71,13 @@ const runScript = async () => {
     ];
 
     for (let i = 0; i < data.length; i++) {
-        const da = data[i];
+        let da = data[i];
         console.log("Processing data:", da);
         try {
+            const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
+            da.amount = amount;
             let exist = await transactionModel.findOne(da);
             if (!exist) {
-                const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
                 const result = await TransactionController.createTransaction({
                     assetId: "usdt-ethereum",
                     networkId: "tron",
