@@ -73,16 +73,19 @@ const runScript = async () => {
         const da = data[i];
         console.log("Processing data:", da);
         try {
-            const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
-            const result = await TransactionController.createTransaction({
-                assetId: "usdt-ethereum",
-                networkId: "tron",
-                linkPaymentId: null,
-                amount: amount,
-                hash: da["tx"],
-                date: new Date(da["date"]), // Convertir fecha a objeto Date
-                userId: "6675ecefc088174fddbd21e1"
-            });
+            let exist = await TransactionController.findOne(da);
+            if (!exist) {
+                const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
+                const result = await TransactionController.createTransaction({
+                    assetId: "usdt-ethereum",
+                    networkId: "tron",
+                    linkPaymentId: null,
+                    amount: amount,
+                    hash: da["tx"],
+                    date: new Date(da["date"]), // Convertir fecha a objeto Date
+                    userId: "66826162a20b6bf35358ea0d"
+                });
+            }
             console.log("Transaction created:", result);
         } catch (error) {
             console.error("Error creating transaction:", error);
