@@ -3,6 +3,7 @@ const router = express.Router();
 const WithdrawController = require('../controllers/withdraw.controller');
 const { handleHttpError } = require('../utils'); // Asumiendo que tienes un manejador de errores
 const { response } = require('../db'); // Asumiendo que tienes una función de respuesta
+const auth = require('../middleware/auth');
 
 // router.post('/', async (req, res) => {
 //     try {
@@ -13,9 +14,9 @@ const { response } = require('../db'); // Asumiendo que tienes una función de r
 //     }
 // });
 
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
     try {
-        const withdraws = await WithdrawController.getWithdraws();
+        const withdraws = await WithdrawController.getWithdraws({ userId: req.user.id });
         res.json(response(withdraws, 'success'));
     } catch (error) {
         handleHttpError(error, res);
