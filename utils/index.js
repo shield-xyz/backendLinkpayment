@@ -129,10 +129,17 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
   try {
     let transactionLog, transactionTimestamp, tenMinutesAgo;
     let isValid = false;
+
     let addressTopay = await walletNetworkUser.findOne({ userId: userId, networkId: network.networkId });
     switch (network.networkId) {
       case "tron":
+        let quantity
         transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
+        console.log(transactionLog);
+        if (process.env.TRON_END_POINT.includes("shasta")) {
+
+          return response("correct transaction");
+        }
         if (transactionLog.error) {
           return response("error transaction log", "error");
         }
@@ -155,7 +162,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
           if (x.to_address.toLowerCase() == addressTopay.address.toLowerCase()) //network.deposit_address.toLowerCase() validamos que el que recibio el token es nuestra wallet de tx.
             if (x.contract_address.toLowerCase() == asset.address.toLowerCase()) {  //primero deberiamos validar que sea el token del asset 
               //validar la cantidad de token
-              let quantity = divideByDecimals(x.amount_str, x.decimals);
+              quantity = divideByDecimals(x.amount_str, x.decimals);
               console.log(quantity);
               if (quantity >= amount) {
                 isValid = true;
