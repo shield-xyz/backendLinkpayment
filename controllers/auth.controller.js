@@ -61,10 +61,10 @@ module.exports = {
                 return;
             }
             // Validar la contraseña
-            const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
-            if (!passwordRegex.test(password)) {
-                return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
-            }
+            // const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+            // if (!passwordRegex.test(password)) {
+            //     return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
+            // }
             // Validar el email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
@@ -133,11 +133,11 @@ module.exports = {
             if (!user) {
                 return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
             }
-            // Validar la contraseña
-            const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
-            if (!passwordRegex.test(password)) {
-                return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
-            }
+            // // Validar la contraseña
+            // const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+            // if (!passwordRegex.test(password)) {
+            //     return res.status(200).json(response('Password must be at least 8 characters long and contain at least one special character.', "error"));
+            // }
             // Actualizar la contraseña
             const salt = bcrypt.genSaltSync(10);
             user.password = bcrypt.hashSync(password, salt);

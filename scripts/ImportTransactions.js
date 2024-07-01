@@ -75,10 +75,11 @@ const runScript = async () => {
         console.log("Processing data:", da);
         try {
             const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
+            let result;
             da.amount = amount;
             let exist = await transactionModel.findOne(da);
             if (!exist) {
-                const result = await TransactionController.createTransaction({
+                result = await TransactionController.createTransaction({
                     assetId: "usdt-ethereum",
                     networkId: "tron",
                     linkPaymentId: null,
@@ -87,8 +88,8 @@ const runScript = async () => {
                     date: new Date(da["date"]), // Convertir fecha a objeto Date
                     userId: "66826162a20b6bf35358ea0d"
                 });
+                console.log("Transaction created:", result);
             }
-            console.log("Transaction created:", result);
         } catch (error) {
             console.error("Error creating transaction:", error);
         }
