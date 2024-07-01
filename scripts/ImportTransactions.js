@@ -1,6 +1,7 @@
 // scripts/imporTransactions.js
 const TransactionController = require("../controllers/transactions.controller");
 const { connectDB } = require("../db");
+const transactionModel = require("../models/transaction.model");
 
 const runScript = async () => {
     console.log("starting script");
@@ -73,7 +74,7 @@ const runScript = async () => {
         const da = data[i];
         console.log("Processing data:", da);
         try {
-            let exist = await TransactionController.findOne(da);
+            let exist = await transactionModel.findOne(da);
             if (!exist) {
                 const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
                 const result = await TransactionController.createTransaction({
