@@ -210,6 +210,23 @@ async function listChannelsAndJoinIfNotMember() {
     }
 }
 
+async function changeStatusWithdraw(withdrawId, status) {
+    // let balance = await balanceModel.findById(balanceId).populate("asset network user");
+
+    let withdraw = await WithdrawController.getWithdrawById(withdrawId);
+    withdraw.status = status;
+    await withdraw.save();
+
+    await NotificationsController.createNotification({
+        ...NOTIFICATIONS.STATUS_WITHDRAW(wt._id, status),
+        userId: withdraw.userId
+    });
+    // let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
+
+    await sendMessage("Withdraw status changed , id : " + withdraw._id);
+}
+
+
 async function listWithDraws() {
     let wts = await WithdrawController.getWithdraws();
     let block = [];
@@ -250,5 +267,5 @@ module.exports = {
     WebSlack: web,
     fetchMessages,
     listChannels,
-    listChannelsAndJoinIfNotMember, sendMessage, listBalances, generateWithDraw, padRightTo, listWithDraws
+    listChannelsAndJoinIfNotMember, sendMessage, listBalances, generateWithDraw, padRightTo, listWithDraws, changeStatusWithdraw
 }

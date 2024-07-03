@@ -13,7 +13,9 @@ const CONFIGURATIONS = {
 };
 const NOTIFICATIONS = {
   NEW_TRANSACTION: (quote_amount, symbol, name) => { return { title: "Payment Received", description: "You have received a payment of " + `${quote_amount} ${symbol} - ${name}` } },
-  NEW_WITHDRAW: (amount, withdrawId) => { return { title: `Withdraw created", description: "We are processing your withdrawal of ${amount}. Withdrawal ID: ${withdrawId} ` } }
+  NEW_WITHDRAW: (amount, withdrawId) => { return { title: `Withdraw created", description: "We are processing your withdrawal of ${amount}. Withdrawal ID: ${withdrawId} ` } },
+  STATUS_WITHDRAW: (withdrawId, status) => { return { title: `Withdraw updated", description: "You withdraw change status to ${status}. Withdrawal ID: ${withdrawId} ` } },
+
 }
 
 module.exports = {

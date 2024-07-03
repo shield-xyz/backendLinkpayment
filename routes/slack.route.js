@@ -38,11 +38,30 @@ router.post('/challenge', async (req, res) => {
                     return res.send({});
 
                 }
+                if (event.text.includes("withdraw status ")) {
+
+                    let args = event.text.split("|");
+                    console.log(args, "args")
+                    let status = args[1];
+                    switch (status) {
+                        case "pending": break;
+                        case "success": break;
+                        case "error": break;
+                        default:
+                            await SlackController.sendMessage("status should be: pending or success or error");
+                            return res.send({});
+                            break;
+                    }
+                    await SlackController.changeStatusWithdraw(args[0], status)
+                    return res.send({});
+
+                }
             }
         }
         res.send({ challenge: req.body.challenge }); return;
 
     } catch (error) {
+        await SlackController.sendMessage("error " + error.message);
         handleHttpError(error, res);
     }
 });
