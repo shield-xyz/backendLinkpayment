@@ -40,11 +40,11 @@ router.post('/challenge', async (req, res) => {
                         return res.send({});
 
                     }
-                    if (event.text.includes("withdraw status ")) {
+                    if (event.text.includes("status|")) {
 
                         let args = event.text.split("|");
                         console.log(args, "args")
-                        let status = args[1];
+                        let status = args[2];
                         switch (status) {
                             case "pending": break;
                             case "success": break;
@@ -54,7 +54,7 @@ router.post('/challenge', async (req, res) => {
                                 return res.send({});
                                 break;
                         }
-                        await SlackController.changeStatusWithdraw(args[0], status)
+                        await SlackController.changeStatusWithdraw(args[1], status)
                         return res.send({});
 
                     }
