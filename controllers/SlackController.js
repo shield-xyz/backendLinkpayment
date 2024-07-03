@@ -218,12 +218,12 @@ async function changeStatusWithdraw(withdrawId, status) {
     await withdraw.save();
 
     await NotificationsController.createNotification({
-        ...NOTIFICATIONS.STATUS_WITHDRAW(wt._id, status),
+        ...NOTIFICATIONS.STATUS_WITHDRAW(withdrawId, status),
         userId: withdraw.userId
     });
     // let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
 
-    await sendMessage("Withdraw status changed , id : " + withdraw._id);
+    await sendMessage("Withdraw status changed , id : " + withdrawId);
 }
 
 
