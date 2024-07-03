@@ -17,7 +17,7 @@ const recipientRampableSchema = new mongoose.Schema({
         {
             accountName: String,
             bankName: String,
-            accountNumber: Number,
+            accountNumber: String,
             paymentCode: String,
             currency: String,
             country: String,
@@ -34,7 +34,6 @@ const recipientRampableSchema = new mongoose.Schema({
     },
     userId: {
         type: String,
-        required: true
     },
     createdAt: {
         type: Date,
