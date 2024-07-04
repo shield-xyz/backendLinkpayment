@@ -5,7 +5,7 @@ const NotificationsUserSchema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     description: { type: String, required: true },
     title: { type: String, required: true },
-    status: { type: String, enum: ['seen', 'not seen'], required: true, default: "not seen" }
+    status: { type: String, enum: ['seen', 'not seen', 'deleted'], required: true, default: "not seen" }
   },
   {
     collection: 'notifications_users',

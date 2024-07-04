@@ -166,3 +166,64 @@ module.exports = User;
 - **email**: String. Email del usuario (debe ser único).
 - **password**: String. Contraseña del usuario.
 - **createdAt**: Date. Fecha de creación del usuario (por defecto, la fecha actual).
+
+### API Usage Instructions
+
+URL API : https://paybackend.getshield.xyz/
+To obtain the API key once (only needs to be done once). After that, the same API key will always be used.
+
+#### Register a User
+
+To register a new user, you can use the following code snippet:
+
+\`\`\`javascript
+const formData = new FormData();
+formData.append("user_name", "name user");
+formData.append("email", "email@email.com");
+formData.append("password", "password");
+formData.append("company", "company name");
+
+fetch('http://fruta/api/auth/register', {
+method: 'POST',
+body: formData
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+\`\`\`
+
+#### Verify a Blockchain Transaction
+
+To verify a blockchain transaction, you can use the following code snippet:
+
+\`\`\`javascript
+const data = {
+hash: "0x6c104124019c9dda224fa3d70c7a0322ec63a5ccb28b44a7fb16a6e6684e400d",
+assetId: "usdt-ethereum",
+amount: 1
+};
+
+fetch('http://fruta/api/payments/verify-out', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'x-api-key': 'apikey'
+},
+body: JSON.stringify(data)
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+\`\`\`
+
+### Important Validation Rules
+
+- The transaction must not have been used before.
+- The date of the transaction must be within the last 10 minutes.
+- The transaction amount must be greater than or equal to the posted amount.
+- The payment wallet must match the one assigned to the API key user.
+
+### Possible Response Values
+
+- 'failed'
+- 'success'
