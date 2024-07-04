@@ -14,9 +14,9 @@ const RampableController = require('../controllers/rampable.controller');
 //   userId: "666dc2008eed3ebb921f01b5",
 // })
 
-RampableController.createRecipients({ name: "nehuen fortes", email: "nehuenfortes@gmail.com" }, { currency: "USD", achNumber: "123123123", country: "UNITED STATES", accountNumber: "1919191911", accountName: "nameaccount", bankName: "testNameBank" }, "BOSTON", "address california", "4123").then(res => {
-  // console.log(res)
-})
+// RampableController.createRecipients({ name: "nehuen fortes", email: "nehuenfortes@gmail.com" }, { currency: "USD", achNumber: "123123123", country: "UNITED STATES", accountNumber: "1919191911", accountName: "nameaccount", bankName: "testNameBank" }, "BOSTON", "address california", "4123").then(res => {
+//   // console.log(res)
+// })
 router.get('/', auth, async (req, res) => {
   try {
     const balances = await BalanceController.findMany({ userId: req.user.id });

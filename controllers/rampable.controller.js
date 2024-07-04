@@ -95,9 +95,10 @@ async function createRecipients(user, bank, city, address, postCode, country = "
     try {
         let body = {
 
-            "name": "testaddprodshield",
+
+            "name": "nehuenfortes",
             "recipientType": "Individual",
-            "email": "testaddprod@gmail.com",
+            "email": "nehuenfortes@gmail.com",
             "organizationId": "665eb972de1c542dbcd31200",
             "city": "BOSTON",
             "address": "asd",
@@ -119,8 +120,8 @@ async function createRecipients(user, bank, city, address, postCode, country = "
             {
                 headers: {
                     "X-CLIENT-ID": "f52f216d07614fc8ae3f81a331ea8b95527212",
-                    'X-SIGNATURE': "PSQCf09Ejfh5E8lBHgTWkNDkyywkR1RM+0kCmhPXKY/0Uz6Io5S3DDQSr1BNNzy7qczLkyVuYcsgDLDS5D7Bu5BG3X2d0KxmqGFRXSsCvTtj1RhGD6XxYcLWAbVknlwpe9/nMdyehfqesICsTBtL/SZ1uz5xxbRuA7JD1qFeAJMfFwhPLvOZHebWmjNLGFqmfzEGAQTscPZdXVUsEQSG8bZRMKxVJq7wShGDrpWIWNVLqazkOCJQwvqKq+18teuZUvgsNb1aEoN78gMZ8xjaJQ4dsoflfUXvnfq3fn6s/3nU3sMWpjedjdriNX+sVpbi06/62OuRFFFU2FpkzKewNw==",
-                    'X-TIMESTAMP': "2024-07-02T00:00:00Z",
+                    'X-SIGNATURE': "FpP+Oy4qYKkq+o6W1LO3PJraCzdPviRCLp6Xv7GVGZsrwha/TReyt6avJpvkukPCNCnwLpsCL2CYJizbS0BxitcCrqKqwzJaeSCn070TsJcjdRMaRKoyPatiA7vy8EJI9U4oXK+5Fbj5l51BXWi9n87jqb1KSrngzCxcnrZoFcERFt/17vgigFsmdthKZKHulEsNd2qYODc2qvj+h9mNmUqb6sbr8IT87UYObigQ/P87z6c4JT0qitSnH2VmQ0nBPSFnFS/ZXBpDqSVird4JSRwESpg1uuOhQTFkczhKPJ/k942FGP92WvaCRtluhFdcphEqCAwuJG+kei+mPQEQIQ==",
+                    'X-TIMESTAMP': "2024-07-04T12:06:25.265Z",
                     'Content-Type': 'application/json'
                 }
             }

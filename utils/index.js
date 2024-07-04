@@ -140,6 +140,9 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
 
           return response("correct transaction");
         }
+        if (transactionLog?.applied == true) {
+          return response("transaciont used for another payment", "error");
+        }
         if (transactionLog.error) {
           return response("error transaction log", "error");
         }
@@ -166,11 +169,8 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
               console.log(quantity);
               if (quantity >= amount) {
                 isValid = true;
-                // payment.hash = hash;
-                // payment.status = "success";
-                // payment.save();
-                // await TransactionController.createTransaction(transactionBody);
-                // await PaymentController.loadBalanceImported(req.body.paymentId);
+                transactionLog.applied = true;
+                await transactionLog.save();
                 return response("correct transaction");
               }
             }
