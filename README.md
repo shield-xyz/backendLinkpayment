@@ -176,45 +176,45 @@ To obtain the API key once (only needs to be done once). After that, the same AP
 
 To register a new user, you can use the following code snippet:
 
-\`\`\`javascript
+```javascript
 const formData = new FormData();
 formData.append("user_name", "name user");
 formData.append("email", "email@email.com");
 formData.append("password", "password");
 formData.append("company", "company name");
 
-fetch('http://fruta/api/auth/register', {
-method: 'POST',
-body: formData
+fetch("http://fruta/api/auth/register", {
+  method: "POST",
+  body: formData,
 })
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
-\`\`\`
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error("Error:", error));
+```
 
 #### Verify a Blockchain Transaction
 
 To verify a blockchain transaction, you can use the following code snippet:
 
-\`\`\`javascript
+```javascript
 const data = {
-hash: "0x6c104124019c9dda224fa3d70c7a0322ec63a5ccb28b44a7fb16a6e6684e400d",
-assetId: "usdt-ethereum",
-amount: 1
+  hash: "0x6c104124019c9dda224fa3d70c7a0322ec63a5ccb28b44a7fb16a6e6684e400d",
+  assetId: "usdt-ethereum",
+  amount: 1,
 };
 
-fetch('http://fruta/api/payments/verify-out', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'x-api-key': 'apikey'
-},
-body: JSON.stringify(data)
+fetch("http://fruta/api/payments/verify-out", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": "apikey",
+  },
+  body: JSON.stringify(data),
 })
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
-\`\`\`
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error("Error:", error));
+```
 
 ### Important Validation Rules
 
