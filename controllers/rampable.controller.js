@@ -1,10 +1,71 @@
 const RecipientRampableModel = require("../models/RecipientRampable.model");
 const { logger } = require("../utils/Email");
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+const generateAssymetricSignature = ({ body, timeStamp, method, clientID, privateKeyPath }) => {
+    // Leer la clave privada desde el archivo
+    const myPemKey = fs.readFileSync(path.resolve(privateKeyPath), 'utf8');
+
+    // Minify the HTTP body
+    const minfiedBodyEncrypted = JSON.stringify(body || {});
+
+    // Create a SHA-256 hash object
+    const hash = crypto.createHash('sha256');
+
+    // Add the data to the hash object
+    hash.update(minfiedBodyEncrypted);
+
+    // Calculate the SHA-256 hash
+    const hexSHA = hash.digest('hex');
+    const minfiedBodyEncryptedLower = hexSHA.toLowerCase();
+
+    // Generate the string to be signed
+    let stringToSign = '';
+
+    // POST, PATCH, PUT = <X-CLIENT-ID> + “:“ + <X-TIMESTAMP> + “:“ + LowerCase(HexEncode(SHA-256(Minify(<HTTP BODY>))))
+    // GET, DELETE = <X-CLIENT-ID> + “:“ + <X-TIMESTAMP>
+    switch (method) {
+        case 'GET':
+        case 'DELETE':
+            stringToSign = `${clientID}:${timeStamp}`;
+            break;
+        case 'POST':
+        case 'PATCH':
+        case 'PUT':
+            stringToSign = `${clientID}:${timeStamp}:${minfiedBodyEncryptedLower}`;
+            break;
+        default:
+            throw new Error('Method not allowed');
+    }
+
+    // Create a signer object
+    const sign = crypto.createSign('RSA-SHA256');
+
+    // Update the signer object with the data to be signed
+    sign.update(stringToSign);
+
+    // Sign the data
+    const signature = sign.sign({ key: myPemKey, padding: crypto.constants.RSA_PKCS1_PADDING }, 'base64');
+
+    return console.log(signature);
+}
+
+let token = "PSQCf09Ejfh5E8lBHgTWkNDkyywkR1RM+0kCmhPXKY/0Uz6Io5S3DDQSr1BNNzy7qczLkyVuYcsgDLDS5D7Bu5BG3X2d0KxmqGFRXSsCvTtj1RhGD6XxYcLWAbVknlwpe9/nMdyehfqesICsTBtL/SZ1uz5xxbRuA7JD1qFeAJMfFwhPLvOZHebWmjNLGFqmfzEGAQTscPZdXVUsEQSG8bZRMKxVJq7wShGDrpWIWNVLqazkOCJQwvqKq+18teuZUvgsNb1aEoN78gMZ8xjaJQ4dsoflfUXvnfq3fn6s/3nU3sMWpjedjdriNX+sVpbi06/62OuRFFFU2FpkzKewNw==";
+
+// generateAssymetricSignature({
+//     body: { message: 'Nehuen fortes' },
+//     timeStamp: '2024-07-03T00:00:00Z',
+//     method: 'POST',
+//     clientID: process.env.RAMPABLE_CLIENT_SECRET,
+//     privateKeyPath: './shield-payments.pem' // Reemplaza con la ruta correcta de tu archivo de clave privada
+// });
 
 
 //logica de rampable 
 async function getToken() {
-    return "";
+    return token;
 }
 async function login() {
 
@@ -29,43 +90,65 @@ async function login() {
  * @returns {Promise<Object>} The response from the server.
  * @throws Will throw an error if the fetch request fails.
  */
-async function createRecipients(user, bank, city, address, postCode) {
-    let token = await getToken();
-    let body = {
-        "name": user.name,
-        "email": user.email,
-        "bank": {
-            "currency": bank.currency ?? "USD",
-            "country": bank.country,
-            "accountNumber": bank.accountNumber,
-            "accountName": bank.accountName,
-            "bankName": bank.bankName,
-            "ifsc": "",
-        },
-        "city": city,
-        "postCode": postCode,
-        "address": address,
-    };
-    let response = await fetch('https://sandbox.rampable.co/v1/recipient', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-    });
-    response = await response.json();
-    if (response.statusCode === 200) {
-        let re = await RecipientRampableModel.create(response.data);
+async function createRecipients(user, bank, city, address, postCode, country = "UNITED STATES") {
+
+    try {
+        let body = {
+
+
+            "name": "nehuenfortes",
+            "recipientType": "Individual",
+            "email": "nehuenfortes@gmail.com",
+            "organizationId": "665eb972de1c542dbcd31200",
+            "city": "BOSTON",
+            "address": "asd",
+            "postCode": "4123",
+            "bank": {
+                "accountName": "Bababa",
+                "accountNumber": "Uwuwhw",
+                "currency": "USD",
+                "country": "UNITED STATES",
+                "achNumber": "123123123",
+                "accountType": "Checking"
+            }
+
+        };
+        // console.log(body);
+        // return
+        let response = await axios.post('https://staging.rampable.co/v1/recipient',
+            body,
+            {
+                headers: {
+                    "X-CLIENT-ID": "f52f216d07614fc8ae3f81a331ea8b95527212",
+                    'X-SIGNATURE': "FpP+Oy4qYKkq+o6W1LO3PJraCzdPviRCLp6Xv7GVGZsrwha/TReyt6avJpvkukPCNCnwLpsCL2CYJizbS0BxitcCrqKqwzJaeSCn070TsJcjdRMaRKoyPatiA7vy8EJI9U4oXK+5Fbj5l51BXWi9n87jqb1KSrngzCxcnrZoFcERFt/17vgigFsmdthKZKHulEsNd2qYODc2qvj+h9mNmUqb6sbr8IT87UYObigQ/P87z6c4JT0qitSnH2VmQ0nBPSFnFS/ZXBpDqSVird4JSRwESpg1uuOhQTFkczhKPJ/k942FGP92WvaCRtluhFdcphEqCAwuJG+kei+mPQEQIQ==",
+                    'X-TIMESTAMP': "2024-07-04T12:06:25.265Z",
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        // console.log(response)
+        response = response.data;
+        if (response.statusCode === 200) {
+            console.log(response)
+            let re = await RecipientRampableModel.create(response.data);
+            return re;
+        } else {
+            logger.info("response from server: " + JSON.stringify(response));
+            return {};
+        }
+    } catch (error) {
+        console.log(error, "error")
     }
-    logger.info("response from server: " + JSON.stringify(response));
-    return response;
+
 }
 
 async function getRecipientMongo(filter = {}) {
     let recipients = await RecipientRampableModel.find(filter);
     return recipients;
 }
+
+
+
 
 /**
  * Creates a recipient by sending a POST request to the Rampable API.
@@ -94,10 +177,9 @@ async function getRecipients(email) {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
-            'x-static-token': static_token,
         },
         searchParams: {
-            'search': email,
+            // 'search': email,
             'limit': '10',
             'currency': 'INR',
             'page': '1',
@@ -139,7 +221,7 @@ async function getAccountData(email) {
 
 
 
-
+// getRecipients("asd").then(res => { console.log(res, "RESPONSE") });
 module.exports = {
     getToken,
     login,

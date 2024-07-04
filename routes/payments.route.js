@@ -67,6 +67,28 @@ router.put('/:id', apiKeyMaster, async (req, res) => {
     }
 });
 
+router.post("/verify-out", auth, async (req, res) => {
+
+    try {
+        let asset = await AssetController.findOne({ assetId: req.body.assetId });
+
+        if (!asset) {
+            return res.status(200).send(response("assetId is required", "error"));
+        }
+        let network = await NetworkController.findOne({ networkId: asset?.networkId });
+
+        let resp = await validatePayment(req.body.hash, req.body.amount, network, asset, req.user._id, null, null);
+        if (resp.status == "success") {
+            res.send(response("success")); return;
+
+        } else {
+            res.send(response("failed")); return;
+        }
+    } catch (error) {
+        logger.error(error);
+        return res.status(200).send(response(error.message, "error"));
+    }
+});
 
 router.post('/verify', apiKeyMaster, async (req, res) => {
     try {

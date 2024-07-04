@@ -95,6 +95,8 @@ const TransactionLogsSchema = new Schema({
     network: String,
     paymentId: String,
     linkpaymentId: String,
+    applied: { type: Boolean, default: false }
+
 });
 
 
