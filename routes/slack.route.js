@@ -19,7 +19,7 @@ router.post('/challenge', async (req, res) => {
         if (event.type == "message") {
             console.log(event)
             if (event.text)
-                if (event.channel == process.env.SLACK_CHANNEL) {
+                if (event.channel == process.env.SLACK_CHANNEL && !event.bot_id) {
                     if (event.text.includes("list balances")) {
                         await SlackController.listBalances();
                     }

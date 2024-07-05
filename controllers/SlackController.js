@@ -157,7 +157,6 @@ async function generateWithDraw(amount, balanceId) {
         userId: balance.userId
     });
     let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
-
     if (userConf.length > 0 && userConf[0]?.value == "true") {
         await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
     }
