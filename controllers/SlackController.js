@@ -102,8 +102,14 @@ async function listBalances() {
             mes += "User : " + user.user_name + "\n";
 
             balances.map(async balance => {
+                const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
+                let balanceWithDraws = totalBalancesWithdraws.map(x => {
+                    if (x?.amount) {
+                        balanceWithDraws += amount;
+                    }
+                });
 
-                mes += "id : " + balance._id + " :" + balance.amount + " " + balance.asset.symbol + " - network : " + balance.network.name + "\n";
+                mes += "id : " + balance._id + " :" + (balance.amount - balanceWithDraws) + " " + balance.asset.symbol + " - network : " + balance.network.name + "\n";
             })
         }
     }
