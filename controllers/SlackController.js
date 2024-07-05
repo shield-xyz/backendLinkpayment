@@ -104,7 +104,8 @@ async function listBalances() {
 
             balances.map(async balance => {
                 const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
-                let balanceWithDraws = totalBalancesWithdraws.map(x => {
+                let balanceWithDraws = 0;
+                totalBalancesWithdraws.map(x => {
                     if (x?.amount) {
                         balanceWithDraws += amount;
                     }
@@ -135,7 +136,8 @@ async function generateWithDraw(amount, balanceId) {
 
     }
     const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
-    let balanceWithDraws = totalBalancesWithdraws.map(x => {
+    let balanceWithDraws = 0;
+    totalBalancesWithdraws.map(x => {
         if (x?.amount) {
             balanceWithDraws += amount;
         }
