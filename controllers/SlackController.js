@@ -10,6 +10,7 @@ const { NOTIFICATIONS, CONFIGURATIONS } = require('../config/index.js');
 const NotificationsController = require('../controllers/NotificationsUser.controller.js');
 const ConfigurationUserController = require('./configurationUser.controller.js');
 const { sendProcessingWithdraw } = require('./email.controller.js');
+const withdrawsModel = require('../models/withdraws.model.js');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
