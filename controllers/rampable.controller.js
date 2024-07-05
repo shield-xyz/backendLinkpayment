@@ -4,7 +4,11 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const generateAssymetricSignature = ({ body, timeStamp, method, clientID, privateKeyPath }) => {
+const { isEmpty } = require("../utils");
+const dateSignature = new Date().toISOString();
+
+
+const getSignature = (body, method, clientID = process.env.RAMPABLE_CLIENT_SECRET, privateKeyPath = './shield-payments.pem') => {
     // Leer la clave privada desde el archivo
     const myPemKey = fs.readFileSync(path.resolve(privateKeyPath), 'utf8');
 
@@ -29,12 +33,12 @@ const generateAssymetricSignature = ({ body, timeStamp, method, clientID, privat
     switch (method) {
         case 'GET':
         case 'DELETE':
-            stringToSign = `${clientID}:${timeStamp}`;
+            stringToSign = `${clientID}:${dateSignature}`;
             break;
         case 'POST':
         case 'PATCH':
         case 'PUT':
-            stringToSign = `${clientID}:${timeStamp}:${minfiedBodyEncryptedLower}`;
+            stringToSign = `${clientID}:${dateSignature}:${minfiedBodyEncryptedLower}`;
             break;
         default:
             throw new Error('Method not allowed');
@@ -49,27 +53,36 @@ const generateAssymetricSignature = ({ body, timeStamp, method, clientID, privat
     // Sign the data
     const signature = sign.sign({ key: myPemKey, padding: crypto.constants.RSA_PKCS1_PADDING }, 'base64');
 
-    return console.log(signature);
+    return signature;
 }
 
-let token = "PSQCf09Ejfh5E8lBHgTWkNDkyywkR1RM+0kCmhPXKY/0Uz6Io5S3DDQSr1BNNzy7qczLkyVuYcsgDLDS5D7Bu5BG3X2d0KxmqGFRXSsCvTtj1RhGD6XxYcLWAbVknlwpe9/nMdyehfqesICsTBtL/SZ1uz5xxbRuA7JD1qFeAJMfFwhPLvOZHebWmjNLGFqmfzEGAQTscPZdXVUsEQSG8bZRMKxVJq7wShGDrpWIWNVLqazkOCJQwvqKq+18teuZUvgsNb1aEoN78gMZ8xjaJQ4dsoflfUXvnfq3fn6s/3nU3sMWpjedjdriNX+sVpbi06/62OuRFFFU2FpkzKewNw==";
+const rampableRequest = async (endpoint, method = 'GET', body = {}, searchParams = {}) => {
+    const url = `${process.env.RAMPABLE_URL}${endpoint}`;
+    const signature = getSignature(body, method);
+    const options = {
+        method,
+        headers: {
+            "X-CLIENT-ID": process.env.RAMPABLE_CLIENT_SECRET,
+            'X-SIGNATURE': signature,
+            'X-TIMESTAMP': dateSignature,
+            'Content-Type': 'application/json'
+        }, searchParams
+    };
+    if (!isEmpty(body)) {
+        options.body = JSON.stringify(body);
+    }
+    // console.log({
+    //     "X-CLIENT-ID": process.env.RAMPABLE_CLIENT_SECRET,
+    //     'X-SIGNATURE': signature,
+    //     'X-TIMESTAMP': dateSignature,
+    //     'Content-Type': 'application/json'
+    // }, body, url)
+    const response = await fetch(url, options);
+    const data = await response.json();
+    return data;
+};
 
-// generateAssymetricSignature({
-//     body: { message: 'Nehuen fortes' },
-//     timeStamp: '2024-07-03T00:00:00Z',
-//     method: 'POST',
-//     clientID: process.env.RAMPABLE_CLIENT_SECRET,
-//     privateKeyPath: './shield-payments.pem' // Reemplaza con la ruta correcta de tu archivo de clave privada
-// });
 
-
-//logica de rampable 
-async function getToken() {
-    return token;
-}
-async function login() {
-
-}
 /**
  * Creates a recipient by sending a POST request to the Rampable API.
  * 
@@ -90,50 +103,34 @@ async function login() {
  * @returns {Promise<Object>} The response from the server.
  * @throws Will throw an error if the fetch request fails.
  */
-async function createRecipients(user, bank, city, address, postCode, country = "UNITED STATES") {
+async function createRecipients(user, userId, bank, city, address, postCode, country = "UNITED STATES") {
 
     try {
         let body = {
-
-
-            "name": "nehuenfortes",
+            "name": user.name,
             "recipientType": "Individual",
-            "email": "nehuenfortes@gmail.com",
+            "email": user.email,
             "organizationId": "665eb972de1c542dbcd31200",
-            "city": "BOSTON",
-            "address": "asd",
-            "postCode": "4123",
+            "city": city,
+            "address": address,
+            "postCode": postCode,
             "bank": {
-                "accountName": "Bababa",
-                "accountNumber": "Uwuwhw",
-                "currency": "USD",
-                "country": "UNITED STATES",
-                "achNumber": "123123123",
-                "accountType": "Checking"
+                "accountName": bank.accountName,
+                "accountNumber": bank.accountNumber,
+                "currency": bank.currency,
+                "country": country,
+                "achNumber": bank.achNumber,
+                "accountType": bank.accountType,
             }
 
         };
-        // console.log(body);
-        // return
-        let response = await axios.post('https://staging.rampable.co/v1/recipient',
-            body,
-            {
-                headers: {
-                    "X-CLIENT-ID": "f52f216d07614fc8ae3f81a331ea8b95527212",
-                    'X-SIGNATURE': "FpP+Oy4qYKkq+o6W1LO3PJraCzdPviRCLp6Xv7GVGZsrwha/TReyt6avJpvkukPCNCnwLpsCL2CYJizbS0BxitcCrqKqwzJaeSCn070TsJcjdRMaRKoyPatiA7vy8EJI9U4oXK+5Fbj5l51BXWi9n87jqb1KSrngzCxcnrZoFcERFt/17vgigFsmdthKZKHulEsNd2qYODc2qvj+h9mNmUqb6sbr8IT87UYObigQ/P87z6c4JT0qitSnH2VmQ0nBPSFnFS/ZXBpDqSVird4JSRwESpg1uuOhQTFkczhKPJ/k942FGP92WvaCRtluhFdcphEqCAwuJG+kei+mPQEQIQ==",
-                    'X-TIMESTAMP': "2024-07-04T12:06:25.265Z",
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-        // console.log(response)
-        response = response.data;
-        if (response.statusCode === 200) {
-            console.log(response)
-            let re = await RecipientRampableModel.create(response.data);
+        let data = await rampableRequest('recipient', "POST", body);
+
+        if (data.statusCode === 200) {
+            let re = await RecipientRampableModel.create({ ...data.data, userId });
             return re;
         } else {
-            logger.info("response from server: " + JSON.stringify(response));
+            logger.info("response from server: " + JSON.stringify(data));
             return {};
         }
     } catch (error) {
@@ -146,9 +143,6 @@ async function getRecipientMongo(filter = {}) {
     let recipients = await RecipientRampableModel.find(filter);
     return recipients;
 }
-
-
-
 
 /**
  * Creates a recipient by sending a POST request to the Rampable API.
@@ -171,26 +165,22 @@ async function getRecipientMongo(filter = {}) {
  * @throws Will throw an error if the fetch request fails.
  */
 async function getRecipients(email) {
-    let token = await getToken();
-    let static_token = "";
-    let response = await fetch('https://sandbox.rampable.co/v1/recipient', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
-        searchParams: {
-            // 'search': email,
-            'limit': '10',
-            'currency': 'INR',
-            'page': '1',
-            'sort': '-createdAt',
-        }
-    })
-    response = await response.json();
-    logger.info("response from server: " + JSON.stringify(response));
-    return response;
-}
 
+    let data = await rampableRequest('recipient', "GET", {}, {
+        'search': email,
+        'limit': '10',
+        'currency': 'INR',
+        'page': '1',
+        'sort': '-createdAt',
+    });
+    logger.info("response from server: " + JSON.stringify(data));
+    return data;
+}
+const getCurrencies = async () => {
+    // https://staging.rampable.co/v1/reference/cryptos
+    let data = await rampableRequest('reference/cryptos', "GET", {},);
+    return data;
+}
 
 /**
  * Fetches account data from a backend API using the provided email.
@@ -220,11 +210,30 @@ async function getAccountData(email) {
 }
 
 
+async function generateOfframp(withdraw) {
 
-// getRecipients("asd").then(res => { console.log(res, "RESPONSE") });
+    //usdc-ethereum probar con este es el unico que tenemos en uso y ala vez tiene usd en currencies
+}
+
+
+
+
+
+const convertCryptoToUSD = async (accountId, amount, cryptoCurrency, fiat_currency = "USD") => {
+
+    let body = {
+        amount,
+        crypto_currency: cryptoCurrency,
+        fiat_currency: fiat_currency
+    };
+    console.log(body, "body convert cripto")
+    const conversion = await rampableRequest(`accounts/${accountId}/conversions`, 'POST', body);
+
+    return conversion;
+};
+
 module.exports = {
-    getToken,
-    login,
+    getSignature,
     createRecipients,
-    getRecipients, getRecipientMongo, getAccountData
+    getRecipients, getRecipientMongo, getAccountData, convertCryptoToUSD
 };

@@ -1,6 +1,7 @@
 // scripts/imporTransactions.js
 const TransactionController = require("../controllers/transactions.controller");
 const { connectDB } = require("../db");
+const balanceModel = require("../models/balance.model");
 const transactionModel = require("../models/transaction.model");
 
 const runScript = async () => {
@@ -69,7 +70,14 @@ const runScript = async () => {
             "date": "1/24/2024",
         }
     ];
+    let userId = "66826162a20b6bf35358ea0d";
+    if (process.env.DB_NAME_MONGO == "development-test") {
+        // userId = "667477f6769e23782b7c2984"
+        // await transactionModel.deleteMany({ userId });
+    }
 
+    let assetId = "usdt-tron";
+    let networkId = "tron";
     for (let i = 0; i < data.length; i++) {
         let da = data[i];
         console.log("Processing data:", da);
@@ -77,18 +85,34 @@ const runScript = async () => {
             const amount = parseFloat(da["amount"].replace(/[\$,]/g, ''));
             let result;
             da.amount = amount;
-            let exist = await transactionModel.findOne(da);
+            let exist = await transactionModel.findOne({ hash: da.tx, assetId });
+
             if (!exist) {
                 result = await TransactionController.createTransaction({
-                    assetId: "usdt-ethereum",
-                    networkId: "tron",
+                    assetId: assetId,
+                    networkId: networkId,
                     linkPaymentId: null,
                     amount: amount,
                     hash: da["tx"],
                     date: new Date(da["date"]), // Convertir fecha a objeto Date
-                    userId: "66826162a20b6bf35358ea0d"
+                    userId: userId
                 });
-                console.log("Transaction created:", result);
+                // console.log("Transaction created:", result);
+                //sumar amount a balance
+                let balance = await balanceModel.findOne({ userId: userId, assetId: assetId })
+                if (!balance) {
+                    balance = new balanceModel({
+                        amount: 0,
+                        networkId: networkId,
+                        assetId: assetId,
+                        userId: userId,
+                    })
+                }
+                balance.amount += amount;
+                await balance.save();
+                console.log(balance)
+
+
             }
         } catch (error) {
             console.error("Error creating transaction:", error);

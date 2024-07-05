@@ -127,7 +127,14 @@ async function generateWithDraw(amount, balanceId) {
         return
 
     }
-    if (amount > balance.amount) {
+    const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
+    let balanceWithDraws = totalBalancesWithdraws.map(x => {
+        if (x?.amount) {
+            balanceWithDraws += amount;
+        }
+    });
+
+    if (amount + balanceWithDraws > balance.amount) {
         await sendMessage("the amount exceeds the balance, balance: " + balance.amount);
         return
 
@@ -155,7 +162,7 @@ async function generateWithDraw(amount, balanceId) {
         await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
     }
 
-    balance.amount -= amount;
+
     balance.save();
     await sendMessage("Withdraw created, id : " + wt._id);
 }

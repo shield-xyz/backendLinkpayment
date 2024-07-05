@@ -53,7 +53,9 @@ function validateResponse(response, message) {
     throw new Error(`${message}: ${response.status} - ${response.statusText}`);
   }
 }
-
+const isEmpty = (obj) => {
+  return Object.keys(obj).length === 0;
+};
 
 let response = (data, status = "success") => {
   return { response: data, status: status }
@@ -121,16 +123,13 @@ async function getPrices() {
 
 }
 
-
-
-
-
 async function validatePayment(hash, amount, network, asset, userId, linkId = null, paymentId = null) {
   try {
     let transactionLog, transactionTimestamp, tenMinutesAgo;
     let isValid = false;
 
     let addressTopay = await walletNetworkUser.findOne({ userId: userId, networkId: network.networkId });
+    console.log(addressTopay, "addresstopay")
     switch (network.networkId) {
       case "tron":
         let quantity
@@ -211,7 +210,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         break;
       case "bitcoin":
         transactionLog = await BitcoinNetworkUtils.getTransactionDetails(hash);
-        console.log(transactionLog);
+        // console.log(transactionLog);
 
         if (!transactionLog?.network) {
 
@@ -229,20 +228,21 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         transactionTimestamp = new Date(transactionLog.received);
         tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // Validar que la transacción sea de hace 10 minutos o menos
-        if (transactionTimestamp < tenMinutesAgo) {
+        if (transactionTimestamp < tenMinutesAgo && !process.env.TRON_END_POINT.includes("shasta")) {
           return response("date greater than 10 minutes", "error");
         }
 
         for (let i = 0; i < transactionLog.outputs.length; i++) {//recorrer los outputs (salidas de btc a wallets) 
           let output = transactionLog.outputs[i];
-          if (output.addresses[0].toLowerCase() == addressTopay.address.toLowerCase()) { //si coincide con la nuestra 
+          console.log(output)
+          logger.info("address in transaccion : " + (output.addresses ? `${output.addresses[0]?.toLowerCase()}  amount: ${output.value}` : ""))
+          if (output.addresses && output.addresses[0]?.toLowerCase() == addressTopay.address.toLowerCase()) { //si coincide con la nuestra 
             if (output.value >= amount) {   // coincide el monto
               isValid = true;
               transactionLog.applied = true;
               await transactionLog.save();
               return response("correct transaction");
             }
-
           }
         }
         return response("incorrect transaction", "error");
@@ -251,6 +251,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
     }
   } catch (error) {
     console.log(error)
+    logger.error(error);
     return response("incorrect transaction", "error");
 
   }
@@ -260,6 +261,6 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
 module.exports = {
   handleError,
   handleHttpError,
-  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices,
+  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty,
   ...require('./buildSyncResponse')
 };

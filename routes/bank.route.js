@@ -43,14 +43,14 @@ router.post('/', auth, bankAccountValidation, async (req, res) => {
             return res.status(200).json(response(formatValidationErrors(errors.array()), "error"));
         }
 
-        const response = await fetch(externalServerUrl + "bank/" + req.user._id, {
+        const resp = await fetch(externalServerUrl + "bank/" + req.user._id, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req.body)
         });
-        return handleResponse(response, res);
+        return handleResponse(resp, res);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating bank account', error: error.message });
+        res.status(200).json(response('Error creating bank account', "error"));
     }
 });
 // actualizar una cuenta bancaria (POST)
@@ -61,27 +61,43 @@ router.put('/', auth, bankAccountValidation, async (req, res) => {
             return res.status(200).json(response(formatValidationErrors(errors.array()), "error"));
         }
 
-        const response = await fetch(externalServerUrl + "bank/" + req.user._id, {
+        const resp = await fetch(externalServerUrl + "bank/" + req.user._id, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req.body)
         });
-        return handleResponse(response, res);
+        return handleResponse(resp, res);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating bank account', error: error.message });
+        res.status(200).json(response('Error updating bank account', "error"));
     }
 });
 
-// Obtener todas las cuentas bancarias (GET)
+router.get('/verify', auth, async (req, res) => {
+    try {
+        const resp = await fetch(externalServerUrl + "user/" + req.user._id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(req.body)
+        });
+        if (resp.status == "success" && res.data.verification_status == "verified") {
+            req.user.verify = true;
+            await req.user.save();
+        }
+        return handleResponse(resp, res);
+    } catch (error) {
+        res.status(200).json(response('Error verify user', "error"));
+    }
+});
+// Obtener la cuenta bancaria del usuario
 router.get('/', auth, async (req, res) => {
     try {
-        const response = await fetch(externalServerUrl + "bank/" + req.user._id, {
+        const resp = await fetch(externalServerUrl + "bank/" + req.user._id, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
-        return handleResponse(response, res);
+        return handleResponse(resp, res);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching bank accounts', error: error.message });
+        res.status(200).json(response('Error fetching bank accounts', "error"));
     }
 });
 

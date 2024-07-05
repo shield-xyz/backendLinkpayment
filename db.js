@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const logger = require('node-color-log');
 const NotificationsUserModel = require('./models/NotificationsUser.model');
+const { getNotifications } = require('./controllers/NotificationsUser.controller');
 require('dotenv').config();
 
 const connectDB = async () => {
@@ -28,14 +29,15 @@ const watchNotifications = () => {
     try {
         const NotificationsUser = NotificationsUserModel;
         const changeStream = NotificationsUser.watch();
-        changeStream.on('change', (change) => {
+        changeStream.on('change', async (change) => {
             // console.log(change, "change watchNotifications")
             if (change.operationType === 'insert') {
                 const notification = change.fullDocument;
-                console.log('New notification inserted:', notification);
+                logger.info('New notification inserted: user ->', notification.userId);
                 // Aquí puedes emitir un evento a través de Socket.IO u otro mecanismo
                 if (global.io) {
-                    global.io.emit('notification', notification);
+                    let notifi = await getNotifications({ userId: notification.userId, status: { $nin: ["deleted"] } })
+                    global.io.emit('notification', notifi);
                 }
             }
         });
