@@ -107,7 +107,7 @@ async function listBalances() {
                 let balanceWithDraws = 0;
                 totalBalancesWithdraws.map(x => {
                     if (x?.amount) {
-                        balanceWithDraws += amount;
+                        balanceWithDraws += x.amount;
                     }
                 });
 
@@ -139,7 +139,7 @@ async function generateWithDraw(amount, balanceId) {
     let balanceWithDraws = 0;
     totalBalancesWithdraws.map(x => {
         if (x?.amount) {
-            balanceWithDraws += amount;
+            balanceWithDraws += x.amount;
         }
     });
 
