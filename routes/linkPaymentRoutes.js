@@ -59,7 +59,7 @@ router.get('/get/:id', async (req, res) => {
         }
 
         linkPayment = linkPayment.toObject()
-        console.log(linkPayment)
+        // console.log(linkPayment)
         res.json(response(linkPayment));
     } catch (err) {
         console.error(err);
