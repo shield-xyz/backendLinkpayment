@@ -91,28 +91,33 @@ async function listBalances() {
             }
         },
     ]);
-    console.log(users);
     for (let i = 0; i < users.length; i++) {
         const userId = users[i];
-        let messUser="";
+        let messUser = "";
         let user = await userModel.findById(userId._id);
         let balances = await balanceModel.find({ userId: userId._id, amount: { $gt: 0 } }).populate("user asset network");
-        if (balances.length > 0 && user) {
+        let totalBalanceUser = 0;
 
-            // console.log(user, userId._id)
+        if (balances.length > 0 && user) {
             messUser += "User : " + user.user_name + "\n";
 
-            balances.map(async balance => {
-                const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
-                let balanceWithDraws = 0;
-                totalBalancesWithdraws.map(x => {
-                    if (x?.amount) {
-                        balanceWithDraws += x.amount;
-                    }
-                });
-
-                messUser += "id : " + balance._id + " :" + (balance.amount - balanceWithDraws) + " " + balance.asset.symbol + " - network : " + balance.network.name + "\n";
-            })
+            await Promise.all(
+                balances.map(async balance => {
+                    const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
+                    let balanceWithDraws = 0;
+                    totalBalancesWithdraws.map(x => {
+                        if (x?.amount) {
+                            balanceWithDraws += x.amount;
+                        }
+                    });
+                    if (balance.amount - balanceWithDraws > 0)
+                        totalBalanceUser += (balance.amount - balanceWithDraws);
+                    messUser += "id : " + balance._id + " :" + (balance.amount - balanceWithDraws) + " " + balance.asset.symbol + " - network : " + balance.network.name + "\n";
+                })
+            )
+            if (totalBalanceUser > 0) {
+                mes += messUser;
+            }
         }
     }
     mes += "To create a withdraw type: withdraw|id|amount"
