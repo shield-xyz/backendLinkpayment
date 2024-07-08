@@ -1,11 +1,24 @@
 // services/linkPaymentService.js
 const AssetController = require('../controllers/assets.controller');
 const LinkPayment = require('../models/LinkPayment');
+const networksModel = require('../models/networks.model');
 const { limitDecimals } = require('../utils');
 
 const getLinkPayments = async (filter = {}) => {
     let items = (await LinkPayment.find(filter).populate("asset"));
-    return items.map(x => x.toObject());
+    // items = items.map(async x => {
+    for (let i = 0; i < items.length; i++) {
+        let x = items[i];
+
+        x.network = await networksModel.findOne({ networkId: x.asset?.networkId });
+        let network = x.network?.toObject();
+
+        x.network = network;
+        items[i] = { ...x.toObject(), network };
+    }
+
+    // });
+    return items;
 };
 
 const getLinkPaymentById = async (query) => {
