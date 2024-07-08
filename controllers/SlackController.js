@@ -94,13 +94,13 @@ async function listBalances() {
     console.log(users);
     for (let i = 0; i < users.length; i++) {
         const userId = users[i];
-
+        let messUser="";
         let user = await userModel.findById(userId._id);
         let balances = await balanceModel.find({ userId: userId._id, amount: { $gt: 0 } }).populate("user asset network");
         if (balances.length > 0 && user) {
 
             // console.log(user, userId._id)
-            mes += "User : " + user.user_name + "\n";
+            messUser += "User : " + user.user_name + "\n";
 
             balances.map(async balance => {
                 const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
@@ -111,7 +111,7 @@ async function listBalances() {
                     }
                 });
 
-                mes += "id : " + balance._id + " :" + (balance.amount - balanceWithDraws) + " " + balance.asset.symbol + " - network : " + balance.network.name + "\n";
+                messUser += "id : " + balance._id + " :" + (balance.amount - balanceWithDraws) + " " + balance.asset.symbol + " - network : " + balance.network.name + "\n";
             })
         }
     }
