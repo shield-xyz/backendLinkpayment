@@ -4,7 +4,8 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const { isEmpty } = require("../utils");
+const { isEmpty, response } = require("../utils");
+const withdrawsModel = require("../models/withdraws.model");
 const dateSignature = new Date().toISOString();
 
 
@@ -210,9 +211,22 @@ async function getAccountData(email) {
 }
 
 
-async function generateOfframp(withdraw) {
+async function generateOfframp(userId, withdrawId) {
+    let recipientUser = await RecipientRampableModel.findOne({ userId }); //get recipient user selected
+    let withdraw = await withdrawsModel.findOne({ _id: withdrawId });
+    if (withdraw) {
+        switch (withdraw.assetId) {//ver que moneda es la que recibio
+            case "usdt-ethereum":
+            case "usdc-ethereum":
+            case "usdc-polygon":
+            case "usdt-polygon":
 
-    //usdc-ethereum probar con este es el unico que tenemos en uso y ala vez tiene usd en currencies
+                break;
+            default://si es alguna que pueda pasar a rampable (bitcoin no es aceptada todavia por ejemplo)
+                logger.error("Error withdraw diferent assetId " + withdraw.assetId);
+                return response("Error withdraw diferent assetId " + withdraw.assetId, "error");
+        }
+    }
 }
 
 

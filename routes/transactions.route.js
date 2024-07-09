@@ -5,9 +5,18 @@ const transactionController = require('../controllers/transactions.controller');
 const { response } = require('../db');
 const auth = require('../middleware/auth');
 const apiKeyMaster = require('../middleware/apiKeyMaster');
+const { getPrices } = require('../utils');
 router.get('/', auth, async (req, res) => {
   try {
     const transactions = await transactionController.getTransactions({ userId: req.user._id });
+    const prices = await getPrices();
+    transactions.map(x => {
+      x.usdValue = x.amount;
+      if (x.assetId == "btc-bitcoin") {
+        x.usdValue = x.usdValue * prices?.BTCUSDT ?? 1;
+      }
+      return x;
+    })
     res.json(response(transactions, "success"));
   } catch (error) {
     res.status(500).json(response('Error fetching transactions', 'error'));
