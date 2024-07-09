@@ -75,9 +75,8 @@ router.put('/', auth, bankAccountValidation, async (req, res) => {
 router.get('/verify', auth, async (req, res) => {
     try {
         const resp = await fetch(externalServerUrl + "user/" + req.user._id, {
-            method: 'PUT',
+            method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req.body)
         });
         if (resp.status == "success" && res.data.verification_status == "verified") {
             req.user.verify = true;
