@@ -17,24 +17,24 @@ const RampableController = require('../controllers/rampable.controller');
 // RampableController.createRecipients({ name: "nehuen fortes2", email: "nehuenfortes2@gmail.com" }, "667477f6769e23782b7c2984", { currency: "USD", achNumber: "123123123", country: "UNITED STATES", accountNumber: "1919191911", accountName: "nameaccount", bankName: "testNameBank" }, "BOSTON", "address california", "4123").then(res => {
 //   console.log(res, "res")
 // })
-RampableController.getRecipients("nehuenfortes@gmail.com").then(async (res) => {
-  let user = res.data?.docs[0];
-  console.log(user)
+// RampableController.getRecipients("nehuenfortes@gmail.com").then(async (res) => {
+//   let user = res.data?.docs[0];
+//   console.log(user)
 
-  //pasos a seguir para funcionamiento de rampable
-  /**
-   * 1-  get recipient user selected
-   * 2-  ver que moneda es la que recibio
-   * 3-  si es alguna que pueda pasar a rampable (bitcoin no es aceptada todavia por ejemplo)
-   * 3.A si junarto me confirma ver si es necesario de filtrar por las que tengan currencies : [USD]
-   * 3.B verificar que el usuario no tenga mas de 5 offramps o 5 , ya que hay limite para este tipo de transacciones.
-   * 4-  crear offramp con datos del cliente, de transaccion
-   * 5-  enviar transaccion por dicha network a dicha wallet de offramp (payoutWallet) // configurar ethereum, polygon,tron?
-   * 6-  algun sistema de verificacion de status, o ver cuando se actualiza la offramp para ver si se envio correctamente y termino el proceso.
-   * 
-   */
+//   //pasos a seguir para funcionamiento de rampable
+//   /**
+//    * 1-  get recipient user selected
+//    * 2-  ver que moneda es la que recibio
+//    * 3-  si es alguna que pueda pasar a rampable (bitcoin no es aceptada todavia por ejemplo)
+//    * 3.A si junarto me confirma ver si es necesario de filtrar por las que tengan currencies : [USD]
+//    * 3.B verificar que el usuario no tenga mas de 5 offramps o 5 , ya que hay limite para este tipo de transacciones.
+//    * 4-  crear offramp con datos del cliente, de transaccion
+//    * 5-  enviar transaccion por dicha network a dicha wallet de offramp (payoutWallet) // configurar ethereum, polygon,tron?
+//    * 6-  algun sistema de verificacion de status, o ver cuando se actualiza la offramp para ver si se envio correctamente y termino el proceso.
+//    * 
+//    */
 
-})
+// })
 router.get('/', auth, async (req, res) => {
   try {
     const balances = await BalanceController.findMany({ userId: req.user.id });
