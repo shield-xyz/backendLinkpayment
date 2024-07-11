@@ -22,6 +22,7 @@ const walletNetworkUserRoutes = require('./routes/walletNetworkUser.route');
 const configurationsRoutes = require("./routes/configuration.route");
 const notificationsUserRoutes = require('./routes/NotificationsUser.route');
 const bankRoutes = require("./routes/bank.route")
+const RampableRoutes = require("./routes/rampable.route")
 const initializeSocket = require('./routes/socket.route');
 const { connectDB } = require('./db');
 
@@ -54,6 +55,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/walletsUser', walletNetworkUserRoutes);
 app.use('/api/configurations', configurationsRoutes);
 app.use('/api/banks', bankRoutes);
+app.use('/api/rampable', RampableRoutes);
+
 
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 

@@ -27,7 +27,8 @@ const userSchema = new Schema(
     },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
-    verify: { type: Boolean, default: false }
+    verify: { type: Boolean, default: false },
+    footId: { type: String }
 
   },
 

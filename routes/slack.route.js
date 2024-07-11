@@ -32,6 +32,15 @@ router.post('/challenge', async (req, res) => {
                         return res.send({});
 
                     }
+                    if (event.text.includes("withdraw rampable|")) {
+                        let args = event.text.split("|");
+                        console.log(args, "args")
+                        let amount = Number(args[2]);
+                        let balanceId = args[1];
+                        await SlackController.generateWithDrawRampable(amount, balanceId);
+                        return res.send({});
+
+                    }
                     if (event.text.includes("list withdraws")) {
 
                         await SlackController.listWithDraws()

@@ -32,6 +32,7 @@ const WithdrawSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    offRampId: { type: String, }
 });
 
 WithdrawSchema.virtual('asset', {

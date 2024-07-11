@@ -11,6 +11,7 @@ const NotificationsController = require('../controllers/NotificationsUser.contro
 const ConfigurationUserController = require('./configurationUser.controller.js');
 const { sendProcessingWithdraw } = require('./email.controller.js');
 const withdrawsModel = require('../models/withdraws.model.js');
+const { generateOfframp } = require('./rampable.controller.js');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
@@ -131,6 +132,69 @@ function padRightTo(text, quantity = 30) {
     }
     return text + '-'.repeat(desiredLength - text.length);  // Agrega espacios hasta alcanzar los 26 caracteres
 }
+
+async function generateWithDrawRampable(amount, balanceId) {
+    let balance = await balanceModel.findById(balanceId).populate("asset network user");
+    console.log(balance, balance.asset, balance.network)
+    if (!balance) {
+        await sendMessage("balance not found");
+        return
+
+    }
+    const totalBalancesWithdraws = await withdrawsModel.find({ assetId: balance.assetId, userId: balance.userId });
+    let balanceWithDraws = 0;
+    totalBalancesWithdraws.map(x => {
+        if (x?.amount) {
+            balanceWithDraws += x.amount;
+        }
+    });
+
+    if (amount + balanceWithDraws > balance.amount) {
+        await sendMessage("the amount exceeds the balance, balance: " + balance.amount);
+        return
+
+    }
+    let account = await accountModel.findOne({ userId: balance.userId, selected: true });
+    if (!account) {
+        // await sendMessage("the user not have account");
+        // return
+    }
+    let wt = await WithdrawController.createWithdraw({
+        amount: amount,
+        assetId: balance.assetId,
+        accountId: account?._id,
+        userId: balance.userId,
+        status: "pending",
+        balanceId: balance._id
+    });
+
+    // integrar rampable si es posible 
+
+    let resp = await generateOfframp(balance.userId, wt._id);
+    if (resp.status == "success") {
+        await sendMessage(resp.response);
+        await NotificationsController.createNotification({
+            ...NOTIFICATIONS.NEW_WITHDRAW(amount, wt._id),
+            userId: balance.userId
+        });
+        let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
+        if (userConf.length > 0 && userConf[0]?.value == "true") {
+            await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
+        }
+
+        balance.save();
+        await sendMessage("Withdraw created, id : " + wt._id);
+    } else {
+        await sendMessage(resp.response);
+        await withdrawsModel.deleteOne({ _id: wt._id });
+        await sendMessage("withdraw deleted for error in rampable.");
+    }
+
+
+
+
+}
+
 async function generateWithDraw(amount, balanceId) {
     let balance = await balanceModel.findById(balanceId).populate("asset network user");
 
@@ -166,6 +230,7 @@ async function generateWithDraw(amount, balanceId) {
         status: "pending",
         balanceId: balance._id
     });
+
     await NotificationsController.createNotification({
         ...NOTIFICATIONS.NEW_WITHDRAW(amount, wt._id),
         userId: balance.userId
@@ -174,7 +239,6 @@ async function generateWithDraw(amount, balanceId) {
     if (userConf.length > 0 && userConf[0]?.value == "true") {
         await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
     }
-
 
     balance.save();
     await sendMessage("Withdraw created, id : " + wt._id);
@@ -287,5 +351,5 @@ module.exports = {
     WebSlack: web,
     fetchMessages,
     listChannels,
-    listChannelsAndJoinIfNotMember, sendMessage, listBalances, generateWithDraw, padRightTo, listWithDraws, changeStatusWithdraw
+    listChannelsAndJoinIfNotMember, sendMessage, listBalances, generateWithDraw, padRightTo, listWithDraws, changeStatusWithdraw, generateWithDrawRampable
 }

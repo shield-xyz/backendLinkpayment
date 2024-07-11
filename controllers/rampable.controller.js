@@ -1,11 +1,14 @@
 const RecipientRampableModel = require("../models/RecipientRampable.model");
-const { logger } = require("../utils/Email");
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const { isEmpty, response } = require("../utils");
+const { isEmpty, response, getTokenBalance, sendToken, convertToBlockchainUnits } = require("../utils");
 const withdrawsModel = require("../models/withdraws.model");
+const assetModel = require("../models/asset.model");
+const { respondToSslCheck } = require("@slack/bolt/dist/receivers/ExpressReceiver");
+const OffRampModel = require("../models/rampable/offRamp.model");
+const logger = require("node-color-log");
 const dateSignature = new Date().toISOString();
 
 
@@ -210,24 +213,80 @@ async function getAccountData(email) {
     }
 }
 
+async function createOfframp(inputAmount, senderName, senderEmail, receiverId, inputCurrency, blockchainType, outputCurrency = "USD", reason = "reason", description = "off ramp automatic api - shield.") {
+    let body = {
+        inputAmount: inputAmount,
+        senderName: senderName,
+        senderEmail: senderEmail,
+        receiverId: receiverId,
+        inputCurrency: inputCurrency,
+        // blockchainType: blockchainType,
+        outputCurrency: outputCurrency,
+        reason: reason,
+        description: description,
+    };
+
+    let data = await rampableRequest('offramp', "POST", body);
+    return data;
+}
 
 async function generateOfframp(userId, withdrawId) {
-    let recipientUser = await RecipientRampableModel.findOne({ userId }); //get recipient user selected
     let withdraw = await withdrawsModel.findOne({ _id: withdrawId });
-    if (withdraw) {
-        switch (withdraw.assetId) {//ver que moneda es la que recibio
-            case "usdt-ethereum":
-            case "usdc-ethereum":
-            case "usdc-polygon":
-            case "usdt-polygon":
+    try {
+        if (withdraw) {
+            switch (withdraw.assetId) {//ver que moneda es la que recibio
+                case "usdt-ethereum":
+                case "usdc-ethereum":
+                case "usdc-polygon":
+                case "usdt-polygon":
+                    let asset = await assetModel.findOne({ assetId: withdraw.assetId });
+                    //validar balance de token y red para transferir lo que si tenemos .
+                    let balance = await getTokenBalance(process.env.ADDRESS_WALLET, asset.address, asset.decimals, asset.networkId)
+                    let amount = parseFloat(withdraw.amount.toFixed(4));
+                    console.log(balance, "balance", amount)
+                    if (balance < amount && amount > 0) {
+                        return response("Error not have balance " + amount + ", balance is : " + balance + " " + asset.symbol)
+                    }
+                    //generar offramp,
+                    let recipient = await RecipientRampableModel.find({ userId: userId });
+                    // console.log(recipient, recipient.length);
+                    // ! deberiamos validar cual de todas los recipients quiere usar
+                    recipient = recipient[0];
+                    let token = withdraw.assetId.split("-");
+                    let offramp = await createOfframp(amount, recipient.name, recipient.email, recipient.id, withdraw.assetId, token[1]);
+                    logger.fontColorLog("green", JSON.stringify(offramp))
+                    if (offramp.statusCode == 201 || offramp.statusCode == 200) {
+                        offramp = new OffRampModel(offramp.data);
+                        offramp.userId = userId;
+                        offramp.withdrawId = withdrawId;
+                        await offramp.save();
+                        offramp.tx = await sendToken(offramp.payOutWallet, asset.address, offramp.inputAmountExact, asset.decimals, asset.networkId)
+                        await offramp.save();
+                        withdraw.offRampId = offramp.id;
+                        await withdraw.save()
+                        return response("offramp created successfully");
+                    } else {
+                        return response(offramp.message, "error");
+                    }
 
-                break;
-            default://si es alguna que pueda pasar a rampable (bitcoin no es aceptada todavia por ejemplo)
-                logger.error("Error withdraw diferent assetId " + withdraw.assetId);
-                return response("Error withdraw diferent assetId " + withdraw.assetId, "error");
+                    // verificar status offramp? //preguntar si hay alguna forma de weeebhook o algo asi 
+                    //marcar este withdraw como in progress y agregar que esta siendo procesado por rampable-api
+
+                    break;
+                default://si es alguna que pueda pasar a rampable (bitcoin no es aceptada todavia por ejemplo)
+                    logger.error("Error withdraw diferent assetId " + withdraw.assetId);
+                    return response("rampable not  avalaible for asset id : " + withdraw.assetId, "error");
+            }
         }
+    } catch (error) {
+        let er = "Error withdraw diferent assetId " + withdrawId + " " + error.message;
+        logger.error(er);
+        return response(er, "error");
     }
+
 }
+
+// generateOfframp("667477f6769e23782b7c2984", "668d394a44de36d0ec054d56")
 
 
 
@@ -249,5 +308,5 @@ const convertCryptoToUSD = async (accountId, amount, cryptoCurrency, fiat_curren
 module.exports = {
     getSignature,
     createRecipients,
-    getRecipients, getRecipientMongo, getAccountData, convertCryptoToUSD
+    getRecipients, getRecipientMongo, getAccountData, convertCryptoToUSD, generateOfframp
 };

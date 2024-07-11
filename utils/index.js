@@ -262,5 +262,5 @@ module.exports = {
   handleError,
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty,
-  ...require('./buildSyncResponse')
+  ...require('./buildSyncResponse'), ...require("./BlockchainUtils")
 };
