@@ -47,5 +47,6 @@ WithdrawSchema.virtual('user', {
     foreignField: '_id', // is equal to `foreignField`,
     justOne: true
 });
+WithdrawSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Withdraw', WithdrawSchema);
