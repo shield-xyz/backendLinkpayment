@@ -3,15 +3,17 @@ const { Schema, model } = require('mongoose');
 const BalanceSchema = new Schema(
   {
     amount: { type: Number, required: true },
-    blockchain: {
-      type: Schema.Types.ObjectId,
-      ref: 'blockchains',
+    networkId: {
+      type: String,
       required: true,
+      ref: "Network"
     },
-    currency: { type: String, required: true },
-    date: { type: Date, required: true },
-    txHash: { type: String, required: true },
-    wallet: { type: Schema.Types.ObjectId, ref: 'wallets', required: true },
+    assetId: { type: String, required: true, ref: "Asset" },
+    userId: {
+      type: String,
+      ref: "User",
+      required: true,
+    }
   },
   {
     collection: 'balances',
@@ -19,4 +21,26 @@ const BalanceSchema = new Schema(
   }
 );
 
-module.exports = model('balances', BalanceSchema);
+// Crear un índice compuesto único
+BalanceSchema.index({ userId: 1, assetId: 1, blockchain: 1 }, { unique: true });
+BalanceSchema.virtual('user', {
+  ref: 'User', // The model to use
+  localField: 'userId', // Find people where `localField`
+  foreignField: '_id', // is equal to `foreignField`,
+  justOne: true
+});
+BalanceSchema.virtual('asset', {
+  ref: 'Asset', // The model to use
+  localField: 'assetId', // Find people where `localField`
+  foreignField: 'assetId', // is equal to `foreignField`,
+  justOne: true
+});
+BalanceSchema.virtual('network', {
+  ref: 'Network', // The model to use
+  localField: 'networkId', // Find people where `localField`
+  foreignField: 'networkId', // is equal to `foreignField`,
+  justOne: true
+});
+BalanceSchema.set('toObject', { virtuals: true });
+
+module.exports = model('Balance', BalanceSchema);

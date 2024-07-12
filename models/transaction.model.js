@@ -1,31 +1,58 @@
-const { Schema, model } = require('mongoose');
+const mongoose = require('mongoose');
 
-const CryptoDeductionSchema = new Schema({
-  amount: { type: Number, required: true },
-  balance: { type: Schema.Types.ObjectId, required: true },
-  exchangeRate: { type: Number, required: true },
-  ticker: { type: String, required: true },
-  usdValue: { type: Number, required: true },
-});
-
-const TransactionSchema = new Schema(
-  {
-    crypto_deductions: [CryptoDeductionSchema],
-    ramp_amount: { type: Number, required: true },
-    ramp_currency_code: { type: String, required: true },
-    ramp_transaction_id: { type: String, required: true, index: true },
-    ramp_user_transaction_time: { type: String, required: true },
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'users',
-      required: true,
-      index: true,
-    },
+const transactionSchema = new mongoose.Schema({
+  assetId: {
+    type: String,
+    required: true,
+    ref: "Asset"
   },
-  {
-    collection: 'transactions',
-    timestamps: true,
+  networkId: {
+    type: String,
+    required: true,
+    ref: "Network"
+  },
+  linkPaymentId: {
+    type: String,
+    ref: "LinkPayment"
+  },
+  paymentId: {
+    type: String,
+  },
+  userId: {
+    type: String,
+    ref: "User"
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  hash: {
+    type: String,
+    required: true
   }
-);
+});
+transactionSchema.virtual('asset', {
+  ref: 'Asset', // The model to use
+  localField: 'assetId', // Find people where `localField`
+  foreignField: 'assetId', // is equal to `foreignField`
+  justOne: true
+});
+transactionSchema.virtual('network', {
+  ref: 'Network', // The model to use
+  localField: 'networkId', // Find people where `localField`
+  foreignField: 'networkId', // is equal to `foreignField`
+  justOne: true
+});
+transactionSchema.virtual('user', {
+  ref: 'User', // The model to use
+  localField: 'userId', // Find people where `localField`
+  foreignField: '_id', // is equal to `foreignField`
+  justOne: true
+});
+transactionSchema.set('toObject', { virtuals: true });
 
-module.exports = model('transactions', TransactionSchema);
+module.exports = mongoose.model('transactions', transactionSchema);

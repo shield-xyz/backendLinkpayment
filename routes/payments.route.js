@@ -1,11 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const PaymentController = require('../controllers/payment.controller');
-const { handleHttpError, response, getTransactionById, getTransactionTron } = require('../utils');
+const { handleHttpError, response, validatePayment } = require('../utils/index.js');
 const auth = require('../middleware/auth');
+const apiKeyUser = require('../middleware/apiKeyUser');
+const apiKeyMaster = require('../middleware/apiKeyMaster');
+const AssetController = require('../controllers/assets.controller');
+const NetworkController = require('../controllers/network.controller.js');
+const logger = require('node-color-log');
+const TransactionController = require('../controllers/transactions.controller.js');
+const getTransactionTron = require('../utils/Tronweb.js');
+const { sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller.js');
+const ConfigurationUser = require('../models/configurationUser.model.js');
+const { CONFIGURATIONS, NOTIFICATIONS } = require('../config/index.js');
+const ConfigurationUserController = require('../controllers/configurationUser.controller.js');
+const NotificationsController = require('../controllers/NotificationsUser.controller.js');
 
-router.get('/', async (req, res) => {
-    console.log("get")
+router.get('/', apiKeyMaster, async (req, res) => {
+
     try {
         const payments = await PaymentController.getPayments();
         res.send(response(payments));
@@ -13,8 +25,16 @@ router.get('/', async (req, res) => {
         handleHttpError(error, res);
     }
 });
+router.get('/get/', auth, async (req, res) => {
 
-router.post('/', auth, async (req, res) => {
+    try {
+        const payments = await PaymentController.getPayments({ userId: req.user.id });
+        res.send(response(payments));
+    } catch (error) {
+        handleHttpError(error, res);
+    }
+});
+router.post('/', apiKeyUser, async (req, res) => {
     try {
         req.body.userId = req.user.id;
         const payment = await PaymentController.createPayment(req.body);
@@ -27,7 +47,7 @@ router.post('/', auth, async (req, res) => {
 
 router.get('/get/:id', async (req, res) => {
     try {
-        console.log(req, req.params, "te")
+        // console.log(req, req.params, "te")
         const payment = await PaymentController.findId(req.params.id);
         res.status(201).send(response(payment));
     } catch (error) {
@@ -35,9 +55,9 @@ router.get('/get/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', apiKeyMaster, async (req, res) => {
     try {
-        const payment = await PaymentController.updatePayment(req.params.id, req.body);
+        const payment = await PaymentController.updatePayment({ _id: req.params.id }, req.body);
         if (!payment) {
             return res.status(404).send({ response: 'Payment not found', status: "error" });
         }
@@ -48,21 +68,53 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 
-router.get('/verify/:networkId/:hash', auth, async (req, res) => {
+router.post('/verify', apiKeyMaster, async (req, res) => {
     try {
-        let data = {};
-        switch (req.params.networkId) {
-            case "tron":
-                data = await getTransactionTron(req.params.hash)
+        let payment = await PaymentController.findId(req.body.paymentId);
+        let asset = await AssetController.findOne({ assetId: payment.assetId });
+        let network = await NetworkController.findOne({ networkId: asset.networkId });
+        let isValid = false;
+        let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(payment.userId, CONFIGURATIONS.EMAIL_NAME);
+        let resp = await validatePayment(req.body.hash, payment.quote_amount, network, asset, payment.userId, null, req.body.paymentId);
+        logger.fontColorLog("green", JSON.stringify(resp),);
+        if (resp.status == "success") {
 
-                break;
-            default:
-                res.send(response("This network is not available yet", "error")); return;
-                break;
+            isValid = true;
+            payment.hash = req.body.hash;
+            payment.status = "success";
+            payment.save();
+            let transact = await TransactionController.createTransaction({
+                paymentId: req.body.paymentId,
+                assetId: asset._id,
+                networkId: network._id,
+                linkPaymentId: null,
+                userId: payment.userId,
+                amount: payment.quote_amount,
+                hash: req.body.hash
+            });
+            await NotificationsController.createNotification({
+                ...NOTIFICATIONS.NEW_TRANSACTION(payment.quote_amount, asset.symbol, network.name),
+                userId: payment.userId
+            });
+            if (userConf.length > 0 && payment?.user?.email && userConf[0]?.value == "true") {
+                await sendPaymentReceivedPaymentEmail(payment.user.email, network.txView + req.body.hash, payment.quote_amount, asset.symbol, network.name, transact._id);
+            }
+
+            await PaymentController.loadBalanceImported(req.body.paymentId);
+        } else {
+            isValid = false;
         }
-        res.send(response(data));
+
+        if (isValid) {
+            res.send(response(payment)); return;
+
+        } else {
+            res.send(response("failed")); return;
+        }
+
     } catch (error) {
-        handleHttpError(error, res);
+        console.log(error)
+        res.send(response("failed"));
     }
 });
 

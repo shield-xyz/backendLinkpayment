@@ -6,10 +6,22 @@ const merchantService = require('../services/merchantService');
 const auth = require('../middleware/auth');
 const axios = require('axios');
 const { response } = require('../db');
+const TransactionController = require('../controllers/transactions.controller');
+const networksModel = require('../models/networks.model');
+const NetworkController = require('../controllers/network.controller');
+const { loadBalanceImportedLinkPayment } = require('../controllers/payment.controller');
+const LinkPayment = require('../models/LinkPayment');
+const { validatePayment } = require('../utils');
+const AssetController = require('../controllers/assets.controller');
+const { sendTransactionSuccessEmail, sendPaymentReceivedPaymentEmail } = require('../controllers/email.controller');
+const ClientsController = require('../controllers/clients.controller');
+const ConfigurationUserController = require('../controllers/configurationUser.controller');
+const { CONFIGURATIONS, NOTIFICATIONS } = require('../config');
+const NotificationsController = require('../controllers/NotificationsUser.controller.js');
 
 router.get('/', auth, async (req, res) => {
     try {
-        const linkPayments = await linkPaymentService.getLinkPayments();
+        const linkPayments = await linkPaymentService.getLinkPayments({ merchantId: req.user._id });
         res.json(linkPayments);
     } catch (err) {
         console.error(err);
@@ -37,8 +49,7 @@ const getTransactionStatus = async (txHash) => {
 
 router.get('/get/:id', async (req, res) => {
     try {
-        const linkPayment = await linkPaymentService.getLinkPaymentById({ id: req.params.id, status: "pending" });
-        // console.log(linkPayment, "p", req.params.id)
+        let linkPayment = await linkPaymentService.getLinkPaymentById({ id: req.params.id });
         if (!linkPayment) {
             return res.status(404).json({ message: 'LinkPayment not found' });
         }
@@ -46,12 +57,10 @@ router.get('/get/:id', async (req, res) => {
         if (!merchant) {
             return response('Merchant not found', "error")
         }
-        // Convertir a objeto plano y eliminar la contraseña
-        const merchantWithoutPassword = { ...merchant.toObject(), password: undefined };
-        // Convertir linkPayment a objeto plano y agregar el merchant
-        const linkPaymentWithMerchant = { ...linkPayment.toObject(), merchant: merchantWithoutPassword };
 
-        res.json(response(linkPaymentWithMerchant));
+        linkPayment = linkPayment.toObject()
+        console.log(linkPayment)
+        res.json(response(linkPayment));
     } catch (err) {
         console.error(err);
         res.status(500).send('Server Error');
@@ -59,14 +68,11 @@ router.get('/get/:id', async (req, res) => {
 });
 router.post('/walletTriedpayment', async (req, res) => {
     try {
-
-        let statusTX = await getTransactionStatus(req.body.id);
-        if (statusTX.result == "CONFIRMED") {
-
-            const linkPayment = await linkPaymentService.addWalletTriedPayment(req.body.id, req.body.wallet);
-        } else {
-
+        const linkPayment = await LinkPayment.findOne({ id: req.body.id }).populate("asset");
+        if (req.body.wallet != null) {
+            linkPayment.walletsTriedPayment.push(req.body.wallet);
         }
+        await linkPayment.save();
         res.status(200).send(response([]));
     } catch (err) {
         console.error(err);
@@ -75,8 +81,69 @@ router.post('/walletTriedpayment', async (req, res) => {
 });
 router.post('/save/:id', async (req, res) => {
     try {
-        const linkPayment = await linkPaymentService.addWalletTriedPayment(req.params.id, null, req.body.hash);
-        res.status(200).send(response([]));
+
+        // deberia venir assetId, networkId, 
+        let { hash, assetId, email, name } = req.body;
+
+        //se obtiene el link
+        let linkPayment = await LinkPayment.findOne({ id: req.params.id }).populate("asset user");
+        let asset = await AssetController.findOne({ assetId: assetId });
+        linkPayment.toObject();
+
+        let network = await NetworkController.findOne({ networkId: asset.networkId });
+        if (!asset.assetId) {
+            res.status(200).send(response("asset not defined", "error"));
+            return;
+        }
+        let resp = await validatePayment(hash, linkPayment.amount, network, asset, linkPayment.merchantId, linkPayment.id, null);
+        console.log(resp, "respuesta validatePayment")
+        if (resp.status == "success") {
+            linkPayment.hash.push(hash);
+            linkPayment.status = "paid";
+            linkPayment.assetId = asset.assetId;
+            linkPayment.networkId = asset.networkId;
+            await linkPayment.save();
+            // payment.hash = req.body.hash;
+            // payment.status = "success";
+            // payment.save();
+            let transact = await TransactionController.createTransaction({
+                // paymentId: req.body.paymentId,
+                assetId: asset.assetId,
+                networkId: asset.networkId,
+                linkPaymentId: linkPayment._id,
+                userId: linkPayment.merchantId,
+                amount: linkPayment.amount,
+                hash: hash
+            });
+
+            await NotificationsController.createNotification({
+                ...NOTIFICATIONS.NEW_TRANSACTION(linkPayment.amount, asset.symbol, network.name),
+                userId: linkPayment.merchantId
+            });
+            if (email) {
+                await sendTransactionSuccessEmail(email, network.txView + hash, linkPayment.amount, asset.symbol, network.name, linkPayment.id, transact._id);
+                try {
+                    await ClientsController.createClient({
+                        email: email, name: name, paymentLinkId: linkPayment.id
+                    })
+
+                } catch (error) {
+                }
+            }
+            let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(linkPayment.merchantId, CONFIGURATIONS.EMAIL_NAME);
+            if (userConf.length > 0 && linkPayment?.user?.email && userConf[0]?.value == "true") {
+                await sendPaymentReceivedPaymentEmail(linkPayment.user.email, network.txView + hash, linkPayment.amount, asset.symbol, network.name, transact._id);
+            }
+
+            await loadBalanceImportedLinkPayment(linkPayment)
+            res.status(200).send(resp);
+
+        } else {
+            // isValid = false;
+            res.status(200).send((resp));
+        }
+
+
 
     } catch (err) {
         console.error(err);
@@ -86,7 +153,6 @@ router.post('/save/:id', async (req, res) => {
 
 router.post('/all', auth, async (req, res) => {
     try {
-        // console.log(req)
         const linkPayment = await linkPaymentService.getLinkPaymentByMerchantId(req.user.id);
         if (!linkPayment) {
             return res.status(404).json(response('LinkPayment not found', "error"));
@@ -100,7 +166,6 @@ router.post('/all', auth, async (req, res) => {
 
 router.post('/pause', auth, async (req, res) => {
     try {
-        console.log(req.user)
         const linkPayment = await linkPaymentService.updateLinkPayment(req.body.id, req.user._id, { status: "Paused" });
         res.status(200).send(response(linkPayment));
 
@@ -120,6 +185,7 @@ router.post('/', auth, async (req, res) => {
         res.status(500).send(response('Server Error', "error"));
     }
 });
+
 
 
 router.delete('/:id', auth, async (req, res) => {

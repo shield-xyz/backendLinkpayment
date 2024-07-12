@@ -1,72 +1,84 @@
-const { TransactionsService } = require('../services');
-const { handleHttpError } = require('../utils');
-const TransactionModel = require('../models/transaction.model');
+const Transaction = require("../models/transaction.model");
 
-const TransactionsController = {
-  async getAllTransactions(req, res) {
+const TransactionController = {
+  async createTransaction(data) {
     try {
-      const transactions = await TransactionModel.find();
-      res.send(transactions);
+      const transaction = new Transaction(data);
+      await transaction.save();
+      return transaction;
+
+      // Template logger for logging transaction amount and timestamp
+
+      // logger.info(
+      //   `Transaction Total Amount: $${total.amount}, Date: $${new Date()}, Currency: `
+      // );
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async getByCurrentUserFromRamp(req, res) {
+  async getTransactions(filter = {}) {
     try {
-      const userId = req.body.user.id;
-      const transactions = await TransactionsService.findFromRamp(userId);
-      res.send(transactions);
+      const transactions = await Transaction.find(filter)
+        .populate({ path: "network", select: "-deposit_address" })
+        .populate("asset");
+
+      // Template logger for getting total volume of transactions processed
+
+      // const total = transactions.reduce((prev, transaction) => {
+
+      //   // Formula for getting total profit
+
+      //   // Define the transaction fee rate (e.g., 2.5%) eg.
+      //   const feeRate = 0.025;
+
+      //   return {
+      //     volume: prev.volume + transaction.amount,
+      //     profit: prev.profit + transaction.amount * feeRate
+      //   }
+      // }, {
+      //   volume: 0,
+      //   profit: 0
+      // })
+
+      // logger.info(
+      //   `Transaction Total Volume: $${total.volume}, Profit: $${total.profit}`
+      // );
+
+      return transactions.map((x) => x.toObject());
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async getNotSyncedByCurrentUser(req, res) {
+  async getTransactionById(id) {
     try {
-      const userId = req.body.user.id;
-      const transactions = await TransactionsService.notSynced(userId);
-      res.send(transactions);
+      const transaction = await Transaction.findById(id);
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async syncByCurrentUser(req, res) {
+  async updateTransaction(id, data) {
     try {
-      const userId = req.body.user.id;
-      const transactions = await TransactionsService.syncTransactions(userId);
-
-      if (transactions.numberOfTransactions === 0) {
-        return res.send({ message: 'No new transactions found' });
-      }
-
-      res.send(transactions);
+      const transaction = await Transaction.findByIdAndUpdate(id, data, {
+        new: true,
+      });
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 
-  async syncMockTransactionsByCurrentUser(req, res) {
+  async deleteTransaction(id) {
     try {
-      const userId = req.body.user.id;
-      const data = req.body.transactions;
-
-      if (!data || !data.length) {
-        return res.send({ message: 'No transactions provided' });
-      }
-
-      const transactions = await TransactionsService.syncMockTransactions(userId, data);
-
-      if (transactions.numberOfTransactions === 0) {
-        return res.send({ message: 'No new transactions found' });
-      }
-
-      res.send(transactions);
+      const transaction = await Transaction.findByIdAndDelete(id);
+      return transaction;
     } catch (error) {
-      handleHttpError(error, res);
+      return error.message;
     }
   },
 };
 
-module.exports = TransactionsController;
+module.exports = TransactionController;

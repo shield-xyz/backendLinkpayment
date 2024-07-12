@@ -11,11 +11,14 @@ const AssetController = {
         }
     },
 
-    async getAssets() {
-        const assets = await Asset.find();
+    async getAssets(filter = {}) {
+        const assets = await Asset.find(filter);
         return assets;
     },
-
+    async findOne(filter) {
+        const asset = await Asset.findOne(filter);
+        return asset;
+    },
     async updateAsset(id, data) {
 
         if (id == null) {
@@ -38,8 +41,19 @@ const AssetController = {
                 "name": "Tether USD",
                 "decimals": 6,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
-                "active": false,
-                "networkId": "ethereum"
+                "active": true,
+                "networkId": "ethereum",
+                "address": process.env.USDT_ADDRESS_ETHEREUM
+            },
+            {
+                "assetId": "usdc-ethereum",
+                "symbol": "USDC",
+                "name": "USD Coin",
+                "decimals": 6,
+                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
+                "active": true,
+                "networkId": "ethereum",
+                "address": process.env.USDC_ADDRESS_ETHEREUM
             },
             {
                 "assetId": "usdt-tron",
@@ -48,7 +62,8 @@ const AssetController = {
                 "decimals": 6,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
                 "active": true,
-                "networkId": "tron"
+                "networkId": "tron",
+                "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
             },
 
             {
@@ -57,8 +72,9 @@ const AssetController = {
                 "name": "Bitcoin",
                 "decimals": 8,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png",
-                "active": false,
-                "networkId": "bitcoin"
+                "active": true,
+                "networkId": "bitcoin",
+                "address": "null"
             },
             {
                 "assetId": "dai-ethereum",
@@ -67,17 +83,11 @@ const AssetController = {
                 "decimals": 18,
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png",
                 "active": false,
-                "networkId": "ethereum"
+                "networkId": "ethereum",
+                "address": null
             },
-            {
-                "assetId": "usdc-ethereum",
-                "symbol": "USDC",
-                "name": "USD Coin",
-                "decimals": 18,
-                "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png",
-                "active": false,
-                "networkId": "ethereum"
-            }
+
+
         ];
 
         const networks = await this.getAssets();

@@ -19,6 +19,15 @@ const NetworkSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    txView: {
+        type: String,
+    }
 });
-
+NetworkSchema.virtual('assets', {
+    ref: 'Asset', // The model to use
+    localField: 'networkId', // Find people where `localField`
+    foreignField: 'networkId', // is equal to `foreignField`
+    // match: { active: true } // Filtro para los documentos relacionados
+});
+NetworkSchema.set('toObject', { virtuals: true });
 module.exports = mongoose.model('Network', NetworkSchema);

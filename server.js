@@ -1,79 +1,131 @@
-// server.js
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
+const http = require("http");
+require("dotenv").config();
+const cors = require("cors");
+const path = require("path");
 
-require('dotenv').config();
-const transactionRoutes = require('./routes/transactionRoutes');
-const merchantRoutes = require('./routes/merchantRoutes');
-const authRoutes = require('./routes/authRoutes'); // Importar rutas de autenticación
-const linkPaymentRoutes = require('./routes/linkPaymentRoutes'); // Importar rutas de linkPayment
-const path = require('path');
-const balanceRoutes = require('./routes/balance.route');
-const blockchainRoutes = require('./routes/blockchain.route');
-const cardRoutes = require('./routes/cards.route');
-const limitsRoutes = require('./routes/limits.route');
-const transactionsRoutes = require('./routes/transactions.route');
-const txHash = require('./routes/txHash.route');
-const txOrphanedRoutes = require('./routes/txOrphaned.route');
-const userRoutes = require('./routes/user.route');
-const walletRoutes = require('./routes/wallet.route');
-const webhookRoutes = require('./routes/webhook.route');
-const assetRoutes = require('./routes/assets.route');
-const networksRoutes = require('./routes/networks.route');
-const paymentsRoutes = require('./routes/payments.route');
+const merchantRoutes = require("./routes/merchantRoutes");
+const authRoutes = require("./routes/authRoutes"); // Importar rutas de autenticación
+const linkPaymentRoutes = require("./routes/linkPaymentRoutes"); // Importar rutas de linkPayment
+const balanceRoutes = require("./routes/balance.route");
+const transactionsRoutes = require("./routes/transactions.route");
+const userRoutes = require("./routes/user.route");
+const assetRoutes = require("./routes/assets.route");
+const networksRoutes = require("./routes/networks.route");
+const paymentsRoutes = require("./routes/payments.route");
+const clientRoutes = require("./routes/clients.route");
+const withdrawRoutes = require("./routes/withdraw.route");
+const accountRoutes = require("./routes/account.route");
+const slackRoutes = require("./routes/slack.route");
+const walletNetworkUserRoutes = require("./routes/walletNetworkUser.route");
+const configurationsRoutes = require("./routes/configuration.route");
+const notificationsUserRoutes = require("./routes/NotificationsUser.route");
 
-const cors = require('cors');
-const { connectDB } = require('./db');
-const { listChannelsAndJoinIfNotMember, fetchMessages } = require('./controllers/SlackController');
+const initializeSocket = require("./routes/socket.route");
+const { connectDB } = require("./db");
+const { calculateUptime } = require("./utils/systemPerformanceMetrics");
+
 const app = express();
-// Conectar a la base de datos
-connectDB();
+const server = http.createServer(app);
 
-// Middleware
+// Inicializar Socket.IO y agregar rutas de notificación
+const useSocketRoutes = initializeSocket(server);
+useSocketRoutes(app);
+
+// Middlewares
 app.use(cors()); // Permite todas las solicitudes CORS
 app.use(bodyParser.json());
 
 // Rutas
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/merchants', merchantRoutes);
-app.use('/api/auth', authRoutes); // Usar rutas de autenticación
-app.use('/api/linkPayments', linkPaymentRoutes); // Usar rutas de linkPayment
+app.use("/api/merchants", merchantRoutes);
+app.use("/api/auth", authRoutes); // Usar rutas de autenticación
+app.use("/api/linkPayments", linkPaymentRoutes); // Usar rutas de linkPayment
+app.use("/api/balances", balanceRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/assets", assetRoutes);
+app.use("/api/networks", networksRoutes);
+app.use("/api/payments", paymentsRoutes);
+app.use("/api/clients", clientRoutes);
+app.use("/api/slack", slackRoutes);
+app.use("/api/transactions", transactionsRoutes);
+app.use("/api/notifications", notificationsUserRoutes);
+app.use("/api/withdraws", withdrawRoutes);
+app.use("/api/accounts", accountRoutes);
+app.use("/api/walletsUser", walletNetworkUserRoutes);
+app.use("/api/configurations", configurationsRoutes);
 
-app.use('/api/balances', balanceRoutes);
-app.use('/api/blockchains', blockchainRoutes);
-app.use('/api/cards', cardRoutes);
-app.use('/api/limits', limitsRoutes);
-app.use('/api/transactions', transactionsRoutes);
-app.use('/api/tx-hash', txHash);
-app.use('/api/tx-orphaned', txOrphanedRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/wallets', walletRoutes);
-
-app.use("/api/assets", assetRoutes)
-app.use("/api/networks", networksRoutes)
-app.use("/api/payments", paymentsRoutes)
-
-
-
-app.use('/api/webhook', webhookRoutes);
-app.get('/health-check', (req, res) => res.status(200).send('OK'));
+app.get("/health-check", (req, res) => res.status(200).send("OK"));
 
 // Configurar la carpeta de archivos estáticos
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Conexión a MongoDB
+connectDB()
+  .then(() => {
+    // Iniciar el servidor después de que la base de datos se haya conectado
+    const PORT = process.env.PORT || 9000;
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+  });
 
-listChannelsAndJoinIfNotMember();
+// Run the function to calculate uptime and downtime
+calculateUptime();
 
-try {
-    fetchMessages()
-    setInterval(fetchMessages, 300000); // 300000 ms = 5 minutos
+let totalRequests = 0;
+let errorCount = 0;
 
-} catch (error) {
-    console.log(error, "error en parte de slack ")
+app.use((req, res, next) => {
+  totalRequests++;
+  next();
+});
+
+app.get("/api", (req, res) => {
+  // Simulate an error
+  const isError = Math.random() > 0.8;
+  if (isError) {
+    errorCount++;
+    res.status(500).json({ error: "Internal server error" });
+  } else {
+    res.status(200).json({ message: "Success" });
+  }
+});
+
+// Function to calculate error rate
+function calculateErrorRate() {
+  const errorRate = (errorCount / totalRequests) * 100;
+  logger.info(`Error Rate: ${errorRate.toFixed(2)}%`);
 }
 
+// Calculate error rate every minute
+setInterval(calculateErrorRate, 60000);
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    logger.info(`Request to ${req.path} took ${duration}ms`);
+  });
+  next();
+});
 
+// Formula template to calculate Time spent on different sections of the app.
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+// app.post('/enter-section', async (req, res) => {
+//     const { userId, section } = req.body;
+//     await logSectionEvent(userId, section, 'enter');
+//     logger.info('User entered section', { userId, section, event: 'enter', timestamp: new Date() });
+//     res.status(200).send('Entered section');
+// });
+
+// // Endpoint to log exit from a section
+// app.post('/exit-section', async (req, res) => {
+//     const { userId, section } = req.body;
+//     await logSectionEvent(userId, section, 'exit');
+//     logger.info('User exited section', { userId, section, event: 'exit', timestamp: new Date() });
+//     res.status(200).send('Exited section');
+// });

@@ -4,7 +4,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:server": "pm2 start ./bin/ecosystem.config.js"
+    "start:server": "pm2 start ./bin/ecosystem.config.js",
+    "import-transactions": "node scripts/ImportTransactions.js",
+    "executeone": "node scripts/ExecuteOneTime.js"
   },
   "keywords": [],
   "author": "",
@@ -14,21 +16,31 @@
     "@noble/secp256k1": "^2.1.0",
     "@slack/bolt": "^3.18.0",
     "@slack/web-api": "^7.0.4",
+    "abi-decoder": "^2.4.0",
     "airtable": "^0.12.2",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "bitcoin-address-validation": "^2.2.3",
     "body-parser": "^1.20.2",
+    "bs58": "^5.0.0",
     "ccxt": "^4.3.41",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
+    "esm": "^3.2.25",
     "express": "^4.19.2",
     "express-validator": "^7.1.0",
+    "handlebars": "^4.7.8",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.0",
     "multer": "^1.4.5-lts.1",
     "node-color-log": "^12.0.1",
-    "tronweb": "^5.3.2"
+    "node-fetch": "^2.6.1",
+    "nodemailer": "^6.9.14",
+    "socket.io": "^4.7.5",
+    "tronweb": "^5.3.2",
+    "web3": "^4.10.0",
+    "web3-providers-http": "^4.1.0"
   }
 }

@@ -1,165 +1,53 @@
-const mongoose = require('mongoose');
-
-
-const BalanceModel = require('../models/balance.model');
-const BlockchainModel = require('../models/blockchain.model');
-const WalletModel = require('../models/wallet.model');
-
-
-const { handleError, handleHttpError } = require('../utils');
+const Balance = require('../models/balance.model');
+const AssetController = require('./assets.controller');
 
 const BalanceController = {
-  async getAll(req, res) {
-    try {
-      const balances = await BalanceModel.find()
-        .populate('wallet')
-        .populate('blockchain');
-
-      res.send({ balances });
-    } catch (err) {
-      handleHttpError(err, res);
-    }
+  async createBalance(data) {
+    const balance = new Balance(data);
+    await balance.save();
+    return balance;
   },
 
-  async update(req, res) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const blockchain = req.body.blockchain;
-      const walletAddress = req.body.walletAddress;
-      const amount = req.body.amount;
-      const crypto = req.body.crypto;
-      const txHash = req.body.txHash;
-      if (!blockchain || !walletAddress) {
-        res.status(400).send({ message: 'Wallet or Blockchain not set!' });
-        return;
-      }
-
-      if (!amount) {
-        res.status(400).send({ message: 'Amount not set!' });
-        return;
-      }
-
-      if (!crypto) {
-        res.status(400).send({ message: 'Crypto not set!' });
-        return;
-      }
-
-      if (!txHash) {
-        res.status(400).send({ message: 'Transaction hash not set!' });
-        return;
-      }
-
-      let balances = await BalanceService.updateInside(req.body, session);
-
-      await session.commitTransaction();
-
-      res.send({ balances });
-    } catch (err) {
-      await session.abortTransaction();
-      handleHttpError(err, res);
-    } finally {
-      session.endSession();
-    }
+  async getBalances() {
+    const balances = await Balance.find().populate("asset network");
+    return balances.map(x => x.toObject());
   },
 
-  async getAmountByCryptoWalletAndBlockchainInside(
-    balanceData
-  ) {
-    try {
-      const blockchains = await BlockchainModel.find(
-        { name: balanceData.blockchain },
-        null,
-        { maxTimeMS: 50000 }
-      );
-      const wallets = await WalletModel.find({
-        address: balanceData.walletAddress,
-      });
-      if (blockchains.length === 0) {
-        throw new Error('Blockchain not found!');
-      }
-
-      if (wallets.length === 0) {
-        throw new Error('Wallet of origin not registered!');
-      }
-
-      if (!balanceData.crypto) {
-        throw new Error('Crypto not set!');
-      }
-
-      let balances = await BalanceModel.find({
-        blockchain: blockchains[0]._id,
-        wallet: wallets[0]._id,
-        crypto: balanceData.crypto,
-      });
-      if (balances.length === 0) {
-        return 0;
-      } else {
-        return balances[0].amount;
-      }
-    } catch (err) {
-      handleError(err, 'Error getting amount by crypto, wallet and blockchain');
-    }
+  async getBalanceById(id) {
+    const balance = await Balance.findById(id).populate("asset network");
+    return balance.toObject();
+  },
+  async findOne(filter) {
+    const balance = await Balance.findOne(filter).populate("asset network");
+    return balance.toObject();
+  },
+  async findMany(filter) {
+    const balance = await Balance.find(filter).populate("asset network");
+    return balance.map(x => x.toObject());
   },
 
-  async getByWalletAndBlockchain(req, res) {
-    try {
-      const blockchain = req.body.blockchain;
-      const walletAddress = req.body.walletAddress;
-      if (!blockchain || !walletAddress) {
-        handleHttpError(new Error('Wallet or Blockchain not set!'), res, 400);
-        return;
-      }
-
-      const blockchains = await BlockchainModel.find({ name: blockchain });
-      const wallets = await WalletModel.find({ address: walletAddress });
-      if (blockchains.length === 0 || wallets.length === 0) {
-        handleHttpError(new Error('Wallet or Blockchain not found!'), res, 404);
-        return;
-      }
-
-      let balances = await BalanceModel.find({
-        blockchain: blockchains[0]._id,
-        wallet: wallets[0]._id,
-      });
-
-      res.send({ balances });
-    } catch (err) {
-      handleHttpError(err, res);
-    }
+  async updateBalance(id, data) {
+    const balance = await Balance.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+    return balance;
   },
 
-  async getByUser(req, res) {
-    try {
-      const userId = req.params.userId;
-      if (!userId) {
-        handleHttpError(new Error('User not set!'), res, 400);
-        return;
+  async deleteBalance(id) {
+    const balance = await Balance.findByIdAndDelete(id);
+    return balance;
+  },
+  async createBalancesPerUser(userId) {
+    const assets = await AssetController.getAssets({ active: true });
+    const balances = await this.findMany({ userId: userId });
+    for (let i = 0; i < assets.length; i++) {
+      const asset = assets[i];
+      if (balances.find(x => x.assetId == asset.assetId) == undefined) {
+        let b = await BalanceController.createBalance({
+          amount: 0, networkId: asset.networkId, assetId: asset.assetId, userId: userId
+        })
       }
 
-      const balances = await BalanceService.getBalancesByUserId(userId);
-
-      res.send({ balances });
-    } catch (err) {
-      handleHttpError(err, res);
     }
-  },
-
-  async getByCurrentUser(req, res) {
-    try {
-      const userId = req.body.user?.id;
-      if (!userId) {
-        handleHttpError(new Error('User not set!'), res, 400);
-        return;
-      }
-
-      const balances = await BalanceService.getBalancesByUserId(userId);
-
-      res.send({ balances });
-    } catch (err) {
-      handleHttpError(err, res);
-    }
-  },
+  }
 };
 
 module.exports = BalanceController;

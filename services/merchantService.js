@@ -23,12 +23,13 @@ const createMerchant = async (merchantData) => {
 
 const updateMerchant = async (id, merchantData, req) => {
     const filename = req?.file?.filename;
-    console.log(req)
+    // console.log(req)
     let up = {
         user_name: merchantData.user_name,
         logo: (filename) ? "uploads/" + filename : merchantData.logo,
         company: merchantData.company,
     };
+    // console.log(merchantData);
     if (merchantData.password) {
         const salt = bcrypt.genSaltSync(10);
 
