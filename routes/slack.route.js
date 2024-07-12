@@ -74,7 +74,7 @@ router.post('/challenge', async (req, res) => {
                         try {
                             await SlackController.sendManualEmail("sendTokenReceivedManual", email, amount);
 
-                            await SlackController.sendMessage("email sended ");
+                            await SlackController.sendMessage("email sent ");
                         } catch (error) {
                             console.log(error, "error sending email");
                             await SlackController.sendMessage("error in sending message " + error.message);
@@ -87,7 +87,7 @@ router.post('/challenge', async (req, res) => {
                         try {
                             await SlackController.sendManualEmail("transferInitiated", email, amount);
 
-                            await SlackController.sendMessage("email sended ");
+                            await SlackController.sendMessage("email sent ");
                         } catch (error) {
                             console.log(error, "error sending email");
                             await SlackController.sendMessage("error in sending message " + error.message);
