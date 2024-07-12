@@ -68,7 +68,7 @@ router.post('/challenge', async (req, res) => {
 
                     }
                     if (event.text.includes("tokenReceived|")) {
-                        let args = event.text.replace("%7C", "|").split("|");
+                        let args = event.text.replace(/%7C/g, "|").split("|");
                         console.log(args, "args")
                         let hash = args[1], amount = args[2], email = args[3];
                         try {
@@ -81,7 +81,7 @@ router.post('/challenge', async (req, res) => {
                         }
                     }
                     if (event.text.includes("transferInitiated|")) {
-                        let args = event.text.replace("%7C", "|").split("|");
+                        let args = event.text.replace(/%7C/g, "|").split("|");
                         console.log(args, "args")
                         let hash = args[1], amount = args[2], email = args[3];
                         try {
