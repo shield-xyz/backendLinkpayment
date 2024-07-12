@@ -89,7 +89,7 @@
                     margin-top: 28px;
                   "
                 >
-                  Withdrawal Request Received
+                  {{ title }}
                 </h2>
               </td>
             </tr>
@@ -110,8 +110,8 @@
                     margin-top: 24px;
                   "
                 >
-                  We are processing your withdrawals of ${{ amount }} The
-                  details are shown below:
+                  Thank you for your transfer. Here are the details of your
+                  transfer:
                 </p>
 
                 <div
@@ -119,7 +119,6 @@
                     font-family: 'SF UI Text', 'Inter', sans-serif;
                     background-color: rgba(0, 0, 0, 0.02);
                     padding: 15px 20px;
-                    color: #46586b;
                   "
                 >
                   <table
@@ -133,11 +132,10 @@
                         <p style="margin: 0">Amount</p>
                       </td>
                       <td align="right" style="padding-bottom: 10px">
-                        <p style="margin: 0">{{ amount }} {{ symbol }}</p>
+                        <p style="margin: 0">{{amount}}</p>
                       </td>
                     </tr>
                   </table>
-
                   <table
                     style="
                       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -146,85 +144,27 @@
                   >
                     <tr>
                       <td align="left" width="40%" style="padding: 10px 0">
-                        <p style="margin: 0">Date</p>
+                        <p style="margin: 0">Hash</p>
                       </td>
                       <td align="right" style="padding: 10px 0">
-                        <p style="margin: 0">{{date}}</p>
+                        <a
+                          href="{{ urlHash }}"
+                          target="_blank"
+                          style="color: #2a85ff; text-decoration: none"
+                          >view transaction</a
+                        >
                       </td>
                     </tr>
                   </table>
-
-                  <!--
-                  <table
-                    style="
-                      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-                      width: 100%;
-                    "
-                  >
-                    <tr>
-                      <td align="left" width="40%" style="padding: 10px 0">
-                        <p style="margin: 0">Bank Name</p>
-                      </td>
-                      <td align="right" style="padding: 10px 0">
-                        <p style="margin: 0">Chase Bank</p>
-                      </td>
-                    </tr>
-                  </table>
-
-                  <table
-                    style="
-                      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-                      width: 100%;
-                    "
-                  >
-                    <tr>
-                      <td align="left" width="50%" style="padding: 10px 0">
-                        <p style="margin: 0">Account Name</p>
-                      </td>
-                      <td align="right" style="padding: 10px 0">
-                        <p style="margin: 0">Ayomide Asaolu</p>
-                      </td>
-                    </tr>
-                  </table>
-
-                  <table style="width: 100%">
-                    <tr>
-                      <td align="left" width="50%" style="padding-top: 10px">
-                        <p style="margin: 0">Account Number</p>
-                      </td>
-                      <td align="right" style="padding-top: 10px">
-                        <p style="margin: 0">200000768744</p>
-                      </td>
-                    </tr>
-                  </table>
-                  -->
                 </div>
 
-                <p
-                  style="
-                    font-family: 'SF UI Text', 'Inter', sans-serif;
-                    color: #46586b;
-                  "
-                >
-                  If you didn't initiate this transaction, please contact our
-                  support team immediately.
-                </p>
                 <hr style="border: 0.5px solid rgba(0, 0, 0, 0.1)" />
-                <p
-                  style="
-                    font-family: 'SF UI Text', 'Inter', sans-serif;
-                    color: #46586b;
-                    margin-top: 20px;
-                  "
-                >
-                  Thank you for your business, <br />
-                  SHIELD Team
-                </p>
               </td>
             </tr>
           </table>
         </td>
       </tr>
+
       <tr>
         <td
           style="
@@ -262,14 +202,6 @@
             style="margin: 10px 0 20px 0"
           >
             <tr>
-              <td align="left" width="1%">
-                <a href="{{ FACEBOOK_LINK }}" target="_blank"
-                  ><img
-                    src="https://i.ibb.co/5sg4wBn/facebook-rounded-svgrepo-com-1.png"
-                    alt="facebook icon"
-                    style="width: 40px; display: block"
-                /></a>
-              </td>
               <td align="left" width="1%">
                 <a href="{{ INSTAGRAM_LINK }}" target="_blank"
                   ><img

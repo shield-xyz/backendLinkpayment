@@ -67,6 +67,32 @@ router.post('/challenge', async (req, res) => {
                         return res.send({});
 
                     }
+                    if (event.text.includes("tokenReceived|")) {
+                        let args = event.text.split("|");
+                        console.log(args, "args")
+                        let hash = args[1], amount = args[2], email = args[3];
+                        try {
+                            await SlackController.sendManualEmail("sendTokenReceivedManual", email, hash, amount);
+
+                            await SlackController.sendMessage("email sended ");
+                        } catch (error) {
+                            console.log(error, "error sending email");
+                            await SlackController.sendMessage("error in sending message " + error.message);
+                        }
+                    }
+                    if (event.text.includes("transferInitiated|")) {
+                        let args = event.text.split("|");
+                        console.log(args, "args")
+                        let hash = args[1], amount = args[2], email = args[3];
+                        try {
+                            await SlackController.sendManualEmail("transferInitiated", email, hash, amount);
+
+                            await SlackController.sendMessage("email sended ");
+                        } catch (error) {
+                            console.log(error, "error sending email");
+                            await SlackController.sendMessage("error in sending message " + error.message);
+                        }
+                    }
                 }
         }
         res.send({ challenge: req.body.challenge }); return;

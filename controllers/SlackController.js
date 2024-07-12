@@ -12,6 +12,7 @@ const ConfigurationUserController = require('./configurationUser.controller.js')
 const { sendProcessingWithdraw } = require('./email.controller.js');
 const withdrawsModel = require('../models/withdraws.model.js');
 const { generateOfframp } = require('./rampable.controller.js');
+const EmailController = require('./email.controller.js');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
@@ -346,10 +347,19 @@ async function listWithDraws() {
 
 }
 
+
+async function sendManualEmail(type = "sendTokenReceivedManual", to, url, amount) {
+    if (type == "sendTokenReceivedManual") {
+
+        await EmailController.sendTokenReceivedManual(to, url, amount);
+    } else {
+        await EmailController.sendTransferInitiatedManual(to, url, amount);
+    }
+}
 module.exports = {
     AppSlack: app,
     WebSlack: web,
     fetchMessages,
     listChannels,
-    listChannelsAndJoinIfNotMember, sendMessage, listBalances, generateWithDraw, padRightTo, listWithDraws, changeStatusWithdraw, generateWithDrawRampable
+    listChannelsAndJoinIfNotMember, sendMessage, listBalances, generateWithDraw, padRightTo, listWithDraws, changeStatusWithdraw, generateWithDrawRampable, sendManualEmail
 }

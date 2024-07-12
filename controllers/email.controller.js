@@ -64,6 +64,24 @@ const EmailController = {
 
         await sendEmail(to, subject, replacements, "TransactionReceived.html");
     },
+    async sendTokenReceivedManual(to, urlHash, amount) {
+        const subject = 'Token received Successful';
+        const replacements = {
+            title: 'Token received Successful',
+            amount, urlHash,
+        };
+
+        await sendEmail(to, subject, replacements, "manual/tokenReceived.html");
+    },
+    async sendTransferInitiatedManual(to, urlHash, amount) {
+        const subject = 'Transfer initiated Successful';
+        const replacements = {
+            title: 'Transfer initiated Successful',
+            amount, urlHash, date: new Date(),
+        };
+
+        await sendEmail(to, subject, replacements, "manual/TransferInitiated.html");
+    },
     async sendPaymentReceivedPaymentEmail(to, urlHash, amount, token, networkId, idTransaction) {
         const subject = 'Payment Received';
         // const body = `
