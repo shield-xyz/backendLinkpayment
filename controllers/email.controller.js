@@ -91,20 +91,20 @@ const EmailController = {
 
         await sendEmail(to, subject, replacements, "TransactionReceived.html");
     },
-    async sendTokenReceivedManual(to, urlHash, amount) {
-        const subject = 'Token received Successful';
+    async sendTokenReceivedManual(to, amount) {
+        const subject = 'Successfully received tokens';
         const replacements = {
-            title: 'Token received Successful',
-            amount, urlHash,
+            title: 'Successfully received tokens',
+            amount,
         };
 
         await sendEmailNotCatch(to, subject, replacements, "manual/tokenReceived.html");
     },
-    async sendTransferInitiatedManual(to, urlHash, amount) {
-        const subject = 'Transfer initiated Successful';
+    async sendTransferInitiatedManual(to, amount) {
+        const subject = 'Wire Transfer Initiated';
         const replacements = {
-            title: 'Transfer initiated Successful',
-            amount, urlHash, date: new Date(),
+            title: 'Wire Transfer Initiated',
+            amount, date: new Date(),
         };
 
         await sendEmailNotCatch(to, subject, replacements, "manual/TransferInitiated.html");
