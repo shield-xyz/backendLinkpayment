@@ -70,7 +70,7 @@ router.post('/challenge', async (req, res) => {
                     if (event.text.includes("tokenReceived|")) {
                         let args = event.text.replace(/%7C/g, "|").split("|");
                         console.log(args, "args")
-                        let amount = args[1], email = args[2];
+                        let amount = args[1], email = args[2].replace("<mailto:", "");
                         try {
                             await SlackController.sendManualEmail("sendTokenReceivedManual", email, amount);
 
@@ -83,7 +83,7 @@ router.post('/challenge', async (req, res) => {
                     if (event.text.includes("transferInitiated|")) {
                         let args = event.text.replace(/%7C/g, "|").split("|");
                         console.log(args, "args")
-                        let amount = args[1], email = args[2];
+                        let amount = args[1], email = args[2].replace("<mailto:", "");
                         try {
                             await SlackController.sendManualEmail("transferInitiated", email, amount);
 
