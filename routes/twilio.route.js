@@ -22,19 +22,16 @@ router.post('/recive-messages', async (req, res) => {
     }
 });
 
-router.post('/payment-notification', (req, res) => {
-    const { paymentId, amount, toNumbers } = req.body;
+router.post('/payment-notification', async (req, res) => {
+    const { paymentId, amount, number } = req.body;
 
-    const message = `Se ha recibido un pago de ${amount}. ID de pago: ${paymentId}.`;
+    const message = `Se ha recibido ${amount}.`;
 
-    toNumbers.forEach(number => {
-        client.messages.create({
-            from: `whatsapp:${fromNumber}`,
-            to: `whatsapp:${number}`,
-            body: message,
-        }).then(message => console.log(`Mensaje enviado a ${number}: ${message.sid}`))
-            .catch(error => console.error(`Error al enviar mensaje a ${number}:`, error));
-    });
+    await client.messages.create({
+        from: `whatsapp:${fromNumber}`,
+        to: `whatsapp:${number}`,
+        body: message,
+    })
 
     res.sendStatus(200);
 });
