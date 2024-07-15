@@ -203,7 +203,7 @@ const data = {
   amount: 1,
 };
 
-fetch("http://fruta/api/payments/verify-out", {
+fetch("http://.../api/payments/verify-out", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -216,14 +216,43 @@ fetch("http://fruta/api/payments/verify-out", {
   .catch((error) => console.error("Error:", error));
 ```
 
+### Posible Response
+
+```json
+{
+    "response": "Payment not found for wallet : <wallet used>",
+    "status": "error"
+}
+
+{
+    "response": "Payment not found for wallet : <wallet used>",
+    "status": "error"
+}
+
+{
+    "response" :"correct transaction",
+    "status":"success"
+}
+
+{
+    "response" :"transaction used for another payment",
+    "status":"error"
+}
+
+{
+    "response" :"date greater than 10 minutes",
+    "status":"error"
+}
+
+{
+    "response" :"network not found",
+    "status":"error"
+}
+```
+
 ### Important Validation Rules
 
 - The transaction must not have been used before.
 - The date of the transaction must be within the last 10 minutes.
 - The transaction amount must be greater than or equal to the posted amount.
 - The payment wallet must match the one assigned to the API key user.
-
-### Possible Response Values
-
-- 'failed'
-- 'success'

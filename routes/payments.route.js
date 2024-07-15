@@ -78,11 +78,12 @@ router.post("/verify-out", auth, async (req, res) => {
         let network = await NetworkController.findOne({ networkId: asset?.networkId });
 
         let resp = await validatePayment(req.body.hash, req.body.amount, network, asset, req.user._id, null, null);
+        console.log(resp);
         if (resp.status == "success") {
-            res.send(response("success")); return;
+            res.send(resp); return;
 
         } else {
-            res.send(response("failed")); return;
+            res.send(resp); return;
         }
     } catch (error) {
         logger.error(error);

@@ -140,7 +140,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
           return response("correct transaction");
         }
         if (transactionLog?.applied == true) {
-          return response("transaciont used for another payment", "error");
+          return response("transaction used for another payment", "error");
         }
         if (transactionLog.error) {
           return response("error transaction log", "error");
@@ -174,8 +174,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
               }
             }
         }
-        return response("incorrect transaction", "error");
-
+        return response("Payment not found for wallet : " + addressTopay.address.toLowerCase(), "error");
 
         break;
       case "ethereum":
@@ -191,7 +190,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         await transactionLog.save();
 
         if (transactionLog?.applied == true) {
-          return response("transaciont used for another payment", "error");
+          return response("transaction used for another payment", "error");
         }
         logger.fontColorLog("blue", "network address ->" + addressTopay.address.toLowerCase())
         logger.fontColorLog('blue', transactionLog.to.toLowerCase() == addressTopay.address.toLowerCase());
@@ -206,7 +205,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
               return response("correct transaction");
             }
           }
-        return response("incorrect transaction", "error");
+        return response("Payment not found for wallet : " + addressTopay.address.toLowerCase(), "error");
         break;
       case "bitcoin":
         transactionLog = await BitcoinNetworkUtils.getTransactionDetails(hash);
@@ -222,7 +221,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         await transactionLog.save();
         // no fue ya aplicada
         if (transactionLog?.applied == true) {
-          return response("transaciont used for another payment", "error");
+          return response("transaction used for another payment", "error");
         }
         // fecha no mas vieja a 10 minutos.
         transactionTimestamp = new Date(transactionLog.received);
@@ -245,22 +244,44 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
             }
           }
         }
-        return response("incorrect transaction", "error");
+        return response("Payment not found for wallet : " + addressTopay.address.toLowerCase(), "error");
+
         break;
       default: return response("network not found", "error");
     }
   } catch (error) {
     console.log(error)
     logger.error(error);
-    return response("incorrect transaction", "error");
+    return response("incorrect transaction " + error.message, "error");
 
   }
 
 
 }
+async function footPrintUser(validation_token) {
+  try {
+    const options = {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY
+      },
+      body: {
+        validation_token: validation_token
+      }
+    };
+    const resp = await fetch("https://api.onefootprint.com/onboarding/session/validate", options);
+    const data = await resp.json();
+    return { ...data, status: "success" };
+
+  } catch (error) {
+    console.log(error, "error in footprintUser");
+    return { status: "error", response: error.message }
+  }
+}
 module.exports = {
   handleError,
   handleHttpError,
-  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty,
+  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils")
 };
