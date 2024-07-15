@@ -34,6 +34,7 @@ const sendEmail = async (to, subject, replacements, fileName = "emailTemplate.ht
 
         const mailOptions = {
             from: EMAIL_USER,
+            name: "Shield",
             to,
             subject,
             html: htmlToSend // Asegúrate de que el campo es `html` y no `text`
