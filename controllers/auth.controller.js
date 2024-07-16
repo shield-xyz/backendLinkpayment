@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
-const { handleHttpError, response } = require('../utils/index.js');
+const { handleHttpError, response, footPrintUser } = require('../utils/index.js');
 const secretKey = JWT_SECRET;
 const { ensureWalletNetworkUsersForUser } = require('./walletNetworkUser.controller.js');
 const { sendPasswordResetEmail } = require('./email.controller.js');
@@ -40,6 +40,7 @@ module.exports = {
                 company: user.company,
                 apiKey: user.apiKey,
                 verify: user.verify,
+                footId: user.footId
             };
 
             res.send({ response: response, status: "success" });
@@ -48,9 +49,48 @@ module.exports = {
         }
     },
 
+    async loginFootPrint(req, res) {
+        try {
+
+            const { validation_token } = req.body;
+            let user_foot = await footPrintUser(validation_token);
+            let user = null;
+            logger.info(user_foot);
+            if (user_foot?.user_auth?.fp_id) {
+                fp_id = user_foot?.user_auth?.fp_id;
+                user = await UserModel.findOne({ footId: fp_id })
+            }
+
+            if (user) {
+                const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: '3h' });
+
+                const response = {
+                    _id: user._id,
+                    user_name: user.user_name,
+                    email: user.email,
+                    token,
+                    logo: user.logo,
+                    company: user.company,
+                    apiKey: user.apiKey,
+                    verify: user.verify,
+                    footId: user.footId,
+                };
+                res.send({ response: response, status: "success" });
+
+            } else {
+                handleHttpError(new Error('User not found.'), res, 200);
+            }
+        } catch (error) {
+            handleHttpError(error, res, 200);
+
+        }
+
+    },
+
     async register(req, res) {
         try {
-            const { user_name, email, password, company } = req.body;
+            const { user_name, email, password, company, validation_token } = req.body;
+            let fp_id = null;
             // Obtener el nombre del archivo subido
             const filename = (req.file?.filename) ? req.file?.filename : "default.jpg";
             // console.log(filename)
@@ -73,6 +113,14 @@ module.exports = {
             }
 
             logger.info({ email, password, user_name });
+            if (validation_token) {
+                let user_foot = await footPrintUser(validation_token);
+                logger.info(user_foot);
+                if (user_foot?.user_auth?.fp_id) {
+                    fp_id = user_foot?.user_auth?.fp_id;
+
+                }
+            }
 
             const salt = bcrypt.genSaltSync(10);
             const hashed_password = bcrypt.hashSync(password, salt);
@@ -83,6 +131,7 @@ module.exports = {
                 wallets: [],
                 logo: "uploads/" + filename,
                 company,
+                footId: fp_id,
             };
             const user = new UserModel(newUser);
             await user.save();
@@ -90,7 +139,7 @@ module.exports = {
             const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
             //creamos wallets defaults : 
             await ensureWalletNetworkUsersForUser(user._id);
-            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey, verify: user.verify, }, status: "success" });
+            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey, verify: user.verify, footId: user.footId }, status: "success" });
         } catch (error) {
             console.log(error);
             handleHttpError(error, res);

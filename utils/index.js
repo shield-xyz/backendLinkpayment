@@ -266,9 +266,9 @@ async function footPrintUser(validation_token) {
         'Content-Type': 'application/json',
         'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY
       },
-      body: {
+      body: JSON.stringify({
         validation_token: validation_token
-      }
+      })
     };
     const resp = await fetch("https://api.onefootprint.com/onboarding/session/validate", options);
     const data = await resp.json();
