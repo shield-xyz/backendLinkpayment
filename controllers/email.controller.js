@@ -34,7 +34,7 @@ const sendEmail = async (to, subject, replacements, fileName = "emailTemplate.ht
 
         const mailOptions = {
             from: EMAIL_USER,
-            name: "Shield",
+            name: process.env.EMAIL_NAME,
             to,
             subject,
             html: htmlToSend // Asegúrate de que el campo es `html` y no `text`
@@ -64,6 +64,7 @@ const sendEmailNotCatch = async (to, subject, replacements, fileName = "emailTem
 
     const mailOptions = {
         from: EMAIL_USER,
+        name: process.env.EMAIL_NAME,
         to,
         subject,
         html: htmlToSend // Asegúrate de que el campo es `html` y no `text`
