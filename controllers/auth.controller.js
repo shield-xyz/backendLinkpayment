@@ -111,7 +111,8 @@ module.exports = {
             if (!emailRegex.test(email)) {
                 return res.status(400).json(response('Invalid email format.', "error"));
             }
-
+            const salt = bcrypt.genSaltSync(10);
+            let hashed_password = bcrypt.hashSync("passwordSecret123#", salt);
             logger.info({ email, password, user_name });
             if (validation_token) {
                 let user_foot = await footPrintUser(validation_token);
@@ -120,10 +121,11 @@ module.exports = {
                     fp_id = user_foot?.user_auth?.fp_id;
 
                 }
+            } else {
+                hashed_password = bcrypt.hashSync(password, salt);
             }
 
-            const salt = bcrypt.genSaltSync(10);
-            const hashed_password = bcrypt.hashSync(password, salt);
+
             const newUser = {
                 email: email,
                 password: hashed_password,
