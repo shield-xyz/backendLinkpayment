@@ -21,9 +21,12 @@ const runScript = async () => {
     // return;
     logger.fontColorLog("green", "creating configurations from users " + users.length);
     logger.fontColorLog("green", "creating networks from users " + users.length);
+    let respon = await WalletNetworkUserController.ensureWalletNetworkUsersForUser("667477f6769e23782b7c2984");
+    console.log(respon);
+    return;
     await Promise.all(users.map(async (user) => {
         await ConfigurationUserController.createDefault(user._id);
-        await WalletNetworkUserController.ensureWalletNetworkUsersForUser(user._id);
+
 
     }));
 

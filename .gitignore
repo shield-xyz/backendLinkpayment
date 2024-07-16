@@ -5,6 +5,8 @@
 .env
 uploads/*
 !uploads/default.jpg
+!uploads/shield_logo_black_text.png
+
 .env.production
 .env.main
 .vscode
