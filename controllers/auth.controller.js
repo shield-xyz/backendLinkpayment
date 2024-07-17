@@ -78,7 +78,7 @@ module.exports = {
                 res.send({ response: response, status: "success" });
 
             } else {
-                handleHttpError(new Error('User not found.'), res, 200);
+                res.send({ response: "user not found", status: "error" });
             }
         } catch (error) {
             handleHttpError(error, res, 200);
