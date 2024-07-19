@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const NetworkController = require('../controllers/network.controller');
-const { handleHttpError, response } = require('../utils/index.js');
+const { handleHttpError, response, sendMessageTwilio } = require('../utils/index.js');
 const authAdmin = require('../middleware/authAdmin');
 const BalanceController = require("../controllers/balance.controller.js");
 const UserController = require("../controllers/user.controller.js");
@@ -10,6 +10,7 @@ const userModel = require('../models/user.model.js');
 const SlackController = require('../controllers/SlackController.js');
 const WithdrawController = require('../controllers/withdraw.controller.js');
 const accountModel = require('../models/account.model.js');
+const logger = require('node-color-log');
 
 
 router.post('/challenge', async (req, res) => {
@@ -70,11 +71,16 @@ router.post('/challenge', async (req, res) => {
                     if (event.text.includes("tokenReceived|")) {
                         let args = event.text.replace(/%7C/g, "|").split("|");
                         console.log(args, "args")
-                        let amount = args[1].replace("<mailto:", ""), email = args[2].replace("<mailto:", "");
+                        let amount = args[1].replace("<mailto:", ""), number = args[2].replace("<mailto:", "");
                         try {
-                            await SlackController.sendManualEmail("sendTokenReceivedManual", email, amount);
+                            let ress = await sendMessageTwilio(number, amount);
+                            if (ress.status == "success") {
+                                await SlackController.sendMessage("Message successfully sent to user +" + number);
+                            } else {
+                                logger.warn(ress);
+                                await SlackController.sendMessage("Failed to send the message, error: " + ress.response?.msg);
+                            }
 
-                            await SlackController.sendMessage("email sent ");
                         } catch (error) {
                             console.log(error, "error sending email");
                             await SlackController.sendMessage("error in sending message " + error.message);
@@ -83,11 +89,16 @@ router.post('/challenge', async (req, res) => {
                     if (event.text.includes("transferInitiated|")) {
                         let args = event.text.replace(/%7C/g, "|").split("|");
                         console.log(args, "args")
-                        let amount = args[1].replace("<mailto:", ""), email = args[2].replace("<mailto:", "");
+                        let amount = args[1].replace("<mailto:", ""), number = args[2].replace("<mailto:", "");
                         try {
-                            await SlackController.sendManualEmail("transferInitiated", email, amount);
+                            let ress = await sendMessageTwilio(number, amount, 2);
+                            if (ress.status == "success") {
+                                await SlackController.sendMessage("Message successfully sent to user +" + number);
+                            } else {
+                                logger.warn(ress);
+                                await SlackController.sendMessage("Failed to send the message, error: " + ress.response?.msg);
+                            }
 
-                            await SlackController.sendMessage("email sent ");
                         } catch (error) {
                             console.log(error, "error sending email");
                             await SlackController.sendMessage("error in sending message " + error.message);

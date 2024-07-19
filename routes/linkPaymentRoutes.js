@@ -18,6 +18,7 @@ const ClientsController = require('../controllers/clients.controller');
 const ConfigurationUserController = require('../controllers/configurationUser.controller');
 const { CONFIGURATIONS, NOTIFICATIONS } = require('../config');
 const NotificationsController = require('../controllers/NotificationsUser.controller.js');
+const TycMiddleware = require('../middleware/TycMiddleware.js');
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -164,7 +165,7 @@ router.post('/all', auth, async (req, res) => {
     }
 });
 
-router.post('/pause', auth, async (req, res) => {
+router.post('/pause', auth, TycMiddleware, async (req, res) => {
     try {
         const linkPayment = await linkPaymentService.updateLinkPayment(req.body.id, req.user._id, { status: "Paused" });
         res.status(200).send(response(linkPayment));
@@ -175,7 +176,7 @@ router.post('/pause', auth, async (req, res) => {
     }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, TycMiddleware, async (req, res) => {
     try {
         const merchantId = req.user.id; // Obtener merchantId del token
         const newLinkPayment = await linkPaymentService.createLinkPayment(req.body, merchantId);

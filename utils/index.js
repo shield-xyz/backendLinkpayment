@@ -283,5 +283,6 @@ module.exports = {
   handleError,
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser,
-  ...require('./buildSyncResponse'), ...require("./BlockchainUtils")
+  ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
+  ...require("./TwilioUtils")
 };
