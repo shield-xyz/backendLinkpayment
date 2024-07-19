@@ -67,13 +67,13 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-router.delete('/:id', auth, async (req, res) => {
-    try {
-        await merchantService.deleteMerchant(req.params.id);
-        res.json(response('Merchant deleted'));
-    } catch (error) {
-        handleHttpError(error, res);
-    }
-});
+// router.delete('/:id', auth, async (req, res) => {
+//     try {
+//         await merchantService.deleteMerchant(req.params.id);
+//         res.json(response('Merchant deleted'));
+//     } catch (error) {
+//         handleHttpError(error, res);
+//     }
+// });
 
 module.exports = router;

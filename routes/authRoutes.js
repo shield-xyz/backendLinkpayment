@@ -11,6 +11,7 @@ const crypto = require('crypto');
 
 
 router.post('/login', logRequest, authController.login);
+router.post('/login-footprint', logRequest, authController.loginFootPrint);
 router.post('/register', upload.single('logo'), logRequest, authController.register);
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password/:token', authController.resetPassword);
