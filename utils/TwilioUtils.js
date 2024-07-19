@@ -1,5 +1,6 @@
 // const TronWeb = require('tronweb'); // there is no types for tronweb
 
+const logger = require('node-color-log');
 const fetch = require('node-fetch');
 const twilio = require('twilio');
 
@@ -33,6 +34,7 @@ async function sendMessageTwilio(number, amount, type = 1) {
             // contentVariables: JSON.stringify(templateParams),
             body
         });
+        logger.info(resp);
         return { response: resp, status: "success" };
     } catch (error) {
         return { response: { error, msg: error.message }, status: "success" };
