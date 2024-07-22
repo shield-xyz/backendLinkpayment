@@ -25,7 +25,6 @@ router.post('/payment-notification', async (req, res) => {
         const { paymentId, amount, number } = req.body;
 
         let resp = await sendMessageTwilio(number, amount);
-        logger.info(resp);
         res.status(200).json(response('Mensaje enviado', 'success'));
     } catch (error) {
         console.error('Error al enviar el mensaje:', error);

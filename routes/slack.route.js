@@ -73,9 +73,9 @@ router.post('/challenge', async (req, res) => {
                         console.log(args, "args")
                         let amount = args[1].replace("<mailto:", ""), number = args[2].replace("<mailto:", "");
                         try {
-                            let ress = await sendMessageTwilio(number, amount);
+                            let ress = await sendMessageTwilio(number, amount, 1);
                             if (ress.status == "success") {
-                                await SlackController.sendMessage("Message successfully sent to user +" + number);
+                                await SlackController.sendMessage("Message status :" + ress.status + " sent to user +" + number);
                             } else {
                                 logger.warn(ress);
                                 await SlackController.sendMessage("Failed to send the message, error: " + ress.response?.msg);
@@ -93,7 +93,7 @@ router.post('/challenge', async (req, res) => {
                         try {
                             let ress = await sendMessageTwilio(number, amount, 2);
                             if (ress.status == "success") {
-                                await SlackController.sendMessage("Message successfully sent to user +" + number);
+                                await SlackController.sendMessage("Message status :" + ress.status + " sent to user +" + number);
                             } else {
                                 logger.warn(ress);
                                 await SlackController.sendMessage("Failed to send the message, error: " + ress.response?.msg);
