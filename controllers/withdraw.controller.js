@@ -1,4 +1,5 @@
 const networksModel = require('../models/networks.model');
+const userModel = require('../models/user.model');
 const Withdraw = require('../models/withdraws.model');
 
 const WithdrawController = {
@@ -12,7 +13,8 @@ const WithdrawController = {
         let withdraws = await Withdraw.find(filter).populate("asset");
         for (let i = 0; i < withdraws.length; i++) {
             withdraws[i] = withdraws[i].toObject();
-            withdraws[i].network = await networksModel.findOne({networkId:withdraws[i].asset.networkId})
+            withdraws[i].network = await networksModel.findOne({ networkId: withdraws[i].asset.networkId })
+            withdraws[i].user = await userModel.findOne({ _id: withdraws[i].userId });
         }
         return withdraws;
     },

@@ -11,8 +11,9 @@ const NotificationsController = require('../controllers/NotificationsUser.contro
 const ConfigurationUserController = require('./configurationUser.controller.js');
 const { sendProcessingWithdraw } = require('./email.controller.js');
 const withdrawsModel = require('../models/withdraws.model.js');
-const { generateOfframp, getRecipients } = require('./rampable.controller.js');
+const { generateOfframp, getRecipients, createRecipients } = require('./rampable.controller.js');
 const EmailController = require('./email.controller.js');
+const { footPrintGetBankData } = require('../utils/index.js');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
@@ -166,8 +167,19 @@ async function generateWithDrawRampable(amount, balanceId) {
     if (recipients.length > 0) {
 
     } else {
-        //! validamos que tenga los datos bancarios en api de lucas.
-        //! si tiene creamos recipient.
+        // validamos que tenga los datos bancarios en api de lucas.
+        let bankData = await footPrintGetBankData(user.footId);
+        if (!bankData["custom.bank_name"]) {
+            await sendMessage("This user does not have bank details loaded in footPrint"); return;
+        }
+        // si tiene creamos recipient.
+        await createRecipients({ name: user.user_name, email: user.email }, user.userId, {
+            accountName: bankData["custom.beneficiary_name"],
+            accountNumber: bankData["custom.account_number"],
+            currency: "USD",
+            achNumber: bankData["custom.routing_number"],
+        }, bankData["custom.city"], bankData["custom.street_address"], bankData["custom.zip_code"], bankData["custom.country"])
+
     }
 
     // si no tiene crear.
@@ -212,7 +224,7 @@ async function generateWithDrawRampable(amount, balanceId) {
 async function generateWithDraw(amount, balanceId) {
     let balance = await balanceModel.findById(balanceId).populate("asset network user");
 
-    console.log(balance, balance.asset, balance.network)
+    // console.log(balance, balance.asset, balance.network)
     if (!balance) {
         await sendMessage("balance not found");
         return

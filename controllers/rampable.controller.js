@@ -60,7 +60,7 @@ const getSignature = (body, method, clientID = process.env.RAMPABLE_CLIENT_SECRE
     return signature;
 }
 
-const rampableRequest = async (endpoint, method = 'GET', body = {}, searchParams = {}) => {
+const rampableRequest = async (endpoint, method = 'GET', body = {}, searchParams = {}, debug = false) => {
     const url = `${process.env.RAMPABLE_URL}${endpoint}`;
     const signature = getSignature(body, method);
     const options = {
@@ -75,16 +75,30 @@ const rampableRequest = async (endpoint, method = 'GET', body = {}, searchParams
     if (!isEmpty(body)) {
         options.body = JSON.stringify(body);
     }
-    // console.log({
-    //     "X-CLIENT-ID": process.env.RAMPABLE_CLIENT_SECRET,
-    //     'X-SIGNATURE': signature,
-    //     'X-TIMESTAMP': dateSignature,
-    //     'Content-Type': 'application/json'
-    // }, body, url)
+    if (debug)
+        console.log({
+            "X-CLIENT-ID": process.env.RAMPABLE_CLIENT_SECRET,
+            'X-SIGNATURE': signature,
+            'X-TIMESTAMP': dateSignature,
+            'Content-Type': 'application/json'
+        }, body, url)
     const response = await fetch(url, options);
     const data = await response.json();
     return data;
 };
+
+
+async function updateStatusOrderTest(id) {
+
+    try {
+
+        let resp = await rampableRequest("offramp/update/" + id, "PATCH", { status: "completed" }, {}, true)
+        console.log(resp);
+    } catch (error) {
+        console.log(error, "erro update sattus order test")
+    }
+
+}
 
 
 /**
@@ -124,7 +138,7 @@ async function createRecipients(user, userId, bank, city, address, postCode, cou
                 "currency": bank.currency,
                 "country": country,
                 "achNumber": bank.achNumber,
-                "accountType": bank.accountType,
+                "accountType": "Savings",
             }
 
         };
@@ -177,7 +191,7 @@ async function getRecipients(email) {
         'page': '1',
         'sort': '-createdAt',
     });
-    logger.info("response from server: " + JSON.stringify(data));
+    // logger.info("response from server: " + JSON.stringify(data));
     return data;
 }
 const getCurrencies = async () => {
@@ -250,7 +264,7 @@ async function generateOfframp(userId, withdrawId) {
                     //generar offramp,
                     let recipient = await RecipientRampableModel.findOne({ userId: userId });
                     // console.log(recipient, recipient.length);
-                    
+
                     // ! deberiamos validar cual de todas los recipients quiere usar
                     let token = withdraw.assetId.split("-");
                     let offramp = await createOfframp(amount, recipient.name, recipient.email, recipient.id, withdraw.assetId, token[1]);
@@ -308,5 +322,5 @@ const convertCryptoToUSD = async (accountId, amount, cryptoCurrency, fiat_curren
 module.exports = {
     getSignature,
     createRecipients,
-    getRecipients, getRecipientMongo, getAccountData, convertCryptoToUSD, generateOfframp
+    getRecipients, getRecipientMongo, getAccountData, convertCryptoToUSD, generateOfframp, updateStatusOrderTest
 };

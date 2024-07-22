@@ -279,10 +279,43 @@ async function footPrintUser(validation_token) {
     return { status: "error", response: error.message }
   }
 }
+
+async function footPrintGetBankData(fp_id) {
+
+  try {
+    const resp = await fetch("https://api.onefootprint.com/users/" + fp_id + "/vault/decrypt", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY
+      },
+      body: JSON.stringify(
+        {
+          "fields": [
+            "custom.beneficiary_name",
+            "custom.country",
+            "custom.city",
+            "custom.routing_number",
+            "custom.zip_code",
+            "custom.account_number",
+            "custom.state",
+            "custom.bank_name",
+            "custom.street_address"
+          ],
+          "reason": "Getting client bank details"
+        }
+      )
+    });
+    const data = await resp.json();
+    return { ...data, status: "success" };
+  } catch (error) {
+    return { status: "error", response: {} };
+  }
+}
 module.exports = {
   handleError,
   handleHttpError,
-  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser,
+  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser,footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
   ...require("./TwilioUtils")
 };

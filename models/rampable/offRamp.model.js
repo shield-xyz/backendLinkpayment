@@ -48,7 +48,8 @@ const OffRampModelSchema = new Schema({
     id: { type: String, required: true },
     userId: { type: String, required: true },
     withdrawId: { type: String, required: true },
-    tx: { type: Object }
+    tx: { type: Object },
+    offRampWebHook: { type: Object }
 });
 
 const OffRampModel = mongoose.model('OffRamp', OffRampModelSchema);
