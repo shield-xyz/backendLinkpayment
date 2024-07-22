@@ -11,7 +11,7 @@ const NotificationsController = require('../controllers/NotificationsUser.contro
 const ConfigurationUserController = require('./configurationUser.controller.js');
 const { sendProcessingWithdraw } = require('./email.controller.js');
 const withdrawsModel = require('../models/withdraws.model.js');
-const { generateOfframp } = require('./rampable.controller.js');
+const { generateOfframp, getRecipients } = require('./rampable.controller.js');
 const EmailController = require('./email.controller.js');
 
 const channelId = process.env.SLACK_CHANNEL;
@@ -160,6 +160,18 @@ async function generateWithDrawRampable(amount, balanceId) {
         // await sendMessage("the user not have account");
         // return
     }
+    let user = await userModel.findOne({ _id: balance.userId });
+    //validar que el usuario tenga creado cuenta en rampable con datos bancarios .
+    let recipients = await getRecipients(user.email);
+    if (recipients.length > 0) {
+
+    } else {
+        //! validamos que tenga los datos bancarios en api de lucas.
+        //! si tiene creamos recipient.
+    }
+
+    // si no tiene crear.
+
     let wt = await WithdrawController.createWithdraw({
         amount: amount,
         assetId: balance.assetId,
@@ -168,6 +180,7 @@ async function generateWithDrawRampable(amount, balanceId) {
         status: "pending",
         balanceId: balance._id
     });
+
 
     // integrar rampable si es posible 
 
@@ -331,18 +344,22 @@ async function listWithDraws() {
     ];
 
     wts.map(withdraw => {
+        let rampable = "";
+        if (withdraw.offRampId) {
+            rampable = " -Rampable"
+        }
         console.log(withdraw.user)
         fields.push({
             "type": "mrkdwn",
-            "text": "*" + padRightTo(withdraw._id + "", 24) + "* | " + withdraw.user.user_name
+            "text": "*" + padRightTo(withdraw._id + "", 24) + "* | " + withdraw.user?.user_name
         })
         fields.push({
             "type": "mrkdwn",
-            "text": "*" + padRightTo(withdraw.amount + " " + withdraw.asset.symbol, 15) + "* | " + withdraw.status
+            "text": "*" + padRightTo(withdraw.amount + " " + withdraw.asset.symbol, 15) + "* | " + withdraw.status + " " + rampable
         })
     })
     section.fields = fields;
-    console.log(section)
+    // console.log(section)
     await sendBlock([section]);
 
 }

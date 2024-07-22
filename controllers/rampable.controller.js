@@ -248,10 +248,10 @@ async function generateOfframp(userId, withdrawId) {
                         return response("Error not have balance " + amount + ", balance is : " + balance + " " + asset.symbol)
                     }
                     //generar offramp,
-                    let recipient = await RecipientRampableModel.find({ userId: userId });
+                    let recipient = await RecipientRampableModel.findOne({ userId: userId });
                     // console.log(recipient, recipient.length);
+                    
                     // ! deberiamos validar cual de todas los recipients quiere usar
-                    recipient = recipient[0];
                     let token = withdraw.assetId.split("-");
                     let offramp = await createOfframp(amount, recipient.name, recipient.email, recipient.id, withdraw.assetId, token[1]);
                     logger.fontColorLog("green", JSON.stringify(offramp))
