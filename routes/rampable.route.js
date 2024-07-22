@@ -18,8 +18,8 @@ router.post('/webhook/', async (req, res) => {
 
     let web = new webHookRampableModel({ body: body })
     await web.save();
-    let wt = await whitdrawModel.findOne({ offRampId: body.orderId });
     let offramp = await OffRampModel.findOne({ offrampId: body.orderId })
+    let wt = await whitdrawModel.findOne({ offRampId: offramp?._id });
     console.log(wt, "exist?")
     if (offramp) {
         offramp.status = body.transactionStatus;
@@ -35,6 +35,6 @@ router.post('/webhook/', async (req, res) => {
     res.send({ statusCode: 200, response: "success" })
 
 });
-// updateStatusOrderTest("d7edeab2-c342-4971-baa9-ed3f34a0d572")
+// updateStatusOrderTest("f581a220-3221-444f-8d3a-4f43db995f4e")
 
 module.exports = router;
