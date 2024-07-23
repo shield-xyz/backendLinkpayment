@@ -40,7 +40,7 @@ const NetworkController = {
                     "networkId": "ethereum",
                     "name": "Ethereum",
                     "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
-                    "deposit_address": process.env.WALLET_ETHEREUM_DEPOSIT, // TODO change wallet to prod
+                    "deposit_address": process.env.ADDRESS_WALLET, // TODO change wallet to prod
                     "txView": "https://etherscan.io/tx/",
                 },
                 {

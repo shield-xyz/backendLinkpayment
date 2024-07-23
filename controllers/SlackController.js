@@ -14,6 +14,7 @@ const withdrawsModel = require('../models/withdraws.model.js');
 const { generateOfframp, getRecipients, createRecipients } = require('./rampable.controller.js');
 const EmailController = require('./email.controller.js');
 const { footPrintGetBankData } = require('../utils/index.js');
+const logger = require('node-color-log');
 
 const channelId = process.env.SLACK_CHANNEL;
 const web = new WebClient(process.env.SLACK_TOKEN);
@@ -39,8 +40,10 @@ async function fetchMessages() {
         });
 
         // Procesa los mensajes recibidos
-        result.messages.forEach((message) => {
-            console.log(`Mensaje: ${message.text}`);
+        result.messages.forEach((message, pos) => {
+
+            if (message.user == "U069EGYJZ3R")
+                console.log(message, JSON.stringify(message.blocks[0].elements));
             let comand = "usuario -codigo- withdraw 1000 usdt"
         });
     } catch (error) {
@@ -137,7 +140,7 @@ function padRightTo(text, quantity = 30) {
 
 async function generateWithDrawRampable(amount, balanceId) {
     let balance = await balanceModel.findById(balanceId).populate("asset network user");
-    console.log(balance, balance.asset, balance.network)
+    //console.log(balance, balance.asset, balance.network)
     if (!balance) {
         await sendMessage("balance not found");
         return
@@ -152,7 +155,12 @@ async function generateWithDrawRampable(amount, balanceId) {
     });
 
     if (amount + balanceWithDraws > balance.amount) {
-        await sendMessage("the amount exceeds the balance, balance: " + balance.amount);
+
+        if (balance.amount - balanceWithDraws <= 0) {
+            await sendMessage("the amount exceeds the balance, balance is 0");
+            return;
+        }
+        await sendMessage("the amount exceeds the balance, balance: " + (balance.amount - (balanceWithDraws)));
         return
 
     }
@@ -164,7 +172,7 @@ async function generateWithDrawRampable(amount, balanceId) {
     let user = await userModel.findOne({ _id: balance.userId });
     //validar que el usuario tenga creado cuenta en rampable con datos bancarios .
     let recipients = await getRecipients(user.email);
-    if (recipients.length > 0) {
+    if (recipients.data.docs.length > 0) {
 
     } else {
         // validamos que tenga los datos bancarios en api de lucas.
@@ -195,26 +203,33 @@ async function generateWithDrawRampable(amount, balanceId) {
 
 
     // integrar rampable si es posible 
+    try {
+        let resp = await generateOfframp(balance.userId, wt._id);
+        if (resp.status == "success") {
+            await sendMessage(resp.response);
+            await NotificationsController.createNotification({
+                ...NOTIFICATIONS.NEW_WITHDRAW(amount, wt._id),
+                userId: balance.userId
+            });
+            let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
+            if (userConf.length > 0 && userConf[0]?.value == "true") {
+                await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
+            }
 
-    let resp = await generateOfframp(balance.userId, wt._id);
-    if (resp.status == "success") {
-        await sendMessage(resp.response);
-        await NotificationsController.createNotification({
-            ...NOTIFICATIONS.NEW_WITHDRAW(amount, wt._id),
-            userId: balance.userId
-        });
-        let userConf = await ConfigurationUserController.userConfigForUserAndConfigName(balance.userId, CONFIGURATIONS.EMAIL_NAME);
-        if (userConf.length > 0 && userConf[0]?.value == "true") {
-            await sendProcessingWithdraw(balance.user.email, amount, balance.asset, wt);
+            balance.save();
+            await sendMessage("Withdraw created, id : " + wt._id);
+        } else {
+            await sendMessage(resp.response);
+            await withdrawsModel.deleteOne({ _id: wt._id });
+            await sendMessage("withdraw deleted for error in rampable.");
         }
-
-        balance.save();
-        await sendMessage("Withdraw created, id : " + wt._id);
-    } else {
-        await sendMessage(resp.response);
+    } catch (error) {
+        logger.error(error);
+        await sendMessage(error.message);
         await withdrawsModel.deleteOne({ _id: wt._id });
         await sendMessage("withdraw deleted for error in rampable.");
     }
+
 
 
 

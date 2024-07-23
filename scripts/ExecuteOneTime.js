@@ -9,6 +9,8 @@ const logger = require('node-color-log');
 const ConfigurationUserController = require("../controllers/configurationUser.controller");
 const BalanceController = require("../controllers/balance.controller");
 // const walletNetworkUserController = require('../controllers/walletNetworkUser.controller');
+const WalletNetworkUser = require('../models/walletNetworkUser.model');
+const networksModel = require("../models/networks.model");
 
 const runScript = async () => {
     console.log("starting script");
@@ -19,20 +21,20 @@ const runScript = async () => {
     logger.fontColorLog("green", "creating configurations finish");
     // await ConfigurationUserController.createDefault("667477f6769e23782b7c2984");
     // return;
-    logger.fontColorLog("green", "creating configurations from users " + users.length);
-    logger.fontColorLog("green", "creating networks from users " + users.length);
-    let respon = await WalletNetworkUserController.ensureWalletNetworkUsersForUser("667477f6769e23782b7c2984");
-    console.log(respon);
-    return;
-    await Promise.all(users.map(async (user) => {
-        await ConfigurationUserController.createDefault(user._id);
-
-
-    }));
 
 
     logger.fontColorLog("green", "creating/updating networks");
     await NetworksController.createDefault();
+
+    logger.fontColorLog("green", "creating configurations from users " + users.length);
+    logger.fontColorLog("green", "creating networks from users " + users.length);
+    await Promise.all(users.map(async (user) => {
+        await ConfigurationUserController.createDefault(user._id);
+        let respon = await WalletNetworkUserController.ensureWalletNetworkUsersForUser(user._id);
+
+    }));
+
+
     logger.fontColorLog("green", "creating/updating networks finish");
 
     logger.fontColorLog("green", "creating/updating assets");
@@ -44,7 +46,10 @@ const runScript = async () => {
         await BalanceController.createBalancesPerUser(user._id);
     }));
 
-
+    //re fix address ethereum y polygon si es que hubiera
+    logger.fontColorLog("blue", "changing address ethereum in wallet for user and networks.");
+    await WalletNetworkUser.updateMany({ networkId: "ethereum" }, { $set: { address: process.env.ADDRESS_WALLET } });
+    await networksModel.updateOne({ networkId: "ethereum" }, { $set: { address: process.env.ADDRESS_WALLET } })
 
 };
 

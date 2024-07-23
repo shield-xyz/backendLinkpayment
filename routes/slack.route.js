@@ -12,9 +12,26 @@ const WithdrawController = require('../controllers/withdraw.controller.js');
 const accountModel = require('../models/account.model.js');
 const logger = require('node-color-log');
 
+function cleanPhoneNumber(input) {
+    // Partir la cadena por el delimitador '|'
+    let parts = input.split('|');
 
+    // Obtener la parte del número de teléfono, que es el último elemento
+    let phonePart = parts[2];
+
+    // Usar una expresión regular para extraer solo los dígitos del número de teléfono
+    let cleanedPhone = phonePart.match(/\d+/g).join('');
+    console.log(parts, "cleaned phone")
+    // Reconstruir la cadena con el número de teléfono limpio
+    parts[2] = parts[3].replace(">", "");
+
+    // Unir las partes de nuevo con '|'
+    return parts.join('|');
+}
 router.post('/challenge', async (req, res) => {
     try {
+
+        let text = "";
 
         let event = req.body.event;
         if (event.type == "message") {
@@ -69,7 +86,11 @@ router.post('/challenge', async (req, res) => {
 
                     }
                     if (event.text.includes("tokenReceived|")) {
-                        let args = event.text.replace(/%7C/g, "|").split("|");
+                        text = event.text.replace(/%7C/g, "|").split("|");
+                        if (event.text.includes("<tel"))
+                            text = cleanPhoneNumber(event.text.replace(/%7C/g, "|")).split("|");
+
+                        let args = text;
                         console.log(args, "args")
                         let amount = args[1].replace("<mailto:", ""), number = args[2].replace("<mailto:", "");
                         try {
@@ -87,7 +108,12 @@ router.post('/challenge', async (req, res) => {
                         }
                     }
                     if (event.text.includes("transferInitiated|")) {
-                        let args = event.text.replace(/%7C/g, "|").split("|");
+                        text = event.text.replace(/%7C/g, "|").split("|");
+
+                        if (event.text.includes("<tel"))
+                            text = cleanPhoneNumber(event.text.replace(/%7C/g, "|")).split("|");
+
+                        let args = text
                         console.log(args, "args")
                         let amount = args[1].replace("<mailto:", ""), number = args[2].replace("<mailto:", "");
                         try {

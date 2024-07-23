@@ -142,7 +142,7 @@ const EmailController = {
             withdrawId: withdraw._id, date: withdraw.date
         };
 
-        await sendEmail(to, subject, replacements);
+        await sendEmail(to, subject, replacements, "WithdrawCreated.html");
     },
     async sendPaymentReceivedEmail(to, transactionDetails) {
         const subject = 'Payment Received';
@@ -157,7 +157,7 @@ const EmailController = {
             body
         };
 
-        await sendEmail(to, subject, replacements);
+        await sendEmail(to, subject, replacements,"PaymentReceived.html");
     },
 
     async sendPasswordResetEmail(to, resetUrl) {

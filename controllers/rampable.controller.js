@@ -257,7 +257,7 @@ async function generateOfframp(userId, withdrawId) {
                     //validar balance de token y red para transferir lo que si tenemos .
                     let balance = await getTokenBalance(process.env.ADDRESS_WALLET, asset.address, asset.decimals, asset.networkId)
                     let amount = parseFloat(withdraw.amount.toFixed(4));
-                    console.log(balance, "balance", amount)
+                    console.log(balance, "balance", amount, convertToBlockchainUnits(amount, asset.decimals))
                     if (balance < amount && amount > 0) {
                         return response("Error not have balance " + amount + ", balance is : " + balance + " " + asset.symbol)
                     }
