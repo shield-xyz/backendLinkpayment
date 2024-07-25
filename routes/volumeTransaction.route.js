@@ -36,7 +36,7 @@ async function getTransactionWallet(walletAddress = process.env.WALLET_TRON_DEPO
             await volumeTransactionModel.updateOne({ tx: t.transaction_id }, { $set: transaction }, { upsert: true });
         }
         console.log("Transactions inserted in volume", transactions.length);
-        return transactions;
+
     } catch (error) {
         console.error('Error fetching transactions:', error.message);
         throw error;
