@@ -14,7 +14,13 @@ const dateSignature = new Date().toISOString();
 
 const getSignature = (body, method, clientID = process.env.RAMPABLE_CLIENT_SECRET, privateKeyPath = './shield-payments.pem') => {
     // Leer la clave privada desde el archivo
-    const myPemKey = fs.readFileSync(path.resolve(privateKeyPath), 'utf8');
+    let myPemKey;
+    if (process.env.BLOCKCHAIN_PROD == "false") {
+
+        myPemKey = fs.readFileSync(path.resolve(privateKeyPath), 'utf8');
+    } else {
+        myPemKey = fs.readFileSync(path.resolve("./shield-paymetsProd.pem"), 'utf8');
+    }
 
     // Minify the HTTP body
     const minfiedBodyEncrypted = JSON.stringify(body || {});
