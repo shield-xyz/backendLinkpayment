@@ -172,7 +172,7 @@ async function generateWithDrawRampable(amount, balanceId) {
     let user = await userModel.findOne({ _id: balance.userId });
     //validar que el usuario tenga creado cuenta en rampable con datos bancarios .
     let recipients = await getRecipients(user.email);
-    if (recipients.data.docs.length > 0) {
+    if (recipients?.data?.docs?.length > 0) {
 
     } else {
         // validamos que tenga los datos bancarios en api de lucas.
