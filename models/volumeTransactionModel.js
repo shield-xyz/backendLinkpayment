@@ -34,7 +34,8 @@ const volumeTransactionSchema = new mongoose.Schema({
     walletSend: {
         type: String,
         trim: true
-    }
+    },
+    excelLoad: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('VolumeTransaction', volumeTransactionSchema);
