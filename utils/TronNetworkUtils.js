@@ -28,11 +28,11 @@ async function getTransactionDetails(hash) {
                 'TRON-PRO-API-KEY': apiKey
             }
         })
-
         options = { method: 'GET', headers: { accept: 'application/json' } };
 
         let data = await response.json();
         let transaction = await TransactionLogController.createTransaction(data);
+        // console.log(transaction)
         return transaction;
 
     } catch (error) {

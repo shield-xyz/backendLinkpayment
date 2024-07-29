@@ -122,7 +122,7 @@ async function getPrices() {
   // console.log('Precios de los tokens:', prices);
 
 }
-
+// TronNetworkUtils.getTransactionDetails("ed50848a4980bd510230be2f7a5e8ef1efd3d8ee31a62b382b31f580b683c579")
 async function validatePayment(hash, amount, network, asset, userId, linkId = null, paymentId = null) {
   try {
     let transactionLog, transactionTimestamp, tenMinutesAgo;
@@ -315,7 +315,7 @@ async function footPrintGetBankData(fp_id) {
 module.exports = {
   handleError,
   handleHttpError,
-  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser,footPrintGetBankData,
+  validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser, footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
   ...require("./TwilioUtils")
 };
