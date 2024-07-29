@@ -63,7 +63,7 @@ const AssetController = {
                 "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/21763.png",
                 "active": true,
                 "networkId": "tron",
-                "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                "address": process.env.USDT_TRON_ADDRESS
             },
 
             {
