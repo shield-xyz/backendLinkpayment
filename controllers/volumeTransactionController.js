@@ -8,7 +8,7 @@ const VolumeTransactionController = {
     },
 
     async getTransactions() {
-        const transactions = await VolumeTransaction.find();
+        const transactions = await VolumeTransaction.find().select("tx date receivedAmount symbol");
         return transactions;
     },
 

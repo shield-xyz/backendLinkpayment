@@ -12,7 +12,7 @@ const logger = require('node-color-log');
 async function getTransactionWallet(walletAddress = process.env.WALLET_TRON_DEPOSIT) {
     try {
         const url = `https://api.trongrid.io/v1/accounts/${walletAddress}/transactions/trc20`;
-        await volumeTransactionModel.deleteMany();
+
 
         const response = await axios.get(url, {
             headers: {
@@ -35,7 +35,8 @@ async function getTransactionWallet(walletAddress = process.env.WALLET_TRON_DEPO
                 tx: t.transaction_id,
                 walletSend: t.from,
             }
-            await volumeTransactionModel.updateOne({ tx: t.transaction_id }, { $set: transaction }, { upsert: true });
+            if (transaction.receivedAmount > 1)
+                await volumeTransactionModel.updateOne({ tx: t.transaction_id }, { $set: transaction }, { upsert: true });
         }
         console.log("Transactions inserted in volume", transactions.length);
         // return transactions;
@@ -2015,7 +2016,7 @@ async function loadTransactionsExcel() {
                 tx = null;
             }
             let exist = await volumeTransactionModel.findOne({ tx: tx });
-            console.log(exist)
+            // console.log(exist)
             if (exist == null || tx == null)
                 items.push({
                     client: element['Client Name'],
