@@ -10,7 +10,11 @@ async function getTransactionDetails(hash) {
 
         // Si se encuentra en la base de datos, la devuelve
         if (tx != undefined && tx != null) {
-            return tx;
+            if (tx.transfersAllList?.length == 0) {
+                await tx.delete()
+            } else {
+                return tx;
+            }
         }
 
         // // Consulta la API de TronGrid para obtener la información de la transacción

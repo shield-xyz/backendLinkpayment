@@ -172,8 +172,8 @@ async function generateWithDrawRampable(amount, balanceId) {
     let user = await userModel.findOne({ _id: balance.userId });
     //validar que el usuario tenga creado cuenta en rampable con datos bancarios .
     let recipients = await getRecipients(user.email);
-    if (recipients.data.docs.length > 0) {
-
+    if (recipients?.data?.docs?.length > 0) {
+        console.log(recipients.data.docs.length);
     } else {
         // validamos que tenga los datos bancarios en api de lucas.
         let bankData = await footPrintGetBankData(user.footId);
@@ -181,7 +181,7 @@ async function generateWithDrawRampable(amount, balanceId) {
             await sendMessage("This user does not have bank details loaded in footPrint"); return;
         }
         // si tiene creamos recipient.
-        await createRecipients({ name: user.user_name, email: user.email }, user.userId, {
+        await createRecipients({ name: user.user_name, email: user.email }, user._id, {
             accountName: bankData["custom.beneficiary_name"],
             accountNumber: bankData["custom.account_number"],
             currency: "USD",
@@ -189,8 +189,6 @@ async function generateWithDrawRampable(amount, balanceId) {
         }, bankData["custom.city"], bankData["custom.street_address"], bankData["custom.zip_code"], bankData["custom.country"])
 
     }
-
-    // si no tiene crear.
 
     let wt = await WithdrawController.createWithdraw({
         amount: amount,
@@ -200,11 +198,12 @@ async function generateWithDrawRampable(amount, balanceId) {
         status: "pending",
         balanceId: balance._id
     });
-
+    console.log(wt._id, "wt id -> to delete.")
 
     // integrar rampable si es posible 
     try {
         let resp = await generateOfframp(balance.userId, wt._id);
+        logger.info(resp);
         if (resp.status == "success") {
             await sendMessage(resp.response);
             await NotificationsController.createNotification({

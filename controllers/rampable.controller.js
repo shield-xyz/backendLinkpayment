@@ -148,7 +148,7 @@ async function createRecipients(user, userId, bank, city, address, postCode, cou
             }
 
         };
-        let data = await rampableRequest('recipient', "POST", body);
+        let data = await rampableRequest('recipient', "POST", body, {}, true);
 
         if (data.statusCode === 200) {
             let re = await RecipientRampableModel.create({ ...data.data, userId });
@@ -265,7 +265,7 @@ async function generateOfframp(userId, withdrawId) {
                     let amount = parseFloat(withdraw.amount.toFixed(4));
                     console.log(balance, "balance", amount, convertToBlockchainUnits(amount, asset.decimals))
                     if (balance < amount && amount > 0) {
-                        return response("Error not have balance " + amount + ", balance is : " + balance + " " + asset.symbol)
+                        return response("Error not have balance " + amount + ", balance is : " + balance + " " + asset.symbol, "error")
                     }
                     //generar offramp,
                     let recipient = await RecipientRampableModel.findOne({ userId: userId });
@@ -280,11 +280,12 @@ async function generateOfframp(userId, withdrawId) {
                         offramp.userId = userId;
                         offramp.withdrawId = withdrawId;
                         await offramp.save();
+
                         offramp.tx = await sendToken(offramp.payOutWallet, asset.address, offramp.inputAmountExact, asset.decimals, asset.networkId)
                         await offramp.save();
                         withdraw.offRampId = offramp.id;
                         await withdraw.save()
-                        return response("offramp created successfully");
+                        return response("offramp created successfully id " + offramp.id);
                     } else {
                         return response(offramp.message, "error");
                     }
@@ -306,6 +307,9 @@ async function generateOfframp(userId, withdrawId) {
 
 }
 
+// sendToken("0xfe4784a48EFcd7B4f635D05A5ce0E687Efbdd4F7", "0xdac17f958d2ee523a2206206994597c13d831ec7", 1, 6, "ethereum").then(res => {
+//     console.log(res, "tx??")
+// })
 // generateOfframp("667477f6769e23782b7c2984", "668d394a44de36d0ec054d56")
 
 

@@ -79,7 +79,7 @@ const EmailController = {
         const subject = 'Transaction Successful';
         // const body = `
         //   <h1>Transaction Successful</h1>
-        //   <p>Your transaction of ${amount} ${token} - ${networkId} for <a href="${process.env.URL_FRONT}paylink?id=${linkPaymentId}" target="_blank" >Link Payment</a>. Transaction ID: ${idTransaction}.</p>
+        //   <p>Your transaction of ${amount} ${token} - ${networkId} for <a href="${process.env.URL_FRONT}/paylink?id=${linkPaymentId}" target="_blank" >Link Payment</a>. Transaction ID: ${idTransaction}.</p>
         //   <a href="${urlHash}" target="_blank" class="button">View Transaction Blockchain</a>
         // `;
 
@@ -88,7 +88,7 @@ const EmailController = {
             amount,
             token, urlHash,
             networkId, idTransaction,
-            linkPayment: `${process.env.URL_FRONT}paylink?id=${linkPaymentId}`
+            linkPayment: `${process.env.URL_FRONT}/paylink?id=${linkPaymentId}`
         };
 
         await sendEmail(to, subject, replacements, "TransactionReceived.html");

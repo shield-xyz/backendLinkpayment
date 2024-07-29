@@ -11,6 +11,10 @@ const VolumeTransactionController = {
         const transactions = await VolumeTransaction.find().select("tx date receivedAmount symbol");
         return transactions;
     },
+    async getAllTransactions() {
+        const transactions = await VolumeTransaction.find();
+        return transactions;
+    },
 
     async getTransactionById(id) {
         const transaction = await VolumeTransaction.findById(id);
@@ -43,10 +47,12 @@ const VolumeTransactionController = {
             }
         ]);
 
-        return results.map(result => ({
-            date: `${result._id.year}-${result._id.month}-${result._id.day}`,
-            totalReceivedAmount: result.totalReceivedAmount
-        }));
+        return results.map(result => {
+            return {
+                date: `${result._id.year}-${result._id.month}-${result._id.day}`,
+                totalReceivedAmount: result.totalReceivedAmount
+            }
+        });
     },
     async getTotalReceivedAmountByMonth() {
         const results = await VolumeTransaction.aggregate([
