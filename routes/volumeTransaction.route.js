@@ -2051,6 +2051,14 @@ router.get('/totalReceivedAmountByDay', async (req, res) => {
     }
 });
 
+router.get('/totalReceivedAmountByMonth', async (req, res) => {
+    try {
+        const results = await VolumeTransactionController.getTotalReceivedAmountByMonth();
+        res.json(response(results, 'success'));
+    } catch (error) {
+        handleHttpError(error, res);
+    }
+});
 router.post('/', authAdmin, async (req, res) => {
     try {
         const transaction = await VolumeTransactionController.createTransaction(req.body);

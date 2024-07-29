@@ -47,6 +47,27 @@ const VolumeTransactionController = {
             date: `${result._id.year}-${result._id.month}-${result._id.day}`,
             totalReceivedAmount: result.totalReceivedAmount
         }));
+    },
+    async getTotalReceivedAmountByMonth() {
+        const results = await VolumeTransaction.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$date" },
+                        month: { $month: "$date" }
+                    },
+                    totalReceivedAmount: { $sum: "$receivedAmount" }
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1 }
+            }
+        ]);
+
+        return results.map(result => ({
+            date: `${result._id.year}-${result._id.month}`,
+            totalReceivedAmount: result.totalReceivedAmount
+        }));
     }
 };
 
