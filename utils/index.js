@@ -312,10 +312,17 @@ async function footPrintGetBankData(fp_id) {
     return { status: "error", response: {} };
   }
 }
+function parseCurrencyString(currencyString) {
+  // Eliminar el símbolo de dólar y las comas
+  const cleanString = currencyString.replace(/[$,]/g, '');
+  // Convertir el string limpio a un número
+  const number = parseFloat(cleanString);
+  return number;
+}
 module.exports = {
   handleError,
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser, footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
-  ...require("./TwilioUtils")
+  ...require("./TwilioUtils"), parseCurrencyString
 };
