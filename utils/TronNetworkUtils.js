@@ -20,7 +20,7 @@ async function getTransactionDetails(hash) {
             body: JSON.stringify({ value: hash })
         };
 
-        const apiKey = process.env.TRON_API_KEY;
+        const apiKey = process.env.TRON_API_SCAN;
         const endpoint = process.env.TRON_END_POINT;//'https://apilist.tronscanapi.com/api/';
 
         let response = await fetch(endpoint + "transaction-info?hash=" + hash, {
