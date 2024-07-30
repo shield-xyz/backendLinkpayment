@@ -177,6 +177,7 @@ async function getTransactionValueInUSD(date) {
 
 
 async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a") {
+    console.log("start get transactions")
     getTokenTransactionsEth(wallet).then(async res => {
         for (let i = 0; i < res.transfers.length; i++) {
             const element = res.transfers[i];
@@ -273,6 +274,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
         });
     });
     logger.info("BTC transactions from " + btc + " inserted")
+    console.log("finish get transactions")
 
     setInterval(getTransactions, 1 * 60 * 60 * 1000); // cada 10 hs
 }
