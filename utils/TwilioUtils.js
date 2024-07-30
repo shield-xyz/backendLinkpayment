@@ -16,7 +16,7 @@ async function sendMessageTwilio(number, amount, type = 1) {
         } else {
             message = "Hello, we have initiated your bank transfer of " + amount + ". Thank you for your patience."
         }
-        sendMessageMay(number, amount);
+        sendMessageMay(number, message);
         return { status: "success", response: "Message sent " + number }
     } catch (error) {
         return { status: "error", response: error.message }
