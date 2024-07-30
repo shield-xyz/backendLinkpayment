@@ -23,34 +23,34 @@ const abi = [
 const provider = new ethers.providers.JsonRpcProvider(process.env.END_POINT_TRON);
 const contract = new Contract("0xA614F803B6FD780986A42C78EC9C7F77E6DED13C", AggregatorV3InterfaceABI, provider);
 
-contract.on(
-    "Transfer",
-    async (
-        from,
-        to,
-        value,
-        event
-    ) => {
-        // console.log(to, from, value)
-        if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
-            let decimals = await contract.decimals();
-            console.log(to, from, event)
-            let symbol = await contract.symbol();
-            let transaction = {
-                methodPay: "Transaction Tron",
-                date: Date.now(),
-                receivedAmount: divideByDecimals(event.args.value + "", decimals),
-                symbol: symbol,
-                tx: event.transactionHash,
-                walletSend: event.args.from,
-            };
-            if (transaction.receivedAmount > 0.09) {
-                await volumeTransactionModel.updateOne({ tx: transaction.hash }, { $set: transaction }, { upsert: true });
-                await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
-            }
-        }
-    }
-);
+// contract.on(
+//     "Transfer",
+//     async (
+//         from,
+//         to,
+//         value,
+//         event
+//     ) => {
+//         // console.log(to, from, value)
+//         if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
+//             let decimals = await contract.decimals();
+//             console.log(to, from, event)
+//             let symbol = await contract.symbol();
+//             let transaction = {
+//                 methodPay: "Transaction Tron",
+//                 date: Date.now(),
+//                 receivedAmount: divideByDecimals(event.args.value + "", decimals),
+//                 symbol: symbol,
+//                 tx: event.transactionHash,
+//                 walletSend: event.args.from,
+//             };
+//             if (transaction.receivedAmount > 0.09) {
+//                 await volumeTransactionModel.updateOne({ tx: transaction.hash }, { $set: transaction }, { upsert: true });
+//                 await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
+//             }
+//         }
+//     }
+// );
 async function getTransactionWalletTron(walletAddress = process.env.WALLET_TRON_DEPOSIT, reset = false) {
     try {
         if (reset) {
