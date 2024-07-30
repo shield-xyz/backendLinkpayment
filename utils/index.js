@@ -314,15 +314,19 @@ async function footPrintGetBankData(fp_id) {
 }
 function parseCurrencyString(currencyString) {
   // Eliminar el símbolo de dólar y las comas
-  const cleanString = currencyString.replace(/[$,]/g, '');
+  let cleanString = currencyString.replace(/[$,]/g, '');
+   cleanString = cleanString.replace(/[€,]/g, '');
   // Convertir el string limpio a un número
   const number = parseFloat(cleanString);
   return number;
+}
+function parsePercentageString(percentageStr) {
+  return parseFloat(percentageStr.replace('%', '')) / 100;
 }
 module.exports = {
   handleError,
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser, footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
-  ...require("./TwilioUtils"), parseCurrencyString
+  ...require("./TwilioUtils"), parseCurrencyString,parsePercentageString
 };

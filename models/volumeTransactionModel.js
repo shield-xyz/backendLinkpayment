@@ -20,22 +20,34 @@ const volumeTransactionSchema = new mongoose.Schema({
         default: Date.now,
     },
     receivedAmountEUR: {
-        type: String,
+        type: Number,
     },
     receivedAmount: {
         type: Number, // Corresponde a "receivedAmountUSD"
     },
     totalReceived: {
-        type: String,
+        type: Number,
     },
     shieldFee: {
-        type: String,
+        type: Number,
     },
     clientTransfer: {
-        type: String,
+        type: Number,
+    },
+    grossProfit: {
+        type: Number,
+    },
+    conversionFees: {
+        type: Number,
+    },
+    withdrawalFees: {
+        type: Number,
     },
     gasFees: {
-        type: String,
+        type: Number,
+    },
+    netProfit: {
+        type: Number,
     },
     completed: {
         type: Boolean,
@@ -77,16 +89,13 @@ const volumeTransactionSchema = new mongoose.Schema({
         trim: true
     },
     totalGmv: {
-        type: String,
-        trim: true
+        type: Number,
     },
     totalNetProfits: {
-        type: String,
-        trim: true
+        type: Number,
     },
     numberOfTransactions: {
-        type: String,
-        trim: true
+        type: Number,
     },
     excelLoad: {
         type: Boolean,

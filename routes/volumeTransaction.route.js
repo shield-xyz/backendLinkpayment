@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const VolumeTransactionController = require('../controllers/volumeTransactionController');
-const { handleHttpError, divideByDecimals, parseCurrencyString } = require('../utils'); // Asumiendo que tienes un manejador de errores
+const { handleHttpError, divideByDecimals, parseCurrencyString, parsePercentageString } = require('../utils'); // Asumiendo que tienes un manejador de errores
 const { response } = require('../db'); // Asumiendo que tienes una función de respuesta
 const auth = require('../middleware/auth');
 const authAdmin = require('../middleware/authAdmin');
@@ -12,8 +12,15 @@ const fs = require('fs');
 const path = require('path');
 const apiKeyMaster = require('../middleware/apiKeyMaster');
 
-async function getTransactionWallet(walletAddress = process.env.WALLET_TRON_DEPOSIT) {
+
+
+async function getTransactionWallet(walletAddress = process.env.WALLET_TRON_DEPOSIT, reset = false) {
     try {
+        if (reset) {
+
+            await volumeTransactionModel.deleteMany({});
+        }
+
         const url = `https://api.trongrid.io/v1/accounts/${walletAddress}/transactions/trc20`;
 
         const response = await axios.get(url, {
@@ -53,7 +60,7 @@ async function getTransactionWallet(walletAddress = process.env.WALLET_TRON_DEPO
     setInterval(getTransactionWallet, 10 * 60 * 60 * 1000); // cada 10 hs
 }
 
-getTransactionWallet().then(res => {
+getTransactionWallet(process.env.WALLET_TRON_DEPOSIT, false).then(res => {
     loadTransactionsExcel();
 });
 
@@ -91,7 +98,15 @@ async function loadTransactionsExcel() {
                     methodPay: element['Method of Pay'],
                     date: new Date(element["Date"]),
                     receivedAmount: receivedAmount,
-                    symbol: "USDT",
+                    receivedAmountEUR: parseCurrencyString(element['Received Amount (EUR)']),
+                    totalReceived: parseCurrencyString(element['Total Received']),
+                    shieldFee: parsePercentageString(element['Shield Fee']),
+                    clientTransfer: parseCurrencyString(element['Client Transfer']),
+                    grossProfit: parseCurrencyString(element['Gross Profit']),
+                    conversionFees: parseCurrencyString(element['Conversion Fees']),
+                    withdrawalFees: parseCurrencyString(element['Withdrawal Fees']),
+                    gasFees: parseCurrencyString(element['Gas Fees']),
+                    netProfit: parseCurrencyString(element['Net Profit']),
                     tx: tx,
                     walletSend: element["Wallet Address"],
                     excelLoad: true
@@ -104,9 +119,10 @@ async function loadTransactionsExcel() {
     logger.success("insert data excel to volumeTransactions finish");
 }
 
+
 router.get('/totalReceivedAmountByDay', async (req, res) => {
     try {
-        const results = await VolumeTransactionController.getTotalReceivedAmountByDay();
+        const results = await VolumeTransactionController.getCumulativeSumByDay();
         res.json(response(results, 'success'));
     } catch (error) {
         handleHttpError(error, res);
@@ -116,6 +132,14 @@ router.get('/totalReceivedAmountByDay', async (req, res) => {
 router.get('/totalReceivedAmountByMonth', async (req, res) => {
     try {
         const results = await VolumeTransactionController.getTotalReceivedAmountByMonth();
+        res.json(response(results, 'success'));
+    } catch (error) {
+        handleHttpError(error, res);
+    }
+});
+router.get('/cumulativeSumByDay', async (req, res) => {
+    try {
+        const results = await VolumeTransactionController.getCumulativeSumByDay();
         res.json(response(results, 'success'));
     } catch (error) {
         handleHttpError(error, res);

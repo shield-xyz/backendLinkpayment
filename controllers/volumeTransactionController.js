@@ -1,3 +1,4 @@
+const volumeTransactionModel = require('../models/volumeTransactionModel');
 const VolumeTransaction = require('../models/volumeTransactionModel');
 
 const VolumeTransactionController = {
@@ -74,7 +75,35 @@ const VolumeTransactionController = {
             date: `${result._id.year}-${result._id.month}`,
             totalReceivedAmount: result.totalReceivedAmount
         }));
+    },
+    async getCumulativeSumByDay() {
+        try {
+            const transactions = await VolumeTransaction.aggregate([
+                {
+                    $group: {
+                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                        dailySum: { $sum: "$receivedAmount" }
+                    }
+                },
+                { $sort: { _id: 1 } } // Ordenar por fecha
+            ]);
+
+            let cumulativeSum = 0;
+            const cumulativeResults = transactions.map(transaction => {
+                cumulativeSum += transaction.dailySum;
+                return {
+                    date: transaction._id,
+                    dailySum: transaction.dailySum,
+                    totalReceivedAmount: cumulativeSum
+                };
+            });
+
+            return cumulativeResults;
+        } catch (error) {
+            return error;
+        }
     }
 };
+
 
 module.exports = VolumeTransactionController;
