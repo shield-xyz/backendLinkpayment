@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const TransactionsBitcoin = require('../models/TransactionsBitcoin.model');
+const axios = require("axios")
 // const { divideByDecimals } = require('../utils/index');
 function divideByDecimals(value, decimals) {
     if (typeof value !== 'string' || typeof decimals !== 'number') {
@@ -43,11 +44,23 @@ async function getTransactionDetails(hash) {
         return {}
     }
 }
+async function getBitcoinTransactions(address) {
+    try {
+        const url = `https://blockchain.info/rawaddr/${address}`;
+        const response = await axios.get(url);
+        const transactions = response.data.txs;
+
+
+        return transactions;
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+    }
+}
 
 
 // Exportar todas las funciones del archivo automáticamente
 module.exports = {
-    getTransactionDetails,
+    getTransactionDetails, getBitcoinTransactions
 };
 
 

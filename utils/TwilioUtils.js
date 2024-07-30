@@ -1,76 +1,74 @@
 const logger = require('node-color-log');
 const fetch = require('node-fetch');
 require('dotenv').config();
+const axios = require('axios');
+const apiToken = process.env.MAY_API_TOKEN;
+const productId = process.env.MAY_API_PRODUCTID;
+const phoneId = process.env.MAY_API_PHONEID;
+const groupId = process.env.ID_GROUP_WPP;
 
 async function sendMessageTwilio(number, amount, type = 1) {
-    const accountSid = process.env.TWILIO_ID; // Tu SID de Twilio
-    const authToken = process.env.TWILIO_TOKEN; // Tu token de Twilio
-    const client = require('twilio')(accountSid, authToken);
-    const fromNumber = process.env.TWILIO_FROM_NUMBER; // Tu número de WhatsApp de Twilio (en formato: 'whatsapp:+1234567890')
-
-    const toNumber = `whatsapp:+${number}`; // Utiliza el número proporcionado en el cuerpo de la solicitud
-
-
-    let templateSid = 'HXe1a6fcea5654ab826f53316d078cd39f'; // Reemplaza con el SID de tu template aprobado
-    if (type == 1) {
-        templateSid = "HXe1a6fcea5654ab826f53316d078cd39f";
-    } else {
-        templateSid = "HX44731b7c3418b8e07b462d38afec8a8d";
-    }
     try {
-        let resp = await client.messages.create({
-            contentSid: templateSid,
-            contentVariables: JSON.stringify({ 1: amount }),
-            from: "MGf4ddbc312cf921cb40a5eac53a13ec7d",
-            to: toNumber
-        });
-        logger.info(resp);
-        return { response: resp, status: "success" };
+        let message = "";
+        if (type == 1) {
+            message = "Hello, we have successfully received your transfer of " + amount + " . Thank you for your transaction. Your current balance is now updated."
+
+        } else {
+            message = "Hello, we have initiated your bank transfer of " + amount + ". Thank you for your patience."
+        }
+        sendMessageMay(number, amount);
+        return { status: "success", response: "Message sent " + number }
     } catch (error) {
-        console.error('Error sending message:', error);
-        return { response: { error, msg: error.message }, status: "failure" };
+        return { status: "error", response: error.message }
     }
 }
 
-async function sendMessageTwilioGroup(number, amount, type = 1) {
-    const accountSid = process.env.TWILIO_ID; // Tu SID de Twilio
-    const authToken = process.env.TWILIO_TOKEN; // Tu token de Twilio
-    const client = require('twilio')(accountSid, authToken);
-    const fromNumber = process.env.TWILIO_FROM_NUMBER; // Tu número de WhatsApp de Twilio (en formato: 'whatsapp:+1234567890')
+async function sendMessageMay(phoneNumber, message) {
+    const url = `https://api.maytapi.com/api/${productId}/${phoneId}/sendMessage`;
 
-    const toNumber = `whatsapp:+${number}`; // Utiliza el número proporcionado en el cuerpo de la solicitud
-    const groupID = "+16316838567-5491128568076:13@c.us"
+    const data = {
+        to_number: phoneNumber,
+        message: message,
+        type: 'text'
+    };
 
-    let templateSid = 'HXe1a6fcea5654ab826f53316d078cd39f'; // Reemplaza con el SID de tu template aprobado
-    if (type == 1) {
-        templateSid = "HXe1a6fcea5654ab826f53316d078cd39f";
-    } else {
-        templateSid = "HX44731b7c3418b8e07b462d38afec8a8d";
-    }
     try {
-        // let resp = await client.messages.create({
-        // contentSid: templateSid,
-        // contentVariables: JSON.stringify({ 1: amount }),
-        //     from: "MGf4ddbc312cf921cb40a5eac53a13ec7d",
-        //     to: toNumber
-        // });
-        const resp = await client.messages.create({
-            from: fromNumber,
-            to: `whatsapp:${groupID}`, // El identificador del grupo de WhatsApp
-            contentSid: templateSid,
-            contentVariables: JSON.stringify({ 1: amount }),
-            body: "algo"
+        const response = await axios.post(url, data, {
+            headers: {
+                'x-maytapi-key': apiToken
+            }
         });
-        logger.info(resp);
-        return { response: resp, status: "success" };
+
+        console.log('Message sent:', response.data);
     } catch (error) {
         console.error('Error sending message:', error);
-        return { response: { error, msg: error.message }, status: "failure" };
     }
 }
 
+
+async function sendGroupMessage(message) {
+    const url = `https://api.maytapi.com/api/${productId}/${phoneId}/sendMessage`;
+
+    const data = {
+        to_number: groupId,
+        message: message,
+        type: 'text'
+    };
+
+    try {
+        const response = await axios.post(url, data, {
+            headers: {
+                'x-maytapi-key': apiToken
+            }
+        });
+
+        console.log('Message sent to group:', response.data);
+    } catch (error) {
+        console.error('Error sending message to group:', error);
+    }
+}
 // sendMessageTwilioGroup("541128568076", "19 usdt", 1);
-
+// sendGroupMessage("si, ves esto es porque si se puede enviar mensajes al grupo.")
 module.exports = {
-    sendMessageTwilio,
+    sendMessageTwilio, sendMessageMay, sendGroupMessage
 };
