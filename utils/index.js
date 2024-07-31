@@ -57,8 +57,8 @@ const isEmpty = (obj) => {
   return Object.keys(obj).length === 0;
 };
 
-let response = (data, status = "success") => {
-  return { response: data, status: status }
+let response = (data, status = "success", another = null) => {
+  return { response: data, status: status, another: another }
 }
 
 
@@ -122,8 +122,39 @@ async function getPrices() {
   // console.log('Precios de los tokens:', prices);
 
 }
+
+async function getTransactionOnly(hash, network) {
+  try {
+    let transactionLog
+    switch (network.networkId) {
+      case "tron":
+        transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
+        return transactionLog;
+
+        break;
+      case "ethereum":
+        transactionLog = await EthereumNetworkUtils.getTransactionDetails(hash);
+        return transactionLog;
+
+        break;
+      case "bitcoin":
+        transactionLog = await BitcoinNetworkUtils.getTransactionDetails(hash);
+        return transactionLog;
+
+
+        break;
+      default: return {};
+    }
+  } catch (error) {
+    console.log(error)
+    logger.error(error);
+    return {}
+
+  }
+
+}
 // TronNetworkUtils.getTransactionDetails("ed50848a4980bd510230be2f7a5e8ef1efd3d8ee31a62b382b31f580b683c579")
-async function validatePayment(hash, amount, network, asset, userId, linkId = null, paymentId = null) {
+async function validatePayment(hash, amount, network, asset, userId, linkId = null, paymentId = null, dataInresponse = false) {
   try {
     let transactionLog, transactionTimestamp, tenMinutesAgo;
     let isValid = false;
@@ -155,7 +186,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // Validar que la transacción sea de hace 10 minutos o menos
         if (transactionTimestamp < tenMinutesAgo) {
-          return response("date greater than 10 minutes", "error");
+          // return response("date greater than 10 minutes", "error");
         }
         for (let iData = 0; iData < transactionLog.transfersAllList.length; iData++) {
           const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .
@@ -170,7 +201,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
                 isValid = true;
                 transactionLog.applied = true;
                 await transactionLog.save();
-                return response("correct transaction");
+                return response("correct transaction", "success", quantity);
               }
             }
         }
@@ -315,7 +346,7 @@ async function footPrintGetBankData(fp_id) {
 function parseCurrencyString(currencyString) {
   // Eliminar el símbolo de dólar y las comas
   let cleanString = currencyString.replace(/[$,]/g, '');
-   cleanString = cleanString.replace(/[€,]/g, '');
+  cleanString = cleanString.replace(/[€,]/g, '');
   // Convertir el string limpio a un número
   const number = parseFloat(cleanString);
   return number;
@@ -328,5 +359,5 @@ module.exports = {
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser, footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
-  ...require("./TwilioUtils"), parseCurrencyString,parsePercentageString
+  ...require("./TwilioUtils"), parseCurrencyString, parsePercentageString, getTransactionOnly
 };

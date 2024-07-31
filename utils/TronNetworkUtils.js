@@ -17,6 +17,7 @@ async function getTransactionDetails(hash) {
             }
         }
 
+        console.log("buscando en blockchain")
         // // Consulta la API de TronGrid para obtener la información de la transacción
         let options = {
             method: 'POST',
