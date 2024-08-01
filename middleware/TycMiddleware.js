@@ -11,7 +11,7 @@ module.exports = async function (req, res, next) {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await userModel.findById(decoded.id).select('-password +admin');
+        const user = await userModel.findById(decoded.id).select('-password');
         req.merchant = user;
         req.user = user;
         if (user.verify == false) {
