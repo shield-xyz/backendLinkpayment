@@ -186,7 +186,7 @@ async function validatePayment(hash, amount, network, asset, userId, linkId = nu
         tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // Validar que la transacción sea de hace 10 minutos o menos
         if (transactionTimestamp < tenMinutesAgo) {
-          // return response("date greater than 10 minutes", "error");
+          return response("date greater than 10 minutes", "error");
         }
         for (let iData = 0; iData < transactionLog.transfersAllList.length; iData++) {
           const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .

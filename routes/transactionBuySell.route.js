@@ -100,6 +100,10 @@ router.post('/buy', auth, async (req, res) => {
     }
 });
 
+// validatePayment("77e4f4aefabc2073e623b20b193915e3407d20897965852ed461fe3a7111f9db", 3, { networkId: "tron" }, { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t" }, "667477f6769e23782b7c2984", null, null).then(res => {
+//     console.log(res, "RES")
+// })
+
 router.get('/', auth, async (req, res) => {
     try {
         let data = await TransactionBuySellModel.find({ userId: req.user._id });

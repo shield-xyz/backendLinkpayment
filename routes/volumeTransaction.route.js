@@ -178,13 +178,40 @@ async function getTransactionValueInUSD(date) {
 
 async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a") {
 
-    await volumeTransactionModel.deleteMany({});
+    // await volumeTransactionModel.deleteMany({});
     console.log("start get transactions")
+    let res = "";
     try {
-        getTokenTransactionsEth(wallet).then(async res => {
-            console.log(res,"getTokenTransactionsEth")
-            for (let i = 0; i < res.transfers?.length; i++) {
-                const element = res.transfers[i];
+        res = await getTokenTransactionsEth(wallet);
+
+        console.log(res, "getTokenTransactionsEth")
+        for (let i = 0; i < res.transfers?.length; i++) {
+            const element = res.transfers[i];
+            let transaction = {
+                methodPay: "Transaction",
+                date: new Date(element.metadata.blockTimestamp),
+                receivedAmount: divideByDecimals(element.value + "", parseInt(element.rawContract.decimal, 16)),
+                symbol: element.asset || "USDT",
+                tx: element.hash,
+                walletSend: element.from,
+            };
+            if (transaction.receivedAmount > 1)
+                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+        }
+        logger.info("eth transactions from " + wallet + " inserted")
+
+    } catch (error) {
+        console.log(error.message, "error eth")
+    }
+    try {
+        res = await getTokenTransactionsPolygon(wallet);
+        console.log(res, " getTokenTransactionsPolygon")
+        let tokens = [process.env.POLYGON_USDT.toLowerCase(), process.env.POLYGON_USDC.toLowerCase()]
+        for (let i = 0; i < res.transfers.length; i++) {
+            const element = res.transfers[i];
+            if (element.value != null && tokens.includes(element?.rawContract?.address.toLowerCase())) {
+                console.log(element)
+
                 let transaction = {
                     methodPay: "Transaction",
                     date: new Date(element.metadata.blockTimestamp),
@@ -196,34 +223,9 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
                 if (transaction.receivedAmount > 1)
                     await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
             }
-            logger.info("eth transactions from " + wallet + " inserted")
-        })
-    } catch (error) {
-        console.log(error.message, "error eth")
-    }
-    try {
-        getTokenTransactionsPolygon(wallet).then(async res => {
-            console.log(res," getTokenTransactionsPolygon")
-            let tokens = [process.env.POLYGON_USDT.toLowerCase(), process.env.POLYGON_USDC.toLowerCase()]
-            for (let i = 0; i < res.transfers.length; i++) {
-                const element = res.transfers[i];
-                if (element.value != null && tokens.includes(element?.rawContract?.address.toLowerCase())) {
-                    console.log(element)
+        }
+        logger.info("POLYGON transactions from " + wallet + " inserted")
 
-                    let transaction = {
-                        methodPay: "Transaction",
-                        date: new Date(element.metadata.blockTimestamp),
-                        receivedAmount: divideByDecimals(element.value + "", parseInt(element.rawContract.decimal, 16)),
-                        symbol: element.asset || "USDT",
-                        tx: element.hash,
-                        walletSend: element.from,
-                    };
-                    if (transaction.receivedAmount > 1)
-                        await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
-                }
-            }
-            logger.info("POLYGON transactions from " + wallet + " inserted")
-        })
     } catch (error) {
         console.log(error.message, "error polygon")
     }
@@ -234,33 +236,35 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
         'FCqfQfr7chiC9bSG3zKSm8AsM9XuK5v6KEsNfGpP73rE'  // USDC
     ];
     try {
-        getTokenTransactionsSolana(solanaWallet).then(async transactions => {
-            console.log(transactions," getTokenTransactionsPolygon")
-            const receivedTokens = [];
+        let transactions = await getTokenTransactionsSolana(solanaWallet);
+        console.log(transactions, " getTokenTransactionsPolygon")
+        const receivedTokens = [];
 
-            transactions.forEach(transaction => {
-                transaction.meta.postTokenBalances.forEach(async balance => {
-                    if (balance.owner === solanaWallet && tokenMints.includes(balance.mint)) {
-                        const preBalance = transaction.meta.preTokenBalances.find(b => b.accountIndex === balance.accountIndex) || { uiTokenAmount: { amount: 0 } };
-                        const receivedAmount = parseFloat(balance.uiTokenAmount.amount) - parseFloat(preBalance.uiTokenAmount.amount);
-                        if (receivedAmount > 0) {
-                            let t = {
-                                methodPay: "Transaction solana",
-                                date: new Date(transaction.blockTime * 1000),
-                                receivedAmount: receivedAmount / (10 ** balance.uiTokenAmount.decimals),
-                                symbol: "USDT",
-                                tx: transaction.transaction?.signatures[0]?.publicKey.toString(),
-                                walletSend: (transaction.transaction._message.accountKeys.find(acc => acc !== solanaWallet)).toString()
-                            };
-                            if (t.receivedAmount > 1)
-                                await volumeTransactionModel.updateOne({ tx: t.tx }, { $set: t }, { upsert: true });
-                        }
+        for (let forTra = 0; forTra < transactions.length; forTra++) {
+            const transaction = transactions[forTra];
+            for (let index = 0; index < transaction?.meta?.postTokenBalances?.length; index++) {
+                const balance = transaction.meta.postTokenBalances[index];
+                if (balance.owner === solanaWallet && tokenMints.includes(balance.mint)) {
+                    const preBalance = transaction.meta.preTokenBalances.find(b => b.accountIndex === balance.accountIndex) || { uiTokenAmount: { amount: 0 } };
+                    const receivedAmount = parseFloat(balance.uiTokenAmount.amount) - parseFloat(preBalance.uiTokenAmount.amount);
+                    if (receivedAmount > 0) {
+                        let t = {
+                            methodPay: "Transaction solana",
+                            date: new Date(transaction.blockTime * 1000),
+                            receivedAmount: receivedAmount / (10 ** balance.uiTokenAmount.decimals),
+                            symbol: "USDT",
+                            tx: transaction.transaction?.signatures[0]?.publicKey.toString(),
+                            walletSend: (transaction.transaction._message.accountKeys.find(acc => acc !== solanaWallet)).toString()
+                        };
+                        if (t.receivedAmount > 1)
+                            await volumeTransactionModel.updateOne({ tx: t.tx }, { $set: t }, { upsert: true });
                     }
-                });
-            });
-            logger.info("solana transactions from " + solanaWallet + " inserted")
+                }
+            }
+        }
+        logger.info("solana transactions from " + solanaWallet + " inserted")
 
-        })
+
     } catch (error) {
         console.log(error.message, "error solana")
     }
@@ -272,7 +276,16 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
         console.log(error.message, "error tron")
 
     }
-  // try {
+
+    try {
+        await loadTransactionsExcel();
+
+    } catch (error) {
+        console.log(error.message, "error tron")
+
+    }
+
+    // try {
     //     let prices = await getPrices();
     //     let btc = "32KjG6o7TFcYyvHWADpg1m4JoXU4P5QN1L";
     //     getBitcoinTransactions(btc).then(transactions => {
@@ -302,7 +315,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     //     console.log(error.message, "error btc")
 
     // }
-  
+
 
 
 
