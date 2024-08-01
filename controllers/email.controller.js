@@ -157,8 +157,16 @@ const EmailController = {
             body
         };
 
-        await sendEmail(to, subject, replacements,"PaymentReceived.html");
+        await sendEmail(to, subject, replacements, "PaymentReceived.html");
     },
+    async sendGeneralEmail(to, title, message, components = []) {
+        const replacements = {
+            title, message, components
+        };
+
+        await sendEmail(to, title, replacements, "EmailGeneral.html");
+    },
+
 
     async sendPasswordResetEmail(to, resetUrl) {
         const subject = 'Password Reset Request';

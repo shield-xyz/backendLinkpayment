@@ -22,7 +22,6 @@ const walletNetworkUserRoutes = require('./routes/walletNetworkUser.route');
 const configurationsRoutes = require("./routes/configuration.route");
 const notificationsUserRoutes = require('./routes/NotificationsUser.route');
 const bankRoutes = require("./routes/bank.route")
-const TwilioRoutes = require("./routes/twilio.route")
 const RampableRoutes = require("./routes/rampable.route")
 const VolumeTransactionsRoute = require("./routes/volumeTransaction.route");
 const transactionBuySell = require("./routes/transactionBuySell.route");
@@ -59,7 +58,6 @@ app.use('/api/walletsUser', walletNetworkUserRoutes);
 app.use('/api/configurations', configurationsRoutes);
 app.use('/api/banks', bankRoutes);
 app.use('/api/rampable', RampableRoutes);
-app.use('/api/twilio', TwilioRoutes);
 app.use('/api/volumetransactions', VolumeTransactionsRoute);
 app.use('/api/buysell', transactionBuySell);
 

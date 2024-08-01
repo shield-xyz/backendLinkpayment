@@ -32,7 +32,6 @@ contract.on(
         value,
         event
     ) => {
-        // console.log(to, from, value)
         if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
             let decimals = await contract.decimals();
             console.log(to, from, event)
@@ -46,17 +45,15 @@ contract.on(
                 walletSend: event.args.from,
             };
             if (transaction.receivedAmount > 0.09) {
-                await volumeTransactionModel.updateOne({ tx: transaction.hash }, { $set: transaction }, { upsert: true });
-                await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
+                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+                // await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
+                EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, "https://tronscan.org/#/transaction/" + transaction.tx, transaction.receivedAmount, symbol, "", transaction.tx)
             }
         }
     }
 );
 
-// EmailController.sendPaymentReceivedPaymentEmail("nehuenfortes@gmail.com", "0d6473ec431ca26227fd42cb7b27234ef4c7355b10e09ebfc85b7fafad7d11b5", "test token", "token", "networkId", "idTransaction"
-// ).then(res => {
-//     console.log(res, "EMAIL SEND?")
-// });
+
 async function getTransactionWalletTron(walletAddress = process.env.WALLET_TRON_DEPOSIT, reset = false) {
     try {
         if (reset) {

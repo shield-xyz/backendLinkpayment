@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const NotificationsController = require('../controllers/NotificationsUser.controller');
-const { response } = require('../utils');
+const { response, sendGroupMessage, sendMessageMay } = require('../utils');
 const auth = require('../middleware/auth');
 const { NOTIFICATIONS } = require('../config');
+const { sendGeneralEmail } = require('../controllers/email.controller');
 
 
 
@@ -54,6 +55,33 @@ router.post('/', auth, async (req, res) => {
         }
     } catch (error) {
         res.status(200).json(response(error.message, 'error'));
+    }
+});
+
+
+router.post('/send-whatsapp', async (req, res) => {
+    try {
+        const { message, number, groupId } = req.body;
+        let resp = {};
+        if (groupId != undefined) {
+            resp = await sendGroupMessage(message);
+        } else {
+            resp = await sendMessageMay(number, message);
+        }
+        res.status(200).json(response(resp, 'success'));
+    } catch (error) {
+        console.error('Error al enviar el mensaje:', error);
+        res.status(500).json(response('Error al enviar el mensaje', 'error'));
+    }
+});
+router.post('/send-email', async (req, res) => {
+    try {
+        const { to, title, message, components } = req.body;
+        await sendGeneralEmail(to, title, message, components)
+        res.status(200).json(response("email sent", 'success'));
+    } catch (error) {
+        console.error('Error al enviar el email:', error);
+        res.status(500).json(response('Error to send email', 'error'));
     }
 });
 
