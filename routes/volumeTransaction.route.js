@@ -182,7 +182,8 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     console.log("start get transactions")
     try {
         getTokenTransactionsEth(wallet).then(async res => {
-            for (let i = 0; i < res.transfers.length; i++) {
+            console.log(res,"getTokenTransactionsEth")
+            for (let i = 0; i < res.transfers?.length; i++) {
                 const element = res.transfers[i];
                 let transaction = {
                     methodPay: "Transaction",
@@ -202,6 +203,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     }
     try {
         getTokenTransactionsPolygon(wallet).then(async res => {
+            console.log(res," getTokenTransactionsPolygon")
             let tokens = [process.env.POLYGON_USDT.toLowerCase(), process.env.POLYGON_USDC.toLowerCase()]
             for (let i = 0; i < res.transfers.length; i++) {
                 const element = res.transfers[i];
@@ -233,7 +235,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     ];
     try {
         getTokenTransactionsSolana(solanaWallet).then(async transactions => {
-
+            console.log(transactions," getTokenTransactionsPolygon")
             const receivedTokens = [];
 
             transactions.forEach(transaction => {
