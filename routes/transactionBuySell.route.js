@@ -87,7 +87,7 @@ router.post('/buy', auth, async (req, res) => {
         if (resp.status == "success") {
             transaction.transactionDetails.amountTransferred = resp.another;
             const message = formatOnRampMessage(transaction);
-            // await sendGroupMessage(message);
+            await sendGroupMessage(message);
             transaction.status = 'notified';
             await transaction.save();
             return res.status(200).json(response("transaction created successfully"))
