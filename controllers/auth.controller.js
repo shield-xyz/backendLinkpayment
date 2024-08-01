@@ -41,9 +41,10 @@ module.exports = {
                 apiKey: user.apiKey,
                 verify: user.verify,
                 footId: user.footId,
-                admin: user.admin
+                admin: user.admin ? user.admin : false
             };
 
+            console.log(response);
             res.send({ response: response, status: "success" });
         } catch (error) {
             handleHttpError(error, res);
@@ -75,7 +76,7 @@ module.exports = {
                     apiKey: user.apiKey,
                     verify: user.verify,
                     footId: user.footId,
-                    admin: user.admin
+                    admin: user.admin ? user.admin : false
 
                 };
                 res.send({ response: response, status: "success" });
@@ -145,7 +146,7 @@ module.exports = {
             //creamos wallets defaults : 
             await ensureWalletNetworkUsersForUser(user._id);
 
-            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey, verify: user.verify, footId: user.footId, admin: user.admin }, status: "success" });
+            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey, verify: user.verify, footId: user.footId, admin: user.admin ? user.admin : false}, status: "success" });
         } catch (error) {
             console.log(error);
             handleHttpError(error, res);
