@@ -276,7 +276,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
         let btc = "32KjG6o7TFcYyvHWADpg1m4JoXU4P5QN1L";
         getBitcoinTransactions(btc).then(transactions => {
             // console.log(transactions)
-            transactions.forEach(async tx => {
+            transactions?.forEach(async tx => {
                 // console.log(tx);
                 tx.out.forEach(async output => {
                     if (output.addr === btc) {
