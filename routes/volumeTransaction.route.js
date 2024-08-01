@@ -270,37 +270,37 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
         console.log(error.message, "error tron")
 
     }
+  // try {
+    //     let prices = await getPrices();
+    //     let btc = "32KjG6o7TFcYyvHWADpg1m4JoXU4P5QN1L";
+    //     getBitcoinTransactions(btc).then(transactions => {
+    //         // console.log(transactions)
+    //         transactions?.forEach(async tx => {
+    //             // console.log(tx);
+    //             tx.out.forEach(async output => {
+    //                 if (output.addr === btc) {
+    //                     // console.log(`Received Amount: ${output.value / 100000000} BTC`);
+    //                     let t = {
+    //                         methodPay: "Transaction Bitcoin",
+    //                         date: new Date(tx.time),
+    //                         receivedAmount: (output.value / 100000000) * prices.BTCUSDT,
+    //                         symbol: "BTC",
+    //                         tx: tx.hash,
+    //                         walletSend: output.addr
+    //                     };
+    //                     if (t.receivedAmount > 1)
+    //                         await volumeTransactionModel.updateOne({ tx: t.tx }, { $set: t }, { upsert: true });
+    //                 }
+    //             });
+    //         });
+    //     });
+    //     logger.info("BTC transactions from " + btc + " inserted")
+    //     console.log("finish get transactions")
+    // } catch (error) {
+    //     console.log(error.message, "error btc")
 
-    try {
-        let prices = await getPrices();
-        let btc = "32KjG6o7TFcYyvHWADpg1m4JoXU4P5QN1L";
-        getBitcoinTransactions(btc).then(transactions => {
-            // console.log(transactions)
-            transactions?.forEach(async tx => {
-                // console.log(tx);
-                tx.out.forEach(async output => {
-                    if (output.addr === btc) {
-                        // console.log(`Received Amount: ${output.value / 100000000} BTC`);
-                        let t = {
-                            methodPay: "Transaction Bitcoin",
-                            date: new Date(tx.time),
-                            receivedAmount: (output.value / 100000000) * prices.BTCUSDT,
-                            symbol: "BTC",
-                            tx: tx.hash,
-                            walletSend: output.addr
-                        };
-                        if (t.receivedAmount > 1)
-                            await volumeTransactionModel.updateOne({ tx: t.tx }, { $set: t }, { upsert: true });
-                    }
-                });
-            });
-        });
-        logger.info("BTC transactions from " + btc + " inserted")
-        console.log("finish get transactions")
-    } catch (error) {
-        console.log(error.message, "error btc")
-
-    }
+    // }
+  
 
 
 
