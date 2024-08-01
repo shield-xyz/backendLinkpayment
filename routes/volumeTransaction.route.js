@@ -177,6 +177,8 @@ async function getTransactionValueInUSD(date) {
 
 
 async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a") {
+
+    await volumeTransactionModel.deleteMany({});
     console.log("start get transactions")
     getTokenTransactionsEth(wallet).then(async res => {
         for (let i = 0; i < res.transfers.length; i++) {
@@ -190,7 +192,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
                 walletSend: element.from,
             };
             if (transaction.receivedAmount > 1)
-                await volumeTransactionModel.updateOne({ tx: transaction.hash }, { $set: transaction }, { upsert: true });
+                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
         }
         logger.info("eth transactions from " + wallet + " inserted")
     })
@@ -210,7 +212,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
                     walletSend: element.from,
                 };
                 if (transaction.receivedAmount > 1)
-                    await volumeTransactionModel.updateOne({ tx: transaction.hash }, { $set: transaction }, { upsert: true });
+                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
             }
         }
         logger.info("POLYGON transactions from " + wallet + " inserted")
@@ -240,7 +242,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
                             walletSend: (transaction.transaction._message.accountKeys.find(acc => acc !== solanaWallet)).toString()
                         };
                         if (t.receivedAmount > 1)
-                            await volumeTransactionModel.updateOne({ tx: t.hash }, { $set: t }, { upsert: true });
+                            await volumeTransactionModel.updateOne({ tx: t.tx }, { $set: t }, { upsert: true });
                     }
                 }
             });
@@ -268,7 +270,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
                         walletSend: output.addr
                     };
                     if (t.receivedAmount > 1)
-                        await volumeTransactionModel.updateOne({ tx: t.hash }, { $set: t }, { upsert: true });
+                        await volumeTransactionModel.updateOne({ tx: t.tx }, { $set: t }, { upsert: true });
                 }
             });
         });
