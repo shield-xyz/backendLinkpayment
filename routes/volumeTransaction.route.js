@@ -17,6 +17,7 @@ const { Contract, } = require("ethers");
 const AggregatorV3InterfaceABI = require("../services/Interface3.json");
 const { getTokenTransactionsEth, getTokenTransactionsPolygon, getTokenTransactionsSolana } = require('../utils/EthereumNetworkUtils');
 const { getBitcoinTransactions } = require('../utils/BitcoinNetworkUtils');
+const EmailController = require('../controllers/email.controller');
 const abi = [
     "event Transfer(address indexed from, address indexed to, uint amount)"
 ];
@@ -51,6 +52,11 @@ contract.on(
         }
     }
 );
+
+// EmailController.sendPaymentReceivedPaymentEmail("nehuenfortes@gmail.com", "0d6473ec431ca26227fd42cb7b27234ef4c7355b10e09ebfc85b7fafad7d11b5", "test token", "token", "networkId", "idTransaction"
+// ).then(res => {
+//     console.log(res, "EMAIL SEND?")
+// });
 async function getTransactionWalletTron(walletAddress = process.env.WALLET_TRON_DEPOSIT, reset = false) {
     try {
         if (reset) {
