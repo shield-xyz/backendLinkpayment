@@ -1,106 +1,28 @@
 const mongoose = require('mongoose');
 
 const volumeTransactionSchema = new mongoose.Schema({
-    business: {
-        type: String, // Corresponde a "Regulatory Period"
-        default: "Pre-Compliance"
-    },
     client: {
         type: String, // Corresponde a "Client Name"
-    },
-    jurisdiction: {
-        type: String,
-    },
-    methodPay: {
-        type: String,
-        default: "Wire"
     },
     date: {
         type: Date,
         default: Date.now,
     },
-    receivedAmountEUR: {
-        type: Number,
-    },
     receivedAmount: {
         type: Number, // Corresponde a "receivedAmountUSD"
     },
-    totalReceived: {
-        type: Number,
-    },
     shieldFee: {
         type: Number,
-    },
-    clientTransfer: {
-        type: Number,
-    },
-    grossProfit: {
-        type: Number,
-    },
-    conversionFees: {
-        type: Number,
-    },
-    withdrawalFees: {
-        type: Number,
-    },
-    gasFees: {
-        type: Number,
-    },
-    netProfit: {
-        type: Number,
-    },
-    completed: {
-        type: Boolean,
-        default: false,
-    },
-    tx: {
-        type: String,
-        trim: true
-    },
-    walletSend: {
-        type: String, // Corresponde a "Wallet Address"
-        trim: true,
-    },
-    riskScore: {
-        type: String,
-    },
-    selfHosted: {
-        type: Boolean,
-        default: false,
-    },
-    kycAml: {
-        type: Boolean,
-        default: false,
-    },
-    partner: {
-        type: String,
-    },
-    onrampOfframp: {
-        type: String,
+        default: 0
     },
     currencyPair: {
-        type: String,
+        type: String, default: ""
     },
     blockchain: {
-        type: String,
+        type: String, default: ""
     },
-    notes: {
-        type: String,
-        trim: true
-    },
-    totalGmv: {
-        type: Number,
-    },
-    totalNetProfits: {
-        type: Number,
-    },
-    numberOfTransactions: {
-        type: Number,
-    },
-    excelLoad: {
-        type: Boolean,
-        default: false
-    },
+    walletSend: { type: String, default: "" },
+    tx: { type: String, },
     symbol: {
         type: String,
         default: "USDT" // Default value

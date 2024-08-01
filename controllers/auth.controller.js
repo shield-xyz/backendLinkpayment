@@ -30,7 +30,6 @@ module.exports = {
             }
 
             const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: '3h' });
-
             const response = {
                 _id: user._id,
                 user_name: user.user_name,
@@ -146,7 +145,7 @@ module.exports = {
             //creamos wallets defaults : 
             await ensureWalletNetworkUsersForUser(user._id);
 
-            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey, verify: user.verify, footId: user.footId, admin: user.admin ? user.admin : false}, status: "success" });
+            res.json({ response: { _id: user._id, user_name, email, token, logo: "uploads/" + filename, company, apiKey: user.apiKey, verify: user.verify, footId: user.footId, admin: user.admin ? user.admin : false }, status: "success" });
         } catch (error) {
             console.log(error);
             handleHttpError(error, res);

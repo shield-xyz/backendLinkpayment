@@ -38,9 +38,9 @@ contract.on(
             console.log(to, from, event)
             let symbol = await contract.symbol();
             let transaction = {
-                methodPay: "Transaction Tron",
                 date: Date.now(),
                 receivedAmount: divideByDecimals(event.args.value + "", decimals),
+                shieldFee: 0,
                 symbol: symbol,
                 tx: event.transactionHash,
                 walletSend: event.args.from,
@@ -194,7 +194,6 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     //     for (let i = 0; i < res.transfers?.length; i++) {
     //         const element = res.transfers[i];
     //         let transaction = {
-    //             methodPay: "Transaction",
     //             date: new Date(element.metadata.blockTimestamp),
     //             receivedAmount: divideByDecimals(element.value + "", parseInt(element.rawContract.decimal, 16)),
     //             symbol: element.asset || "USDT",
@@ -219,7 +218,6 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     //             console.log(element)
 
     //             let transaction = {
-    //                 methodPay: "Transaction",
     //                 date: new Date(element.metadata.blockTimestamp),
     //                 receivedAmount: divideByDecimals(element.value + "", parseInt(element.rawContract.decimal, 16)),
     //                 symbol: element.asset || "USDT",
@@ -255,7 +253,6 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     //                 const receivedAmount = parseFloat(balance.uiTokenAmount.amount) - parseFloat(preBalance.uiTokenAmount.amount);
     //                 if (receivedAmount > 0) {
     //                     let t = {
-    //                         methodPay: "Transaction solana",
     //                         date: new Date(transaction.blockTime * 1000),
     //                         receivedAmount: receivedAmount / (10 ** balance.uiTokenAmount.decimals),
     //                         symbol: "USDT",
@@ -302,7 +299,6 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
     //                 if (output.addr === btc) {
     //                     // console.log(`Received Amount: ${output.value / 100000000} BTC`);
     //                     let t = {
-    //                         methodPay: "Transaction Bitcoin",
     //                         date: new Date(tx.time),
     //                         receivedAmount: (output.value / 100000000) * prices.BTCUSDT,
     //                         symbol: "BTC",
