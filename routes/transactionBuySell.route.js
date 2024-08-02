@@ -27,10 +27,10 @@ Transaction Details:
 Please proceed with the crypto transfer.`;
 };
 
-const formatOffRampMessage = (transaction) => {
+const formatOffRampMessage = (transaction, user) => {
     return `New Off-Ramp Request Received
 
-Client/Company Name: ${transaction.clientName}
+Client/Company Name: ${user.user_name}
 
 Bank Transfer Details:
 - Bank Name: ${transaction.bankDetails.bankName}
@@ -60,7 +60,7 @@ router.post('/sell', auth, async (req, res) => {
             bankDetails,
             transactionDetails
         });
-        const message = formatOffRampMessage(transaction);
+        const message = formatOffRampMessage(transaction,req.user);
         await sendGroupMessage(message);
         transaction.status = 'notified';
         await transaction.save();

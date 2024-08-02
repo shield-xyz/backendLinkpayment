@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const VolumeTransactionController = require('../controllers/volumeTransactionController');
-const { handleHttpError, divideByDecimals, parseCurrencyString, parsePercentageString, sendMessageMay, getPrices, sendGroupMessage } = require('../utils'); // Asumiendo que tienes un manejador de errores
+const { handleHttpError, divideByDecimals, parseCurrencyString, parsePercentageString, sendMessageMay, getPrices, sendGroupMessage, formatCurrency, removeCeros } = require('../utils'); // Asumiendo que tienes un manejador de errores
 const { response } = require('../db'); // Asumiendo que tienes una función de respuesta
 const auth = require('../middleware/auth');
 const authAdmin = require('../middleware/authAdmin');
@@ -18,12 +18,13 @@ const AggregatorV3InterfaceABI = require("../services/Interface3.json");
 const { getTokenTransactionsEth, getTokenTransactionsPolygon, getTokenTransactionsSolana } = require('../utils/EthereumNetworkUtils');
 const { getBitcoinTransactions } = require('../utils/BitcoinNetworkUtils');
 const EmailController = require('../controllers/email.controller');
-const abi = [
-    "event Transfer(address indexed from, address indexed to, uint amount)"
-];
+const ERC20 = require("../services/ERC20.json")
 const provider = new ethers.providers.JsonRpcProvider(process.env.END_POINT_TRON);
 const contract = new Contract("0xA614F803B6FD780986A42C78EC9C7F77E6DED13C", AggregatorV3InterfaceABI, provider);
-
+const { Alchemy, AlchemyProvider, Network } = require('@alch/alchemy-sdk');
+const WebSocket = require('ws');
+const AlchemyWebHookResponseModel = require('../models/AlchemywebHookResponse');
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 contract.on(
     "Transfer",
     async (
@@ -153,29 +154,6 @@ async function loadTransactionsExcel() {
     logger.success("insert data excel to volumeTransactions finish");
 }
 
-//!PENDING:
-async function getTransactionValueInUSD(date) {
-    try {
-
-        // Fetch the historical price of ETH at the time of the transaction from CoinGecko
-        date = date.split('T')[0];
-        const ethPriceInUSD = await getEthPriceAtTimestamp(date);
-
-        // Calculate the value in USD
-        const valueInEth = Web3.utils.fromWei(transaction.value, 'ether');
-        const valueInUSD = valueInEth * ethPriceInUSD;
-
-        console.log(`Transaction Value in ETH: ${valueInEth} ETH`);
-        console.log(`Transaction Value in USD: $${valueInUSD.toFixed(2)}`);
-
-        return {
-            valueInEth,
-            valueInUSD
-        };
-    } catch (error) {
-        console.error('Error fetching transaction value:', error);
-    }
-}
 
 
 
@@ -326,9 +304,121 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
     getTransactions();
 }
 
+async function getTransactionDetails(txHash) {
+    try {
+        const web3 = new Web3(`https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`);
+        // Obtener el recibo de la transacción
+        const receiptResponse = await axios.post(`https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`, {
+            jsonrpc: "2.0",
+            method: "eth_getTransactionReceipt",
+            params: [txHash],
+            id: 1
+        });
+        const receipt = receiptResponse.data.result;
+        let providerr = new AlchemyProvider(Network.ETH_MAINNET, ALCHEMY_API_KEY, 5);
+        // Analizar los logs para encontrar eventos de transferencia de tokens
+        for (const log of receipt.logs) {
+            if (log.topics[0] === web3.utils.sha3('Transfer(address,address,uint256)')) {
+                const from = `0x${log.topics[1].slice(26)}`;
+                const to = `0x${log.topics[2].slice(26)}`;
+                const value = web3.utils.hexToNumberString(log.data);
+                const tokenContract = log.address;
+                const contract2 = new Contract(tokenContract, ERC20.abi, providerr);
+                let decimals = await contract2.decimals();
+                let symbol = await contract2.symbol();
+
+                return {
+                    from, to, decimals, tokenContract, symbol, hash: txHash, value: divideByDecimals(value + "", decimals)
+                }
+
+            }
+        }
+    } catch (error) {
+        console.error('Error getting transaction details:', error);
+    }
+}
 
 
 
+// socket.addEventListener('message', async function (event) {
+//     let data = JSON.parse(event.data);
+//     console.log(data, "DATA MESSAGE:")
+//     if (data?.params?.result?.transaction) {
+//         let transactionB = await getTransactionDetails(data.params.result.transaction.hash);
+//         console.log(data.params.result.transaction.hash, transactionB);
+//         if (transactionB == undefined) {
+//             return;
+//         }
+//         let url = "https://etherscan.io/tx/";
+//         if (transactionB?.symbol == "WETH") {
+//             transactionB.symbol = "ETH";
+//         }
+//         let gasPriceInWei = await getPrices();
+//         console.log(gasPriceInWei, transactionB.value, transactionB.value * gasPriceInWei.ETHUSDT);
+//         let transaction = {
+//             date: Date.now(),
+//             receivedAmount: transactionB.value * gasPriceInWei.ETHUSDT,
+//             shieldFee: 0,
+//             symbol: transactionB.symbol,
+//             tx: data.params.result.transaction.hash,
+//             walletSend: transactionB.from,
+//         }
+//         // await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+//         console.log(formatCurrency(transaction.receivedAmount) + transaction.symbol + " was received ,TX :  " + url + transaction.tx);
+//         // await sendGroupMessage(transaction.receivedAmount + transaction.symbol + " was received ,TX :  " + url + transaction.tx)
+//         // await EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, url + transaction.tx, transaction.receivedAmount, transaction.symbol, "", transaction.tx)
+//     }
+// });
+router.post('/webhook/', async (req, res) => {
+    let body = req.body;
+    try {
+        let b = new AlchemyWebHookResponseModel({ body });
+        // await b.save();
+        // body = (await AlchemyWebHookResponseModel.findOne({ _id: "66acf80eef409422cb13fc31" })).body;
+        console.log(body);
+        for (let iActivity = 0; iActivity < body.event.activity.length; iActivity++) {
+            const tx = body.event.activity[iActivity];
+            let url = "https://etherscan.io/tx/";
+            tx.value = Number(tx.value).toFixed(tx.rawContract.decimals);
+            let amount = tx.value;
+            console.log(amount, "AMOUNT")
+            if (body.event.network == "ETH_MAINNET") {
+                url = "https://etherscan.io/tx/";
+
+            } else if (body.event.network == "MATIC_MAINNET") {
+                url = "https://polygonscan.com/tx/";
+            }
+            if (tx.asset == "ETH" || tx.asset == "MATIC") {
+
+                let gasPriceInWei = await getPrices();
+                if (tx.asset == "ETH")
+                    amount = Number(amount) * gasPriceInWei.ETHUSDT;
+                if (tx.asset == "MATIC")
+                    amount = Number(amount) * gasPriceInWei.MATICUSDT;
+            }
+            let transaction = {
+                date: Date.now(),
+                receivedAmount: amount,
+                shieldFee: 0,
+                symbol: tx.asset,
+                tx: tx.hash,
+                walletSend: tx.fromAddress,
+            }
+            console.log(transaction)
+            if (tx.asset == "USDT" || tx.asset == "USDC" || tx.asset == "ETH" || tx.asset == "MATIC") {
+                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+            }
+            console.log(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash);
+            await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash)
+            await EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, url + transaction.tx, removeCeros(tx.value), tx.asset, "", tx.hash)
+
+        }
+
+    } catch (error) {
+        console.log(error)
+    }
+    res.send({ statusCode: 200, response: "success" })
+});
 
 router.get('/totalReceivedAmountByDay', async (req, res) => {
     try {

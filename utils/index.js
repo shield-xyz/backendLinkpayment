@@ -24,7 +24,8 @@ const storage = multer.diskStorage({
     cb(null, req.merchant?._id ? req.merchant._id + path.extname(file.originalname) : uniqueSuffix + path.extname(file.originalname));
   }
 });
-const walletNetworkUser = require("../models/walletNetworkUser.model")
+const walletNetworkUser = require("../models/walletNetworkUser.model");
+const { default: axios } = require('axios');
 
 const upload = multer({ storage: storage });
 
@@ -86,24 +87,23 @@ function divideByDecimals(value, decimals) {
 }
 
 async function getPrices() {
-  const symbols = [
-    // 'ETHUSDT',
-    'BTCUSDT',
-    'BNBUSDT'
-  ]; // Puedes añadir más símbolos aquí
-  const url = `https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD&api_key=${process.env.CRYPTO_COMPARE_API}`;
+  const url = 'https://min-api.cryptocompare.com/data/pricemulti';
 
   try {
-    const response = await fetch(url);
-    const data = await response.json();
+    const response = await axios.get(url, {
+      params: {
+        fsyms: 'BTC,ETH,MATIC',
+        tsyms: 'USDT',
+        api_key: process.env.CRYPTO_COMPARE_API
+      }
+    });
+    let data = response.data;
     let prices = {};
-    if (data.USD) {
-      console.log(`El precio de 1 BTC es $${data.USD} USD.`);
-      prices.BTCUSDT = data.USD;
-    } else {
-      console.error('Error al obtener el precio de BTC:', data);
-      return {};
-    }
+    console.log(data)
+    prices.BTCUSDT = data.BTC.USDT;
+    prices.ETHUSDT = data.ETH.USDT;
+    prices.MATICUSDT = data.MATIC.USDT;
+    console.log(prices)
     return prices;
   } catch (error) {
     console.error('Error al realizar la solicitud:', error);
@@ -354,10 +354,25 @@ function parseCurrencyString(currencyString) {
 function parsePercentageString(percentageStr) {
   return parseFloat(percentageStr.replace('%', '')) / 100;
 }
+function formatCurrency(amount) {
+  return amount.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function removeCeros(number) {
+  let numberString = number.toString();
+  numberString = numberString.replace(/0+$/, '');
+  numberString = numberString.replace(/\.$/, '');
+  return numberString;
+}
 module.exports = {
   handleError,
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser, footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
-  ...require("./TwilioUtils"), parseCurrencyString, parsePercentageString, getTransactionOnly
+  ...require("./TwilioUtils"), parseCurrencyString, parsePercentageString, getTransactionOnly, formatCurrency, removeCeros
 };

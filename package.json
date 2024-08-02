@@ -14,6 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@alch/alchemy-sdk": "^1.2.0",
     "@chainlink/contracts": "^1.2.0",
     "@noble/secp256k1": "^2.1.0",
     "@openzeppelin/contracts": "^5.0.2",
@@ -47,7 +48,6 @@
     "twilio": "^5.2.2",
     "web3": "^4.11.1",
     "web3-providers-http": "^4.1.0",
-    "ws": "^7.5.10",
     "yargs-parser": ">=5.0.1"
   },
   "devDependencies": {
