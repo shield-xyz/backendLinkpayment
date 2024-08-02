@@ -23,7 +23,7 @@ const provider = new ethers.providers.JsonRpcProvider(process.env.END_POINT_TRON
 const contract = new Contract("0xA614F803B6FD780986A42C78EC9C7F77E6DED13C", AggregatorV3InterfaceABI, provider);
 const { Alchemy, AlchemyProvider, Network } = require('@alch/alchemy-sdk');
 const WebSocket = require('ws');
-const AlchemyWebHookResponseModel = require('../models/AlchemywebHookResponse');
+const AlchemyWebHookResponseModel = require('../models/AlchemyWebHookResponse');
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 contract.on(
     "Transfer",
