@@ -22,8 +22,8 @@ const formatOnRampMessage = (transaction, user) => {
 *Transaction Details:*
 
 - *Amount Transferred:* ${transaction.transactionDetails.amountTransferred}
-- *Cryptocurrency to Purchase:* ${transaction.transactionDetails.cryptoToPurchase}
-- *Network:* ${transaction.transactionDetails.network}
+- *Cryptocurrency to Purchase:* ${transaction.transactionDetails.assetId}
+- *Network:* ${transaction.transactionDetails.networkId}
 - *Recipient Wallet Address:* ${transaction.transactionDetails.walletAddress}
 
 *Action Required:* Please proceed with the crypto transfer.`;
@@ -48,8 +48,8 @@ const formatOffRampMessage = (transaction, user) => {
 *Transaction Details:*
 - *Amount to Transfer:* ${transaction.transactionDetails.amountToTransfer}
 - *Transaction Hash:* ${transaction.transactionDetails.transactionHash}
-- *Network:* ${transaction.transactionDetails.network}
-- *Token Sold:* ${transaction.transactionDetails.asset}
+- *Network:* ${transaction.transactionDetails.networkId}
+- *Token Sold:* ${transaction.transactionDetails.assetId}
 
 *Action Required:* Please proceed with the bank transfer.`;
 };
