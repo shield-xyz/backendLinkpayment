@@ -86,35 +86,41 @@ router.post("/buy", auth, async (req, res) => {
       bankDetails,
       transactionDetails,
     });
-    // validar tx .
-    let asset = await AssetController.findOne({
-      assetId: transactionDetails.assetId,
-    });
-    let network = await NetworkController.findOne({
-      networkId: transactionDetails.networkId,
-    });
-    let resp = await validatePayment(
-      transactionDetails.transactionHash,
-      transactionDetails.amountToTransfer,
-      network,
-      asset,
-      req.user._id,
-      null,
-      null
-    );
-    console.log(resp);
-    if (resp.status == "success") {
-      const message = formatOnRampMessage(transaction, req.user);
-      await sendGroupMessage(message);
-      await sendRampConfirmationEmail(req.user.email, transaction);
-      transaction.status = "notified";
-      await transaction.save();
-      return res.status(200).json(response("transaction created successfully"));
-    } else {
-      return res
-        .status(200)
-        .json(response("transaction failed, " + resp.response));
-    }
+    const message = formatOnRampMessage(transaction, req.user);
+    await sendGroupMessage(message);
+    await sendRampConfirmationEmail(req.user.email, transaction);
+    transaction.status = "notified";
+    await transaction.save();
+    return res.status(200).json(response("transaction created successfully"));
+    // // validar tx .
+    // let asset = await AssetController.findOne({
+    //   assetId: transactionDetails.assetId,
+    // });
+    // let network = await NetworkController.findOne({
+    //   networkId: transactionDetails.networkId,
+    // });
+    // let resp = await validatePayment(
+    //   transactionDetails.transactionHash,
+    //   transactionDetails.amountToTransfer,
+    //   network,
+    //   asset,
+    //   req.user._id,
+    //   null,
+    //   null
+    // );
+    // console.log(resp);
+    // if (resp.status == "success") {
+    //   const message = formatOnRampMessage(transaction, req.user);
+    //   await sendGroupMessage(message);
+    //   await sendRampConfirmationEmail(req.user.email, transaction);
+    //   transaction.status = "notified";
+    //   await transaction.save();
+    //   return res.status(200).json(response("transaction created successfully"));
+    // } else {
+    //   return res
+    //     .status(200)
+    //     .json(response("transaction failed, " + resp.response));
+    // }
   } catch (error) {
     console.log(error);
     return res.status(200).json(response(error.message, "error"));
