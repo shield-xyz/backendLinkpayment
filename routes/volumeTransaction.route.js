@@ -47,7 +47,7 @@ contract.on(
             };
             if (transaction.receivedAmount > 0.09) {
                 await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
-                // await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
+                await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
                 EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, "https://tronscan.org/#/transaction/" + transaction.tx, transaction.receivedAmount, symbol, "", transaction.tx)
             }
         }
@@ -523,11 +523,11 @@ router.delete('/:id', apiKeyMaster, async (req, res) => {
 
 router.post('/import/excel-transactions', apiKeyMaster, async (req, res) => {
     try {
-      await loadTransactionsExcel();
-      res.json(response('Transactions imported', 'success'));
+        await loadTransactionsExcel();
+        res.json(response('Transactions imported', 'success'));
     } catch (error) {
-      handleHttpError(error, res);
+        handleHttpError(error, res);
     }
-  });
+});
 
 module.exports = router;
