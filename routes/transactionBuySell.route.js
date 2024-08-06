@@ -13,6 +13,9 @@ const auth = require("../middleware/auth");
 const AssetController = require("../controllers/assets.controller");
 const NetworkController = require("../controllers/network.controller");
 const WalletNetworkUser = require("../models/walletNetworkUser.model");
+const {
+  sendRampConfirmationEmail,
+} = require("../controllers/email.controller");
 
 const formatOnRampMessage = (transaction, user) => {
   return `*New On-Ramp Request Received*
@@ -65,6 +68,7 @@ router.post("/sell", auth, async (req, res) => {
     });
     const message = formatOffRampMessage(transaction, req.user);
     await sendGroupMessage(message);
+    await sendRampConfirmationEmail(req.user.email, transaction);
     transaction.status = "notified";
     await transaction.save();
     return res.status(200).json(response("transaction created successfully"));
@@ -102,6 +106,7 @@ router.post("/buy", auth, async (req, res) => {
     if (resp.status == "success") {
       const message = formatOnRampMessage(transaction, req.user);
       await sendGroupMessage(message);
+      await sendRampConfirmationEmail(req.user.email, transaction);
       transaction.status = "notified";
       await transaction.save();
       return res.status(200).json(response("transaction created successfully"));
