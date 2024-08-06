@@ -255,13 +255,13 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
 
     // }
 
-    try {
-        await loadTransactionsExcel();
+    // try {
+    //     await loadTransactionsExcel();
 
-    } catch (error) {
-        console.log(error.message, "error tron")
+    // } catch (error) {
+    //     console.log(error.message, "error tron")
 
-    }
+    // }
 
     // try {
     //     let prices = await getPrices();
@@ -520,5 +520,14 @@ router.delete('/:id', apiKeyMaster, async (req, res) => {
         handleHttpError(error, res);
     }
 });
+
+router.post('/import/excel-transactions', apiKeyMaster, async (req, res) => {
+    try {
+      await loadTransactionsExcel();
+      res.json(response('Transactions imported', 'success'));
+    } catch (error) {
+      handleHttpError(error, res);
+    }
+  });
 
 module.exports = router;
