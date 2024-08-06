@@ -309,15 +309,18 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
 
                     if (client) {
                         await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx, client.groupIdWpp)
+                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + symbol, "Shield received " + transaction.receivedAmount + symbol + "  a transaction from " + client.name)
                     } else {
                         await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
+                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + symbol, "Shield received " + transaction.receivedAmount + symbol)
                     }
-                    EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, "https://tronscan.org/#/transaction/" + transaction.tx, transaction.receivedAmount, symbol, "", transaction.tx)
                 }
             }
         }
     );
 }
+
+EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + symbol, "Shield received " + transaction.receivedAmount + symbol + "  a transaction from ")
 
 async function getTransactionDetails(txHash) {
     try {
@@ -430,11 +433,14 @@ router.post('/webhook/', async (req, res) => {
 
             if (client) {
                 await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash, client.groupIdWpp)
+                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + symbol, "Shield received " + transaction.receivedAmount + symbol + "  a transaction from " + client.name)
+
             }
             else {
                 await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash)
+                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + symbol, "Shield received " + transaction.receivedAmount + symbol)
             }
-            await EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, url + transaction.tx, removeCeros(tx.value), tx.asset, "", tx.hash)
+
 
         }
 
