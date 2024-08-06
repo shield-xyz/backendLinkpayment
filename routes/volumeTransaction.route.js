@@ -373,7 +373,7 @@ router.post('/webhook/', async (req, res) => {
     let body = req.body;
     try {
         let b = new AlchemyWebHookResponseModel({ body });
-        // await b.save();
+        await b.save();
         // body = (await AlchemyWebHookResponseModel.findOne({ _id: "66acf80eef409422cb13fc31" })).body;
         console.log(body);
         for (let iActivity = 0; iActivity < body.event.activity.length; iActivity++) {
