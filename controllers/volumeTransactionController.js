@@ -9,11 +9,11 @@ const VolumeTransactionController = {
     },
 
     async getTransactions() {
-        const transactions = await VolumeTransaction.find().select("tx date receivedAmount symbol");
+        const transactions = await VolumeTransaction.find().select("tx date receivedAmount symbol").sort({ "date": -1 });
         return transactions;
     },
     async getAllTransactions() {
-        const transactions = await VolumeTransaction.find();
+        const transactions = await VolumeTransaction.find().sort({ "date": -1 });
         return transactions;
     },
 
