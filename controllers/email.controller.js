@@ -229,10 +229,10 @@ const EmailController = {
 
     const replacements = {
       title:
-        transaction.side === "sell"
+        transaction.type === "sell"
           ? "Off-Ramp Confirmation"
           : "On-Ramp Confirmation",
-      side: transaction.side === "sell" ? "off-ramp" : "on-ramp",
+      type: transaction.type === "sell" ? "off-ramp" : "on-ramp",
     };
 
     await sendEmail(to, subject, replacements, "RampReceived.html");
