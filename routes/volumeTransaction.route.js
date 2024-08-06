@@ -24,35 +24,9 @@ const contract = new Contract("0xA614F803B6FD780986A42C78EC9C7F77E6DED13C", Aggr
 const { Alchemy, AlchemyProvider, Network } = require('@alch/alchemy-sdk');
 const WebSocket = require('ws');
 const AlchemyWebHookResponseModel = require('../models/AlchemyWebHookResponse');
+const { ethToTron } = require('../utils/TronNetworkUtils');
+const ClientsAddressController = require('../controllers/clientsAddressController');
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
-contract.on(
-    "Transfer",
-    async (
-        from,
-        to,
-        value,
-        event
-    ) => {
-        if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
-            let decimals = await contract.decimals();
-            console.log(to, from, event)
-            let symbol = await contract.symbol();
-            let transaction = {
-                date: Date.now(),
-                receivedAmount: divideByDecimals(event.args.value + "", decimals),
-                shieldFee: 0,
-                symbol: symbol,
-                tx: event.transactionHash,
-                walletSend: event.args.from,
-            };
-            if (transaction.receivedAmount > 0.09) {
-                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
-                await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
-                EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, "https://tronscan.org/#/transaction/" + transaction.tx, transaction.receivedAmount, symbol, "", transaction.tx)
-            }
-        }
-    }
-);
 
 
 async function getTransactionWalletTron(walletAddress = process.env.WALLET_TRON_DEPOSIT, reset = false) {
@@ -302,6 +276,47 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
 
 if (process.env.AUTOMATIC_FUNCTIONS != "off") {
     getTransactions();
+    contract.on(
+        "Transfer",
+        async (
+            from,
+            to,
+            value,
+            event
+        ) => {
+            if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
+                let decimals = await contract.decimals();
+                console.log(to, from, event)
+                let symbol = await contract.symbol();
+                let transaction = {
+                    date: Date.now(),
+                    receivedAmount: divideByDecimals(event.args.value + "", decimals),
+                    shieldFee: 0,
+                    symbol: symbol,
+                    tx: event.transactionHash,
+                    walletSend: event.args.from,
+                };
+
+                console.log(transaction);
+                if (transaction.receivedAmount > 0.001) {
+                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+
+
+                    let address = (ethToTron(to) + "").toLowerCase();
+                    console.log(address, "address tron");
+                    let client = await ClientsAddressController.getClientByWalletAddress(address);
+                    console.log(client, "client ");
+
+                    if (client) {
+                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx, client.groupIdWpp)
+                    } else {
+                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
+                    }
+                    EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, "https://tronscan.org/#/transaction/" + transaction.tx, transaction.receivedAmount, symbol, "", transaction.tx)
+                }
+            }
+        }
+    );
 }
 
 async function getTransactionDetails(txHash) {
@@ -409,7 +424,16 @@ router.post('/webhook/', async (req, res) => {
                 await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
             }
             console.log(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash);
-            await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash)
+
+            let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
+            console.log(client, "client ");
+
+            if (client) {
+                await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash, client.groupIdWpp)
+            }
+            else {
+                await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash)
+            }
             await EmailController.sendPaymentReceivedPaymentEmail(process.env.EMAIL_NOTIFICATIONS, url + transaction.tx, removeCeros(tx.value), tx.asset, "", tx.hash)
 
         }

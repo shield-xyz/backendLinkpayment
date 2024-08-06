@@ -5,7 +5,6 @@ const axios = require('axios');
 const apiToken = process.env.MAY_API_TOKEN;
 const productId = process.env.MAY_API_PRODUCTID;
 const phoneId = process.env.MAY_API_PHONEID;
-const groupId = process.env.ID_GROUP_WPP;
 
 async function sendMessageTwilio(number, amount, type = 1) {
     try {
@@ -45,8 +44,23 @@ async function sendMessageMay(phoneNumber, message) {
     }
 }
 
+async function getWhatsAppGroups(body = {}) {
+    try {
+        let response = await axios.get(`https://api.maytapi.com/api/${productId}/${phoneId}/getGroups`, {
+            headers: {
+                'x-maytapi-key': apiToken
+            }
+        });
+        response.data.data = response.data.data.map(x => { return { id: x.id, name: x.name } })
+        return response.data;
 
-async function sendGroupMessage(message) {
+    } catch (error) {
+        console.error('Error fetching WhatsApp groups:', error);
+        throw error;
+    }
+}
+
+async function sendGroupMessage(message, groupId = process.env.ID_GROUP_WPP) {
     const url = `https://api.maytapi.com/api/${productId}/${phoneId}/sendMessage`;
 
     const data = {
@@ -70,5 +84,5 @@ async function sendGroupMessage(message) {
 // sendMessageTwilioGroup("541128568076", "19 usdt", 1);
 // sendGroupMessage("si, ves esto es porque si se puede enviar mensajes al grupo.")
 module.exports = {
-    sendMessageTwilio, sendMessageMay, sendGroupMessage
+    sendMessageTwilio, sendMessageMay, sendGroupMessage, getWhatsAppGroups
 };

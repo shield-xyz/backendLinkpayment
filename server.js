@@ -25,6 +25,7 @@ const bankRoutes = require("./routes/bank.route")
 const RampableRoutes = require("./routes/rampable.route")
 const VolumeTransactionsRoute = require("./routes/volumeTransaction.route");
 const transactionBuySell = require("./routes/transactionBuySell.route");
+const addressClientsRoute = require("./routes/clientsAddress.route");
 const initializeSocket = require('./routes/socket.route');
 const { connectDB } = require('./db');
 
@@ -60,6 +61,7 @@ app.use('/api/banks', bankRoutes);
 app.use('/api/rampable', RampableRoutes);
 app.use('/api/volumetransactions', VolumeTransactionsRoute);
 app.use('/api/buysell', transactionBuySell);
+app.use('/api/clientsAddress', addressClientsRoute);
 
 
 app.get('/health-check', (req, res) => res.status(200).send('OK'));

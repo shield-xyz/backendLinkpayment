@@ -2,6 +2,8 @@
 
 const fetch = require('node-fetch');
 const TransactionLogController = require('../controllers/transactionsLogs.controller');
+const bs58 = require('bs58');
+const crypto = require('crypto');
 
 async function getTransactionDetails(hash) {
     try {
@@ -45,11 +47,33 @@ async function getTransactionDetails(hash) {
         return { error: "error not found" };
     }
 }
+function ethToTron(ethAddress) {
+    // Remove the '0x' prefix
+    ethAddress = ethAddress.slice(2);
 
+    // Convert the hex string to bytes
+    const ethBytes = Buffer.from(ethAddress, 'hex');
+
+    // Add the Tron prefix byte (0x41)
+    const tronBytes = Buffer.concat([Buffer.from([0x41]), ethBytes]);
+
+    // Calculate the checksum
+    const hash1 = crypto.createHash('sha256').update(tronBytes).digest();
+    const hash2 = crypto.createHash('sha256').update(hash1).digest();
+    const checksum = hash2.slice(0, 4);
+
+    // Append the checksum to the Tron address bytes
+    const tronAddress = Buffer.concat([tronBytes, checksum]);
+
+    // Encode the result in Base58
+    const tronAddressBase58 = bs58.encode(tronAddress);
+
+    return tronAddressBase58;
+}
 
 // Exportar todas las funciones del archivo automáticamente
 module.exports = {
-    getTransactionDetails,
+    getTransactionDetails, ethToTron
 };
 
 
