@@ -228,6 +228,10 @@ const EmailController = {
     const subject = "Ramp Request Confirmation";
 
     const replacements = {
+      title:
+        transaction.side === "sell"
+          ? "Off-Ramp Confirmation"
+          : "On-Ramp Confirmation",
       side: transaction.side === "sell" ? "off-ramp" : "on-ramp",
     };
 
