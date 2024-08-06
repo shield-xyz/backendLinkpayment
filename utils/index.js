@@ -355,12 +355,25 @@ function parsePercentageString(percentageStr) {
   return parseFloat(percentageStr.replace('%', '')) / 100;
 }
 function formatCurrency(amount) {
-  return amount.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  // Convertimos el número a una cadena para mantener todos los decimales
+  let amountStr = amount.toString();
+
+  // Separamos la parte entera y la parte decimal
+  let [integerPart, decimalPart] = amountStr.split('.');
+
+  // Formateamos la parte entera
+  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  // Unimos las partes, asegurando que siempre haya al menos dos decimales
+  if (decimalPart) {
+    if (decimalPart.length === 1) {
+      decimalPart += '0'; // Añadimos un cero si hay solo un decimal
+    }
+  } else {
+    decimalPart = '00'; // Añadimos dos ceros si no hay decimales
+  }
+
+  return `${integerPart}.${decimalPart}`;
 }
 
 function removeCeros(number) {

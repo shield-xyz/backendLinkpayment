@@ -309,10 +309,10 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
 
                     if (client) {
                         await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx, client.groupIdWpp)
-                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + transaction.symbol, "Shield received " + transaction.receivedAmount + transaction.symbol + "  a transaction from " + client.name)
+                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol, "Shield received " + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol + "  a transaction from " + client.name)
                     } else {
                         await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
-                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + transaction.symbol, "Shield received " + transaction.receivedAmount + transaction.symbol)
+                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol, "Shield received " + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol)
                     }
                 }
             }
@@ -432,12 +432,12 @@ router.post('/webhook/', async (req, res) => {
 
             if (client) {
                 await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash, client.groupIdWpp)
-                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + transaction.symbol, "Shield received " + transaction.receivedAmount + transaction.symbol + "  a transaction from " + client.name)
+                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol + "  a transaction from " + client.name)
 
             }
             else {
                 await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash)
-                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received " + transaction.receivedAmount + transaction.symbol, "Shield received " + transaction.receivedAmount + transaction.symbol)
+                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol)
             }
 
 
@@ -448,6 +448,7 @@ router.post('/webhook/', async (req, res) => {
     }
     res.send({ statusCode: 200, response: "success" })
 });
+// EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(0.00456)), "Shield received $" + formatCurrency(removeCeros(18000.26)) + "  a transaction from " + "client.name");
 
 router.get('/totalReceivedAmountByDay', async (req, res) => {
     try {
