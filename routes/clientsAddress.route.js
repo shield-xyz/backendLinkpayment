@@ -6,7 +6,77 @@ const { response } = require('../db');
 const auth = require('../middleware/auth');
 const apiKeyMaster = require('../middleware/apiKeyMaster');
 const { getWhatsAppGroups } = require('../utils');
+const ClientsAddressModel = require('../models/ClientsAddressModel');
 
+async function loadExcel() {
+
+    let json = {
+        "Lucas (MF Ocean 12)": {
+            "network": "Tron",
+            "addresses": [
+                "TAucN8UckSKagM2KE5PkVKZ4XBvSWUwive"
+            ]
+        },
+        "Eze Technologies": {
+            "network": "Tron",
+            "addresses": [
+                "TYGoPRAZW3TDpYyWNnU3E6DKpvgeBqVhXC",
+                "TVPjfJzRrkvoNgtV8Xvob8ZApEaEWbXC2h",
+                "TLSNHNjVAJM4eDVS2CtJtBEysPmuKDdtyW",
+                "TYTdFF1RuEvB5SwGdTZoawY4NMMchMExYB",
+                "TXb3ShK1k9tSHBBiVyYz8yBzKo3jBpAt5q",
+                "TJL7ikFJwi9UbmgenQovWNPXwk3CZmmohB",
+                "TQzhQ3SqymgbhrP2sSgyLkSynLgEGqAjRi",
+                "TH3FF58t7hExthCmNUn7VThT2vvsvmkN3m",
+                "TQzhQ3SqymgbhrP2sSgyLkSynLgEGqAjRi",
+                "TJDENsfBJs4RFETt1X1W8wMDc8M5XnJhCe",
+                "TK8CNZcRZgpGPJA76z5mM2HorAxSjxpsWS",
+                "TTqEDJTe9MgnQtXXsH9EHw9werLkRvSJuW",
+                "TQd3dABHxFZRuwZwmeMH4rkKkvmNaG8YYk",
+                "TVx7sgBwgMdMBpU8aM5GmhsHSfoKLDTYU2",
+                "TBrAgWDVr9YfjgkpGiXpsxSAfWStwYT15S",
+                "TMWh1ZusNcwdLeSNMxsWQbms6EcgyMkoKn",
+                "TVkDL9vJ3cwAmu4WRctMe4JKGxHhaBWt3J"
+            ]
+        },
+        "Arda Erturk": {
+            "network": "Tron",
+            "addresses": [
+                "TW4n9jyNErxsTWxYXAF3Qmcae6Zaqgk6Un"
+            ]
+        },
+        "Corey Mccauley": {
+            "network": "Ethereum",
+            "addresses": [
+                "0xAe2D4617c862309A3d75A0fFB358c7a5009c673F"
+            ]
+        },
+        "Gerald Kwazu": {
+            "network": "Solana",
+            "addresses": [
+                "7zMygMkUGoDEp1sDWP5SRdXJMyFjCD7yzeANR8veo6uL"
+            ]
+        },
+        "Yaniv Azar": {
+            "network": "Ethereum",
+            "addresses": [
+                "0x996922c411AD2d4eC98B95fec7FbFcbD09c75686"
+            ]
+        },
+        "Edward Calderon": {
+            "network": "Tron",
+            "addresses": [
+                "TQjJspYyu4s27FZ8BQw8Td3HWB3PRD9Bgs"
+            ]
+        }
+    };
+
+    Object.entries(json).map(async x => {
+        await ClientsAddressModel.updateOne({ name: x[0], }, { $set: { name: x[0], wallets: x[1].addresses } }, { upsert: true });
+        console.log(x);
+    })
+}
+// loadExcel();
 router.get('/', apiKeyMaster, async (req, res) => {
     try {
         const clients = await clientsAddressController.getClients();

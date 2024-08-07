@@ -307,7 +307,7 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                     let client = await ClientsAddressController.getClientByWalletAddress(address);
                     console.log(client, "client ");
 
-                    if (client) {
+                    if (client?.groupIdWpp) {
                         await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx, client.groupIdWpp)
                         EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol, "Shield received " + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol + "  a transaction from " + client.name)
                     } else {
@@ -430,7 +430,7 @@ router.post('/webhook/', async (req, res) => {
             let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
             console.log(client, "client ");
 
-            if (client) {
+            if (client?.groupIdWpp) {
                 await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash, client.groupIdWpp)
                 EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol + "  a transaction from " + client.name)
 
