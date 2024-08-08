@@ -57,6 +57,11 @@ router.post('/', auth, async (req, res) => {
         res.status(200).json(response(error.message, 'error'));
     }
 });
+router.post('/webhook-wpp', async (req, res) => {
+
+    console.log(req.body, "wpp - notification");
+    return res.status(200).json({ response: {}, status: "success" })
+});
 
 
 router.post('/send-whatsapp', async (req, res) => {
