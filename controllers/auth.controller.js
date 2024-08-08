@@ -52,11 +52,13 @@ module.exports = {
 
     async loginFootPrint(req, res) {
         try {
-
             const { validation_token } = req.body;
+
             let user_foot = await footPrintUser(validation_token);
             let user = null;
+
             logger.info(user_foot);
+
             if (user_foot?.user_auth?.fp_id) {
                 fp_id = user_foot?.user_auth?.fp_id;
                 user = await UserModel.findOne({ footId: fp_id })
@@ -85,9 +87,7 @@ module.exports = {
             }
         } catch (error) {
             handleHttpError(error, res, 200);
-
         }
-
     },
 
     async register(req, res) {

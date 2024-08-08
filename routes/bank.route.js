@@ -52,6 +52,7 @@ const formatValidationErrors = (errors) => {
 //     }
 // });
 // actualizar una cuenta bancaria (POST)
+
 router.put('/', auth, bankAccountValidation, async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -61,14 +62,14 @@ router.put('/', auth, bankAccountValidation, async (req, res) => {
         if (!req.user.footId) {
             return res.status(200).json(response("User foot Id not found", "error"));
         }
-        req.user.footId = "fp_id_test_Ma33pMQFO4MCgJ8WVwMRfY"
-        const resp = await fetch("https://api.onefootprint.com/users/" + req.user.footId + "/vault", {
+
+        await fetch("https://api.onefootprint.com/users/" + req.user.footId + "/vault", {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY },
             body: JSON.stringify(req.body)
         });
-        console.log(resp)
-        return handleResponse(resp, res);
+        
+        return res.status(200).json(response({status: "success"}));
     } catch (error) {
         console.log(error)
         res.status(200).json(response('Error updating bank account', "error"));
@@ -90,10 +91,10 @@ router.get('/verify', auth, async (req, res) => {
         res.status(200).json(response('Error verify user', "error"));
     }
 });
+
 // Obtener la cuenta bancaria del usuario
 router.get('/', auth, async (req, res) => {
     try {
-        req.user.footId = "fp_id_test_Ma33pMQFO4MCgJ8WVwMRfY"
         const resp = await fetch("https://api.onefootprint.com/users/" + req.user.footId + "/vault/decrypt", {
             method: 'POST',
             headers: { "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY },
@@ -114,7 +115,6 @@ router.get('/', auth, async (req, res) => {
         });
 
         return res.status(200).json(response(await resp.json()))
-        return
     } catch (error) {
         res.status(200).json(response('Error fetching bank accounts', "error"));
     }
