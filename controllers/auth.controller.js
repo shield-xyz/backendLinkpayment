@@ -65,7 +65,7 @@ module.exports = {
                 if (!user && userEmail["id.email"]) {
                     user = await UserModel.findOne({ email: userEmail["id.email"] })
                     user.footId = fp_id;
-                    user.save();
+                    await user.save();
                 }
 
             }
