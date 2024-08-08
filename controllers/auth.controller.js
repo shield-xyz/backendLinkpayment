@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET } = require('../config');
-const { handleHttpError, response, footPrintUser } = require('../utils/index.js');
+const { handleHttpError, response, footPrintUser, footPrintUserEmail } = require('../utils/index.js');
 const secretKey = JWT_SECRET;
 const { ensureWalletNetworkUsersForUser } = require('./walletNetworkUser.controller.js');
 const { sendPasswordResetEmail } = require('./email.controller.js');
@@ -60,6 +60,14 @@ module.exports = {
             if (user_foot?.user_auth?.fp_id) {
                 fp_id = user_foot?.user_auth?.fp_id;
                 user = await UserModel.findOne({ footId: fp_id })
+                //buscar email en footprint
+                let userEmail = await footPrintUserEmail(fp_id);
+                if (!user && userEmail["id.email"]) {
+                    user = await UserModel.findOne({ email: userEmail["id.email"] })
+                    user.footId = fp_id;
+                    user.save();
+                }
+
             }
 
             if (user) {

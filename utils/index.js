@@ -310,6 +310,30 @@ async function footPrintUser(validation_token) {
     return { status: "error", response: error.message }
   }
 }
+async function footPrintUserEmail(fpId) {
+  try {
+    const options = {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY
+      },
+      body: JSON.stringify({
+        "fields": [
+          "id.email"
+        ],
+        "reason": "Get user email"
+      })
+    };
+    const resp = await fetch("https://api.onefootprint.com/users/" + fpId + "/vault/decrypt", options);
+    const data = await resp.json();
+    return { ...data, status: "success" };
+
+  } catch (error) {
+    console.log(error, "error in footPrintUserEmail");
+    return { status: "error", response: error.message }
+  }
+}
 
 async function footPrintGetBankData(fp_id) {
 
@@ -387,5 +411,5 @@ module.exports = {
   handleHttpError,
   validateResponse, response, upload, divideByDecimals, limitDecimals, validatePayment, getPrices, isEmpty, footPrintUser, footPrintGetBankData,
   ...require('./buildSyncResponse'), ...require("./BlockchainUtils"),
-  ...require("./TwilioUtils"), parseCurrencyString, parsePercentageString, getTransactionOnly, formatCurrency, removeCeros
+  ...require("./TwilioUtils"), parseCurrencyString, parsePercentageString, getTransactionOnly, formatCurrency, removeCeros, footPrintUserEmail
 };
