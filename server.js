@@ -19,13 +19,13 @@ const withdrawRoutes = require('./routes/withdraw.route');
 const accountRoutes = require('./routes/account.route');
 const slackRoutes = require('./routes/slack.route');
 const walletNetworkUserRoutes = require('./routes/walletNetworkUser.route');
-const configurationsRoutes = require("./routes/configuration.route");
+const configurationsRoutes = require('./routes/configuration.route');
 const notificationsUserRoutes = require('./routes/NotificationsUser.route');
-const bankRoutes = require("./routes/bank.route")
-const RampableRoutes = require("./routes/rampable.route")
-const VolumeTransactionsRoute = require("./routes/volumeTransaction.route");
-const transactionBuySell = require("./routes/transactionBuySell.route");
-const addressClientsRoute = require("./routes/clientsAddress.route");
+const bankRoutes = require('./routes/bank.route');
+const RampableRoutes = require('./routes/rampable.route');
+const VolumeTransactionsRoute = require('./routes/volumeTransaction.route');
+const transactionBuySell = require('./routes/transactionBuySell.route');
+const addressClientsRoute = require('./routes/clientsAddress.route');
 const initializeSocket = require('./routes/socket.route');
 const { connectDB } = require('./db');
 
@@ -46,9 +46,9 @@ app.use('/api/auth', authRoutes); // Usar rutas de autenticación
 app.use('/api/linkPayments', linkPaymentRoutes); // Usar rutas de linkPayment
 app.use('/api/balances', balanceRoutes);
 app.use('/api/users', userRoutes);
-app.use("/api/assets", assetRoutes);
-app.use("/api/networks", networksRoutes);
-app.use("/api/payments", paymentsRoutes);
+app.use('/api/assets', assetRoutes);
+app.use('/api/networks', networksRoutes);
+app.use('/api/payments', paymentsRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/slack', slackRoutes);
 app.use('/api/transactions', transactionsRoutes);
@@ -63,19 +63,20 @@ app.use('/api/volumetransactions', VolumeTransactionsRoute);
 app.use('/api/buysell', transactionBuySell);
 app.use('/api/clientsAddress', addressClientsRoute);
 
-
 app.get('/health-check', (req, res) => res.status(200).send('OK'));
 
 // Configurar la carpeta de archivos estáticos
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Conexión a MongoDB
-connectDB().then(() => {
+connectDB()
+  .then(() => {
     // Iniciar el servidor después de que la base de datos se haya conectado
     const PORT = process.env.PORT || 9000;
     server.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
-}).catch(err => {
+  })
+  .catch((err) => {
     console.error('Failed to connect to MongoDB', err);
-});
+  });
