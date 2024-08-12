@@ -5,7 +5,8 @@ const { response, sendGroupMessage, sendMessageMay } = require('../utils');
 const auth = require('../middleware/auth');
 const { NOTIFICATIONS } = require('../config');
 const { sendGeneralEmail } = require('../controllers/email.controller');
-const axios = require("axios")
+const axios = require("axios");
+const NotificationHistoryModel = require('../models/notificationHistory.model');
 
 
 router.get('/', auth, async (req, res) => {
@@ -69,8 +70,9 @@ const enviarMensajeAChatGPT = async (mensaje) => {
     const data = {
         model: 'gpt-4',
         messages: [
-            { role: 'system', content: "Quiero que respondas en ingles, si dicen que esta una cantidad ready respondas algo como hello sir, send to same wallet : TWNxsGw1o4rnP4FExQSEXuYzLtXm3dMkRd, si es otra cosa responde 'not found' " },
-            { role: 'user', content: mensaje }],
+            { role: 'system', content: "I want you to respond in the same language as the incoming message. If they mention an amount is ready, respond with something like 'Hello sir, send to the same wallet: TWNxsGw1o4rnP4FExQSEXuYzLtXm3dMkRd'. If it's something else, respond 'not found'." },
+            { role: 'user', content: mensaje }
+        ],
         max_tokens: 150
     };
 
@@ -90,7 +92,22 @@ router.post('/webhook-wpp', async (req, res) => {
         let ia = await enviarMensajeAChatGPT(req.body.message.text);
         console.log(ia);
         if (!ia.toLowerCase().includes("found")) {
-            sendMessageMay(req.body.user.id, ia);
+            let newNotification = new NotificationHistoryModel({
+                message: ia,
+                type: 'whatsApp',
+                lineCode: "webhook-wpp",
+                from: "admin",
+                to: req.body.user.id,
+                status: 'sent'
+            });
+            try {
+                sendMessageMay(req.body.user.id, ia);
+                await newNotification.save()
+            } catch (error) {
+                newNotification.error = error;
+                await newNotification.save()
+            }
+
         }
     }
     return res.status(200).json({ response: {}, status: "success" })

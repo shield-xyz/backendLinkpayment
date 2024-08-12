@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const handlebars = require("handlebars");
 const transporter = require("../utils/Email");
+const NotificationHistoryModel = require("../models/notificationHistory.model");
 const { EMAIL_USER } = process.env;
 
 const readHTMLFile = (filePath) => {
@@ -15,6 +16,24 @@ const readHTMLFile = (filePath) => {
     });
   });
 };
+async function loadNotificationHistory(
+  message = "",
+  to = to,
+  lineCode = "sendGeneralEmail",
+  type = 'Email',
+  from = "admin",
+  status = 'sent'
+) {
+  let newNotification = new NotificationHistoryModel({
+    message,
+    type,
+    lineCode,
+    from,
+    to,
+    status,
+  });
+  await newNotification.save();
+}
 
 const sendEmail = async (
   to,
@@ -46,8 +65,8 @@ const sendEmail = async (
       subject,
       html: htmlToSend, // Asegúrate de que el campo es `html` y no `text`
     };
-
     await transporter.sendMail(mailOptions);
+    await loadNotificationHistory(subject, to, "sendEmail");
   } catch (error) {
     console.error("Error sending email:", error);
   }
@@ -82,8 +101,8 @@ const sendEmailNotCatch = async (
     subject,
     html: htmlToSend, // Asegúrate de que el campo es `html` y no `text`
   };
-
   await transporter.sendMail(mailOptions);
+  await loadNotificationHistory(subject, to, "sendEmailNotCatch");
 };
 
 const EmailController = {

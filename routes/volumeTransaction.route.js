@@ -26,6 +26,7 @@ const WebSocket = require('ws');
 const AlchemyWebHookResponseModel = require('../models/AlchemyWebHookResponse');
 const { ethToTron } = require('../utils/TronNetworkUtils');
 const ClientsAddressController = require('../controllers/clientsAddressController');
+const NotificationHistoryModel = require('../models/notificationHistory.model');
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 
 
@@ -306,13 +307,15 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                     console.log(address, "address tron");
                     let client = await ClientsAddressController.getClientByWalletAddress(address);
                     console.log(client, "client ");
-
+                    let message = "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol;
                     if (client?.groupIdWpp) {
+
                         await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx, client.groupIdWpp)
-                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol, "Shield received " + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol + "  a transaction from " + client.name)
+                        message += "  a transaction from " + client.name
+                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
                     } else {
-                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx)
-                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol, "Shield received " + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol)
+                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx + "  client not found : " + address)
+                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
                     }
                 }
             }
@@ -425,22 +428,20 @@ router.post('/webhook/', async (req, res) => {
             if (tx.asset == "USDT" || tx.asset == "USDC" || tx.asset == "ETH" || tx.asset == "MATIC") {
                 await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
             }
-            console.log(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash);
 
             let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
             console.log(client, "client ");
-
+            let message = formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash;
+            let message2 = "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol;
+            console.log(message);
             if (client?.groupIdWpp) {
-                await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash, client.groupIdWpp)
-                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol + "  a transaction from " + client.name)
-
+                await sendGroupMessage(message, client.groupIdWpp)
+                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
             }
             else {
-                await sendGroupMessage(formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash)
-                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol, "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol)
+                await sendGroupMessage(message)
+                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
             }
-
-
         }
 
     } catch (error) {
@@ -448,8 +449,6 @@ router.post('/webhook/', async (req, res) => {
     }
     res.send({ statusCode: 200, response: "success" })
 });
-// EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, "Shield received $" + formatCurrency(removeCeros(0.00456)), "Shield received $" + formatCurrency(removeCeros(18000.26)) + "  a transaction from " + "client.name");
-
 router.get('/totalReceivedAmountByDay', async (req, res) => {
     try {
         const results = await VolumeTransactionController.getCumulativeSumByDay();

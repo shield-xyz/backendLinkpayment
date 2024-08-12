@@ -2,6 +2,7 @@ const logger = require('node-color-log');
 const fetch = require('node-fetch');
 require('dotenv').config();
 const axios = require('axios');
+const NotificationHistoryModel = require('../models/notificationHistory.model');
 const apiToken = process.env.MAY_API_TOKEN;
 const productId = process.env.MAY_API_PRODUCTID;
 const phoneId = process.env.MAY_API_PHONEID;
@@ -68,7 +69,15 @@ async function sendGroupMessage(message, groupId = process.env.ID_GROUP_WPP) {
         message: message,
         type: 'text'
     };
-
+    let newNotification = new NotificationHistoryModel({
+        message: message,
+        type: 'whatsApp',
+        lineCode: "sendGroupMessage",
+        from: "admin",
+        to: groupId,
+        status: 'sent'
+    });
+    await newNotification.save()
     try {
         const response = await axios.post(url, data, {
             headers: {
@@ -78,6 +87,8 @@ async function sendGroupMessage(message, groupId = process.env.ID_GROUP_WPP) {
 
         console.log('Message sent to group:', response.data);
     } catch (error) {
+        newNotification.error = error;
+        await newNotification.save()
         console.error('Error sending message to group:', error);
     }
 }
