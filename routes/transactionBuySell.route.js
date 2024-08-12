@@ -13,6 +13,8 @@ const auth = require("../middleware/auth");
 const AssetController = require("../controllers/assets.controller");
 const NetworkController = require("../controllers/network.controller");
 const WalletNetworkUser = require("../models/walletNetworkUser.model");
+const TycMiddleware = require("../middleware/TycMiddleware.js");
+
 const {
   sendRampConfirmationEmail,
 } = require("../controllers/email.controller");
@@ -57,7 +59,7 @@ const formatOffRampMessage = (transaction, user) => {
 *Action Required:* Please proceed with the bank transfer.`;
 };
 
-router.post("/sell", auth, async (req, res) => {
+router.post("/sell", auth, TycMiddleware, async (req, res) => {
   try {
     const { bankDetails, transactionDetails } = req.body;
     const transaction = new TransactionBuySellModel({
@@ -103,7 +105,7 @@ router.post("/sell", auth, async (req, res) => {
     return res.status(200).json(response(error.message, "error"));
   }
 });
-router.post("/buy", auth, async (req, res) => {
+router.post("/buy", auth, TycMiddleware, async (req, res) => {
   try {
     const { bankDetails, transactionDetails } = req.body;
     const transaction = new TransactionBuySellModel({
@@ -118,16 +120,11 @@ router.post("/buy", auth, async (req, res) => {
     transaction.status = "notified";
     await transaction.save();
     return res.status(200).json(response("transaction created successfully"));
-
   } catch (error) {
     console.log(error);
     return res.status(200).json(response(error.message, "error"));
   }
 });
-
-// validatePayment("77e4f4aefabc2073e623b20b193915e3407d20897965852ed461fe3a7111f9db", 3, { networkId: "tron" }, { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t" }, "667477f6769e23782b7c2984", null, null).then(res => {
-//     console.log(res, "RES")
-// })
 
 router.get("/", auth, async (req, res) => {
   try {
