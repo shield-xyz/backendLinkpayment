@@ -15,7 +15,8 @@ async function loadExcel() {
             "network": "Tron",
             "addresses": [
                 "TAucN8UckSKagM2KE5PkVKZ4XBvSWUwive"
-            ]
+            ],
+            "email":"lucasmeza75@hotmail.com"
         },
         "Eze Technologies": {
             "network": "Tron",
@@ -37,7 +38,8 @@ async function loadExcel() {
                 "TBrAgWDVr9YfjgkpGiXpsxSAfWStwYT15S",
                 "TMWh1ZusNcwdLeSNMxsWQbms6EcgyMkoKn",
                 "TVkDL9vJ3cwAmu4WRctMe4JKGxHhaBWt3J"
-            ]
+            ],
+            "email":"josh@ezewholesale.com"
         },
         "Arda Erturk": {
             "network": "Tron",
@@ -61,7 +63,8 @@ async function loadExcel() {
             "network": "Ethereum",
             "addresses": [
                 "0x996922c411AD2d4eC98B95fec7FbFcbD09c75686"
-            ]
+            ],
+            "email":"azaryaniv@nreach.io"
         },
         "Edward Calderon": {
             "network": "Tron",
