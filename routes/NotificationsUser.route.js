@@ -95,7 +95,7 @@ router.post('/webhook-wpp', async (req, res) => {
 
         let ia = await enviarMensajeAChatGPT(req.body.message.text);
         console.log(ia);
-        if (!ia.toLowerCase().includes("found")) {
+        if (!ia.toLowerCase().includes("found") && !ia.toLowerCase().includes("no encontrado")) {
             let newNotification = new NotificationHistoryModel({
                 message: ia,
                 type: 'whatsApp',
