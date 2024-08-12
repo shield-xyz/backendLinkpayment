@@ -122,7 +122,7 @@ router.post('/webhook-wpp', async (req, res) => {
                 status: 'sent'
             });
             try {
-                sendMessageMay(req.body.conversation, ia);
+                // sendMessageMay(req.body.conversation, ia);
                 await newNotification.save()
             } catch (error) {
                 newNotification.error = error;
