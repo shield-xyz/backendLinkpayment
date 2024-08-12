@@ -276,7 +276,7 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
 
 
 if (process.env.AUTOMATIC_FUNCTIONS != "off") {
-    getTransactions();
+    // getTransactions();
     contract.on(
         "Transfer",
         async (
@@ -285,6 +285,7 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
             value,
             event
         ) => {
+            // console.log(event, to, from);
             if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
                 let decimals = await contract.decimals();
                 console.log(to, from, event)
@@ -303,14 +304,14 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                     await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
 
 
-                    let address = (ethToTron(to) + "").toLowerCase();
-                    console.log(address, "address tron");
+                    let address = (ethToTron(from) + "").toLowerCase();
+                    console.log(address, "address tron from");
                     let client = await ClientsAddressController.getClientByWalletAddress(address);
                     console.log(client, "client ");
-                    let message = "Shield received $" + formatCurrency(removeCeros(transaction.receivedAmount)) + transaction.symbol;
+                    let message = "Shield received $" + formatCurrency((transaction.receivedAmount)) + transaction.symbol;
                     if (client?.groupIdWpp) {
 
-                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx, client.groupIdWpp)
+                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ", client.groupIdWpp)
                         message += "  a transaction from " + client.name
                         EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
                     } else {
@@ -431,8 +432,8 @@ router.post('/webhook/', async (req, res) => {
 
             let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
             console.log(client, "client ");
-            let message = formatCurrency(removeCeros(tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash;
-            let message2 = "Shield received $" + formatCurrency(removeCeros(tx.value)) + transaction.symbol;
+            let message = formatCurrency((tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash;
+            let message2 = "Shield received $" + formatCurrency((tx.value)) + transaction.symbol;
             console.log(message);
             if (client?.groupIdWpp) {
                 await sendGroupMessage(message, client.groupIdWpp)
