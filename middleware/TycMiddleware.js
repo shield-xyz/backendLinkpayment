@@ -14,7 +14,7 @@ module.exports = async function (req, res, next) {
     const user = await userModel.findById(decoded.id).select("-password");
     req.merchant = user;
     req.user = user;
-    if (user.verify != "pass") {
+    if (user.verify == false) {
       return res.status(401).json({ msg: "unverified user" });
     }
     next();

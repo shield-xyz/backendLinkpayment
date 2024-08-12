@@ -92,7 +92,7 @@ module.exports = {
             user.verify,
             verification.status
           );
-          user.verify = verification.status;
+          user.verify = verification.status === "pass";
           await user.save();
         }
 
