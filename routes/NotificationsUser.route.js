@@ -105,28 +105,35 @@ const enviarMensajeAChatGPT = async (mensaje) => {
         return "Not found";
     }
 };
+function containsNumber(text) {
+    const regex = /\d/; // \d es un atajo para cualquier dígito (0-9)
+    return regex.test(text);
+}
+
 router.post('/webhook-wpp', async (req, res) => {
 
     console.log(req.body, "wpp - notification");
     if (req.body?.message?.text && req.body?.type == "message") {
-
-        let ia = await enviarMensajeAChatGPT(req.body.message.text);
-        console.log(ia);
-        if (!ia.toLowerCase().includes("found") && !ia.toLowerCase().includes("no encontrado")) {
-            let newNotification = new NotificationHistoryModel({
-                message: ia,
-                type: 'whatsApp',
-                lineCode: "webhook-wpp",
-                from: "admin",
-                to: req.body.user.id,
-                status: 'sent'
-            });
-            try {
-                // sendMessageMay(req.body.conversation, ia);
-                await newNotification.save()
-            } catch (error) {
-                newNotification.error = error;
-                await newNotification.save()
+        if (containsNumber(req.body.message.text)) {
+            let ia = await enviarMensajeAChatGPT(req.body.message.text);
+            console.log(ia);
+            if (!ia.toLowerCase().includes("found") && !ia.toLowerCase().includes("no encontrado")) {
+                let newNotification = new NotificationHistoryModel({
+                    message: ia,
+                    type: 'whatsApp',
+                    lineCode: "webhook-wpp",
+                    from: "admin",
+                    to: req.body.user.id,
+                    status: 'sent'
+                });
+                try {
+                    // console.log(req.body.conversation, ia)
+                    await sendMessageMay(req.body.conversation, ia);
+                    await newNotification.save()
+                } catch (error) {
+                    newNotification.error = error;
+                    await newNotification.save()
+                }
             }
 
         }
