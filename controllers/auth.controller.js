@@ -9,7 +9,7 @@ const {
   response,
   footPrintUser,
   footPrintUserEmail,
-  getUserVerificationStatus,
+  isFootprintUserVerified,
 } = require("../utils/index.js");
 const secretKey = JWT_SECRET;
 const {
@@ -84,14 +84,10 @@ module.exports = {
       }
 
       if (user) {
-        const verification = await getUserVerificationStatus(fp_id);
+        const verified = await isFootprintUserVerified(fp_id);
 
-        if (user.verify !== verification.status) {
-          logger.info(
-            "updating user verification status",
-            user.verify,
-            verification.status
-          );
+        if (user.verify !== verified) {
+          logger.info("updating user verification status to", verified);
           user.verify = verification.status === "pass";
           await user.save();
         }

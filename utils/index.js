@@ -388,7 +388,7 @@ async function footPrintUser(validation_token) {
   }
 }
 
-async function getUserVerificationStatus(fpId) {
+async function isFootprintUserVerified(fpId) {
   try {
     const options = {
       headers: {
@@ -402,7 +402,9 @@ async function getUserVerificationStatus(fpId) {
       options
     );
 
-    return await resp.json();
+    const data = await resp.json();
+
+    return data.status === "pass";
   } catch (error) {
     console.error(error);
     return { status: "error", response: error.message };
@@ -526,6 +528,6 @@ module.exports = {
   getTransactionOnly,
   formatCurrency,
   removeCeros,
-  getUserVerificationStatus,
+  isFootprintUserVerified,
   footPrintUserEmail,
 };
