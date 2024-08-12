@@ -84,7 +84,17 @@ module.exports = {
       }
 
       if (user) {
-        const verificationStatus = await getUserVerificationStatus(fp_id);
+        const verification = await getUserVerificationStatus(fp_id);
+
+        if (user.verify !== verification.status) {
+          logger.info(
+            "updating user verification status",
+            user.verify,
+            verification.status
+          );
+          user.verify = verification.status;
+          await user.save();
+        }
 
         const token = jwt.sign({ id: user._id }, secretKey, {
           expiresIn: "3h",
@@ -98,7 +108,7 @@ module.exports = {
           logo: user.logo,
           company: user.company,
           apiKey: user.apiKey,
-          verification: verificationStatus,
+          verify: user.verify,
           footId: user.footId,
           admin: user.admin ? user.admin : false,
         };
