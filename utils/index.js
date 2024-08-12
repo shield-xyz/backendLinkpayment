@@ -402,8 +402,7 @@ async function getUserVerificationStatus(fpId) {
       options
     );
 
-    const data = await resp.json();
-    return { ...data, status: "success" };
+    return await resp.json();
   } catch (error) {
     console.error(error);
     return { status: "error", response: error.message };
