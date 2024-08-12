@@ -84,7 +84,10 @@ const enviarMensajeAChatGPT = async (mensaje) => {
     const data = {
         model: 'gpt-4',
         messages: [
-            { role: 'system', content: "I want you to respond in the same language as the incoming message. If they mention an amount is ready, respond with something like 'Hello sir, send to the same wallet: TWNxsGw1o4rnP4FExQSEXuYzLtXm3dMkRd'. If it's something else, respond 'not found'." },
+            {
+                role: 'system',
+                content: "I want you to respond in the same language as the incoming message only if the message is solely about an amount of money being ready. If the message explicitly states that an amount is ready, respond with 'Hello sir, send to the same wallet: TWNxsGw1o4rnP4FExQSEXuYzLtXm3dMkRd'  in the same language. If the message contains any other content, or if it's not clear that the money is ready, respond with 'Not found' in english"
+            },
             { role: 'user', content: mensaje }
         ],
         max_tokens: 150
