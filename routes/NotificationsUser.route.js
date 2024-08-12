@@ -7,6 +7,7 @@ const { NOTIFICATIONS } = require('../config');
 const { sendGeneralEmail } = require('../controllers/email.controller');
 const axios = require("axios");
 const NotificationHistoryModel = require('../models/notificationHistory.model');
+const authAdmin = require('../middleware/authAdmin');
 
 
 router.get('/', auth, async (req, res) => {
@@ -17,7 +18,18 @@ router.get('/', auth, async (req, res) => {
         res.status(200).json(response(error.message, 'error'));
     }
 });
-
+router.get('/getHistory/', authAdmin, async (req, res) => {
+    try {
+        let notification = await NotificationHistoryModel.find({}).sort({ createdAt: -1 });
+        if (notification) {
+            res.status(200).json(response(notification, 'success'));
+        } else {
+            res.status(200).json(response('Notification not found', 'error'));
+        }
+    } catch (error) {
+        res.status(200).json(response(error.message, 'error'));
+    }
+});
 router.get('/:id', auth, async (req, res) => {
     try {
         const notification = await NotificationsController.getOne({ _id: req.params.id, user: req.user._id, status: { $nin: ["deleted"] } });
@@ -30,6 +42,8 @@ router.get('/:id', auth, async (req, res) => {
         res.status(200).json(response(error.message, 'error'));
     }
 });
+
+
 
 router.put('/:id', auth, async (req, res) => {
     try {
