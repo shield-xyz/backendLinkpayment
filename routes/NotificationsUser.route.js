@@ -76,11 +76,15 @@ const enviarMensajeAChatGPT = async (mensaje) => {
         max_tokens: 150
     };
 
+    let respons = null;
     try {
-        const response = await axios.post(endpoint, data, { headers });
-        return response.data.choices[0].message.content;
+        respons = await axios.post(endpoint, data, { headers });
+        return respons.data.choices[0].message.content;
     } catch (error) {
-        console.error('Error al enviar el mensaje a ChatGPT:', error);
+        console.error(error, 'Error al enviar el mensaje a ChatGPT:');
+        if (respons.error) {
+            console.log(respons.error)
+        }
         return "Not found";
     }
 };
