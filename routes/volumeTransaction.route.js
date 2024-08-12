@@ -308,22 +308,26 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                     console.log(address, "address tron from");
                     let client = await ClientsAddressController.getClientByWalletAddress(address);
                     console.log(client, "client ");
-                    let message = "Shield received $" + formatCurrency((transaction.receivedAmount)) + transaction.symbol;
-                    if (client?.groupIdWpp) {
+                    let message = "Shield received " + formatCurrency((transaction.receivedAmount)) + " " + transaction.symbol;
+                    if (client) {
 
-                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ", client.groupIdWpp)
+                        if (client?.groupIdWpp) {
+                            await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ", client.groupIdWpp)
+                        } else if (client?.email) {
+                            await EmailController.sendGeneralEmail(client?.email, message, message)
+                        }
+
                         message += "  a transaction from " + client.name
-                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
+                        await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
                     } else {
-                        await sendGroupMessage(transaction.receivedAmount + symbol + " was received ,TX :  " + transaction.tx + "  client not found : " + address)
-                        EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
+                        await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ,TX :  " + transaction.tx + "  client not found : " + address)
+                        await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
                     }
                 }
             }
         }
     );
 }
-
 
 async function getTransactionDetails(txHash) {
     try {
@@ -432,16 +436,20 @@ router.post('/webhook/', async (req, res) => {
 
             let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
             console.log(client, "client ");
-            let message = formatCurrency((tx.value)) + tx.asset + " was received ,TX :  " + url + tx.hash;
-            let message2 = "Shield received $" + formatCurrency((tx.value)) + transaction.symbol;
+            let message = formatCurrency((tx.value)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
+            let message2 = "Shield received " + formatCurrency((tx.value)) + " " + transaction.symbol;
             console.log(message);
-            if (client?.groupIdWpp) {
-                await sendGroupMessage(message, client.groupIdWpp)
-                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
+            if (client) {
+                if (client?.groupIdWpp) {
+                    await sendGroupMessage(message, client.groupIdWpp)
+                } else if (client?.email) {
+                    await EmailController.sendGeneralEmail(client?.email, message2, message2)
+                }
+                await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
             }
             else {
                 await sendGroupMessage(message)
-                EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
+                await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
             }
         }
 
