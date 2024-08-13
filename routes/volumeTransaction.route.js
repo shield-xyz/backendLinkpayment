@@ -66,6 +66,7 @@ async function getTransactionWalletTron(walletAddress = process.env.WALLET_TRON_
                 symbol: t.token_info.symbol || "USDT",
                 tx: t.transaction_id,
                 walletSend: t.from,
+                blockchain: "Tron"
             };
             if (transaction.receivedAmount > 1)
                 await volumeTransactionModel.updateOne({ tx: t.transaction_id }, { $set: transaction }, { upsert: true });
@@ -120,6 +121,7 @@ async function loadTransactionsExcel() {
                     gasFees: parseCurrencyString(element['Gas Fees']),
                     netProfit: parseCurrencyString(element['Net Profit']),
                     tx: tx,
+                    blockchain: element['Blockchain'],
                     walletSend: element["Wallet Address"],
                     excelLoad: true
                 });
@@ -132,7 +134,7 @@ async function loadTransactionsExcel() {
 }
 
 
-
+loadTransactionsExcel();
 
 async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a") {
 
@@ -299,6 +301,7 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                     symbol: symbol,
                     tx: event.transactionHash,
                     walletSend: event.args.from,
+                    blockchain: "Tron"
                 };
 
                 console.log(transaction);
@@ -420,11 +423,15 @@ router.post('/webhook/', async (req, res) => {
             tx.value = Number(tx.value).toFixed(tx.rawContract.decimals);
             let amount = tx.value;
             console.log(amount, "AMOUNT")
+            let blockchain = ""
             if (body.event.network == "ETH_MAINNET") {
                 url = "https://etherscan.io/tx/";
+                blockchain = "Ethereum"
 
             } else if (body.event.network == "MATIC_MAINNET") {
                 url = "https://polygonscan.com/tx/";
+                blockchain = "Polygon"
+
             }
             if (tx.asset == "ETH" || tx.asset == "MATIC") {
 
@@ -441,6 +448,7 @@ router.post('/webhook/', async (req, res) => {
                 symbol: tx.asset,
                 tx: tx.hash,
                 walletSend: tx.fromAddress,
+                blockchain: blockchain
             }
             console.log(transaction)
             let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
