@@ -26,7 +26,8 @@ const volumeTransactionSchema = new mongoose.Schema({
     symbol: {
         type: String,
         default: "USDT" // Default value
-    }
+    },
+    excelLoad: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('VolumeTransaction', volumeTransactionSchema);

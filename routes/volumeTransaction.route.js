@@ -90,7 +90,10 @@ async function loadTransactionsExcel() {
     for (let i = 0; i < json.length; i++) {
         const element = json[i];
         let tx = element["Txn Hash"];
-
+        let receivedAmount = parseCurrencyString(element['Received Amount (USD)']);
+        await volumeTransactionModel.deleteMany({
+            date: new Date(element["Date"]), receivedAmount: receivedAmount, client: element['Client Name']
+        });
         if (element["Date"] != "" && element['Received Amount (USD)'] != "") {
             if (tx != "") {
                 tx = tx.split("/").pop();
@@ -98,13 +101,14 @@ async function loadTransactionsExcel() {
                 tx = null;
             }
 
-            let receivedAmount = parseCurrencyString(element['Received Amount (USD)']);
+            console.log(tx);
+
             if (isNaN(receivedAmount)) {
                 continue; // Skip invalid amounts
             }
 
-            let exist = await volumeTransactionModel.findOne({ tx: tx });
-            if (exist == null || tx == null) {
+            let exist = await volumeTransactionModel.findOne({ tx: tx, date: new Date(element["Date"]), receivedAmount: receivedAmount, client: element['Client Name'] });
+            if (exist == null) {
                 items.push({
                     client: element['Client Name'],
                     business: element['Regulatory Period'],
@@ -134,7 +138,7 @@ async function loadTransactionsExcel() {
 }
 
 
-loadTransactionsExcel();
+// loadTransactionsExcel();
 
 async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a") {
 
