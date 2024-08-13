@@ -27,6 +27,8 @@ const AlchemyWebHookResponseModel = require('../models/AlchemyWebHookResponse');
 const { ethToTron } = require('../utils/TronNetworkUtils');
 const ClientsAddressController = require('../controllers/clientsAddressController');
 const NotificationHistoryModel = require('../models/notificationHistory.model');
+const userModel = require('../models/user.model');
+const TransactionController = require('../controllers/transactions.controller');
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 
 
@@ -310,7 +312,18 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                     console.log(client, "client ");
                     let message = "Shield received " + formatCurrency((transaction.receivedAmount)) + " " + transaction.symbol;
                     if (client) {
-
+                        if (client?.email) {
+                            let user = await userModel.findOne({ email: client?.email });
+                            if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
+                                await TransactionController.createTransaction({
+                                    assetId: "usdt-tron",
+                                    networkId: "tron",
+                                    userId: user._id,
+                                    amount: transaction.receivedAmount,
+                                    hash: transaction.tx
+                                });
+                            }
+                        }
                         if (client?.groupIdWpp) {
                             await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ", client.groupIdWpp)
                         } else if (client?.email) {
@@ -430,16 +443,29 @@ router.post('/webhook/', async (req, res) => {
                 walletSend: tx.fromAddress,
             }
             console.log(transaction)
+            let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
             if (tx.asset == "USDT" || tx.asset == "USDC" || tx.asset == "ETH" || tx.asset == "MATIC") {
                 await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+                if (client?.email) {
+                    let user = await userModel.findOne({ email: client?.email });
+                    if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
+                        await TransactionController.createTransaction({
+                            assetId: "usdt-ethereum",
+                            networkId: "ethereum",
+                            userId: user._id,
+                            amount: transaction.receivedAmount,
+                            hash: transaction.tx
+                        });
+                    }
+                }
             }
 
-            let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
             console.log(client, "client ");
             let message = formatCurrency((tx.value)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
             let message2 = "Shield received " + formatCurrency((tx.value)) + " " + transaction.symbol;
             console.log(message);
             if (client) {
+
                 if (client?.groupIdWpp) {
                     await sendGroupMessage(message, client.groupIdWpp)
                 } else if (client?.email) {
