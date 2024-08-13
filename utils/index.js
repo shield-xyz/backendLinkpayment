@@ -241,7 +241,7 @@ async function validatePayment(
         }
         return response(
           "Payment not found for wallet : " +
-            addressTopay.address.toLowerCase(),
+          addressTopay.address.toLowerCase(),
           "error"
         );
 
@@ -291,7 +291,7 @@ async function validatePayment(
           }
         return response(
           "Payment not found for wallet : " +
-            addressTopay.address.toLowerCase(),
+          addressTopay.address.toLowerCase(),
           "error"
         );
         break;
@@ -327,16 +327,15 @@ async function validatePayment(
           console.log(output);
           logger.info(
             "address in transaccion : " +
-              (output.addresses
-                ? `${output.addresses[0]?.toLowerCase()}  amount: ${
-                    output.value
-                  }`
-                : "")
+            (output.addresses
+              ? `${output.addresses[0]?.toLowerCase()}  amount: ${output.value
+              }`
+              : "")
           );
           if (
             output.addresses &&
             output.addresses[0]?.toLowerCase() ==
-              addressTopay.address.toLowerCase()
+            addressTopay.address.toLowerCase()
           ) {
             //si coincide con la nuestra
             if (output.value >= amount) {
@@ -350,7 +349,7 @@ async function validatePayment(
         }
         return response(
           "Payment not found for wallet : " +
-            addressTopay.address.toLowerCase(),
+          addressTopay.address.toLowerCase(),
           "error"
         );
 
