@@ -88,7 +88,7 @@ module.exports = {
 
         if (user.verify !== verified) {
           logger.info("updating user verification status to", verified);
-          user.verify = verification.status === "pass";
+          user.verify = verified;
           await user.save();
         }
 
