@@ -288,7 +288,7 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
             event
         ) => {
             // console.log(event, to, from);
-            if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) {
+            if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) { // validamos que sea la wallet que queremos recibir token
                 let decimals = await contract.decimals();
                 console.log(to, from, event)
                 let symbol = await contract.symbol();
@@ -303,16 +303,16 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
 
                 console.log(transaction);
                 if (transaction.receivedAmount > 0.001) {
-                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true }); // cargamos la tx a volume transactions para que se vea en el grafico shield/volume
 
 
                     let address = (ethToTron(from) + "").toLowerCase();
                     console.log(address, "address tron from");
                     let client = await ClientsAddressController.getClientByWalletAddress(address);
                     console.log(client, "client ");
-                    let message = "Shield received " + formatCurrency((transaction.receivedAmount)) + " " + transaction.symbol;
-                    if (client) {
-                        if (client?.email) {
+                    let message = "Shield received " + formatCurrency((transaction.receivedAmount)) + " " + transaction.symbol; // mensaje a enviar por whatsapp
+                    if (client) { // si el cliente existe enviamos la notificacion al cliente
+                        if (client?.email) { // si tiene email, lo buscamos en la web, si esta le cargamos la transaccion a su historial de transacciones.
                             let user = await userModel.findOne({ email: client?.email });
                             if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
                                 await TransactionController.createTransaction({
@@ -324,15 +324,15 @@ if (process.env.AUTOMATIC_FUNCTIONS != "off") {
                                 });
                             }
                         }
-                        if (client?.groupIdWpp) {
+                        if (client?.groupIdWpp) { // si tiene un grupo de whatsapp asignado, se le envia la notificacion por dicho grupo
                             await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ", client.groupIdWpp)
-                        } else if (client?.email) {
+                        } else if (client?.email) { // si no tiene grupo de WhatsApp se le envia al email (si es que lo tiene cargado)
                             await EmailController.sendGeneralEmail(client?.email, message, message)
                         }
 
                         message += "  a transaction from " + client.name
-                        await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
-                    } else {
+                        await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message) // envio de mensaje a founders para que sepan que llego la transaccion.
+                    } else { // si no se encuentra cliente se envia la transaccion por email y grupo de WhatsApp a founders . 
                         await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ,TX :  " + transaction.tx + "  client not found : " + address)
                         await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
                     }
