@@ -20,7 +20,7 @@ const { getBitcoinTransactions } = require('../utils/BitcoinNetworkUtils');
 const EmailController = require('../controllers/email.controller');
 const ERC20 = require("../services/ERC20.json")
 const provider = new ethers.providers.JsonRpcProvider(process.env.END_POINT_TRON);
-const contract = new Contract("0xA614F803B6FD780986A42C78EC9C7F77E6DED13C", AggregatorV3InterfaceABI, provider);
+// const contract = new Contract("0xA614F803B6FD780986A42C78EC9C7F77E6DED13C", AggregatorV3InterfaceABI, provider);
 const { Alchemy, AlchemyProvider, Network } = require('@alch/alchemy-sdk');
 const WebSocket = require('ws');
 const AlchemyWebHookResponseModel = require('../models/AlchemyWebHookResponse');
@@ -283,68 +283,68 @@ async function getTransactions(wallet = "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf3
 
 if (process.env.AUTOMATIC_FUNCTIONS != "off") {
     // getTransactions();
-    contract.on(
-        "Transfer",
-        async (
-            from,
-            to,
-            value,
-            event
-        ) => {
-            // console.log(event, to, from);
-            if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) { // validamos que sea la wallet que queremos recibir token
-                let decimals = await contract.decimals();
-                console.log(to, from, event)
-                let symbol = await contract.symbol();
-                let transaction = {
-                    date: Date.now(),
-                    receivedAmount: divideByDecimals(event.args.value + "", decimals),
-                    shieldFee: 0,
-                    symbol: symbol,
-                    tx: event.transactionHash,
-                    walletSend: event.args.from,
-                    blockchain: "Tron"
-                };
+    // contract.on(
+    //     "Transfer",
+    //     async (
+    //         from,
+    //         to,
+    //         value,
+    //         event
+    //     ) => {
+    //         // console.log(event, to, from);
+    //         if (to.toLowerCase() == "0xDFE0B33B515B36D640F26669CD4EE1AF514680D5".toLowerCase()) { // validamos que sea la wallet que queremos recibir token
+    //             let decimals = await contract.decimals();
+    //             console.log(to, from, event)
+    //             let symbol = await contract.symbol();
+    //             let transaction = {
+    //                 date: Date.now(),
+    //                 receivedAmount: divideByDecimals(event.args.value + "", decimals),
+    //                 shieldFee: 0,
+    //                 symbol: symbol,
+    //                 tx: event.transactionHash,
+    //                 walletSend: event.args.from,
+    //                 blockchain: "Tron"
+    //             };
 
-                console.log(transaction);
-                if (transaction.receivedAmount > 0.001) {
-                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true }); // cargamos la tx a volume transactions para que se vea en el grafico shield/volume
+    //             console.log(transaction);
+    //             if (transaction.receivedAmount > 0.001) {
+    //                 await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true }); // cargamos la tx a volume transactions para que se vea en el grafico shield/volume
 
 
-                    let address = (ethToTron(from) + "").toLowerCase();
-                    console.log(address, "address tron from");
-                    let client = await ClientsAddressController.getClientByWalletAddress(address);
-                    console.log(client, "client ");
-                    let message = "Shield received " + formatCurrency((transaction.receivedAmount)) + " " + transaction.symbol; // mensaje a enviar por whatsapp
-                    if (client) { // si el cliente existe enviamos la notificacion al cliente
-                        if (client?.email) { // si tiene email, lo buscamos en la web, si esta le cargamos la transaccion a su historial de transacciones.
-                            let user = await userModel.findOne({ email: client?.email });
-                            if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
-                                await TransactionController.createTransaction({
-                                    assetId: "usdt-tron",
-                                    networkId: "tron",
-                                    userId: user._id,
-                                    amount: transaction.receivedAmount,
-                                    hash: transaction.tx
-                                });
-                            }
-                        }
-                        if (client?.groupIdWpp) { // si tiene un grupo de whatsapp asignado, se le envia la notificacion por dicho grupo
-                            await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ", client.groupIdWpp)
-                        } else if (client?.email) { // si no tiene grupo de WhatsApp se le envia al email (si es que lo tiene cargado)
-                            await EmailController.sendGeneralEmail(client?.email, message, message)
-                        }
+    //                 let address = (ethToTron(from) + "").toLowerCase();
+    //                 console.log(address, "address tron from");
+    //                 let client = await ClientsAddressController.getClientByWalletAddress(address);
+    //                 console.log(client, "client ");
+    //                 let message = "Shield received " + formatCurrency((transaction.receivedAmount)) + " " + transaction.symbol; // mensaje a enviar por whatsapp
+    //                 if (client) { // si el cliente existe enviamos la notificacion al cliente
+    //                     if (client?.email) { // si tiene email, lo buscamos en la web, si esta le cargamos la transaccion a su historial de transacciones.
+    //                         let user = await userModel.findOne({ email: client?.email });
+    //                         if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
+    //                             await TransactionController.createTransaction({
+    //                                 assetId: "usdt-tron",
+    //                                 networkId: "tron",
+    //                                 userId: user._id,
+    //                                 amount: transaction.receivedAmount,
+    //                                 hash: transaction.tx
+    //                             });
+    //                         }
+    //                     }
+    //                     if (client?.groupIdWpp) { // si tiene un grupo de whatsapp asignado, se le envia la notificacion por dicho grupo
+    //                         await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ", client.groupIdWpp)
+    //                     } else if (client?.email) { // si no tiene grupo de WhatsApp se le envia al email (si es que lo tiene cargado)
+    //                         await EmailController.sendGeneralEmail(client?.email, message, message)
+    //                     }
 
-                        message += "  a transaction from " + client.name
-                        await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message) // envio de mensaje a founders para que sepan que llego la transaccion.
-                    } else { // si no se encuentra cliente se envia la transaccion por email y grupo de WhatsApp a founders . 
-                        await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ,TX :  " + transaction.tx + "  client not found : " + address)
-                        await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
-                    }
-                }
-            }
-        }
-    );
+    //                     message += "  a transaction from " + client.name
+    //                     await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message) // envio de mensaje a founders para que sepan que llego la transaccion.
+    //                 } else { // si no se encuentra cliente se envia la transaccion por email y grupo de WhatsApp a founders . 
+    //                     await sendGroupMessage(formatCurrency(transaction.receivedAmount) + " " + symbol + " was received ,TX :  " + transaction.tx + "  client not found : " + address)
+    //                     await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message, message)
+    //                 }
+    //             }
+    //         }
+    //     }
+    // );
 }
 
 async function getTransactionDetails(txHash) {
@@ -561,23 +561,21 @@ router.post('/webhook-tron/', async (req, res) => {
         let message = formatCurrency(tokenFormatter) + " " + symbol + " was received ,TX :  " + transaction.tx;
         let message2 = "Shield received " + formatCurrency(tokenFormatter) + " " + symbol + " was received";
         console.log(message);
-        // if (client) {
-
-        //     if (client?.groupIdWpp) {
-        //         await sendGroupMessage(message, client.groupIdWpp)
-        //     } else if (client?.email) {
-        //         await EmailController.sendGeneralEmail(client?.email, message2, message2)
-        //     }
-        //     await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
-        // }
-        // else {
-        // await sendGroupMessage(message)
-        // await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
-        // }
+        if (client) {
+            if (client?.groupIdWpp) {
+                await sendGroupMessage(message, client.groupIdWpp)
+            } else if (client?.email) {
+                await EmailController.sendGeneralEmail(client?.email, message2, message2)
+            }
+            await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
+        }
+        else {
+            await sendGroupMessage(message)
+            await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
+        }
     } catch (error) {
         console.log(error, "error tron tx")
     }
-
 
     return res.json(response("success"));
 });
