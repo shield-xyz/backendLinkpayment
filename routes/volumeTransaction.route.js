@@ -498,6 +498,87 @@ router.post('/webhook-tron/', async (req, res) => {
     console.log(req.body, "body webhook tron");
     let ramp = new webHookRampableModel({ body: req.body })
     await ramp.save();
+    const matchedTransaction = req.body.matchedTransactions[0];
+    const matchedReceipts = req.body.matchedReceipts[0];
+    // Convertir el número de bloque hexadecimal a decimal
+    let contract = null;
+    let decimals = "";
+    let symbol = "";
+
+    try {
+        let price = 1;
+        if (matchedReceipts.contractAddress == "") {
+            symbol = "TRX";
+            decimals = 6;
+            let p = await getPrices();
+            if (p?.MATICUSDT)
+                price = p.MATICUSDT;
+        } else {
+            contract = new Contract(matchedReceipts.contractAddress, AggregatorV3InterfaceABI, provider);
+            decimals = await contract.decimals();
+            symbol = await contract.symbol();
+        }
+        // Convertir la cantidad de tokens de hexadecimal a decimal
+        const valueInHex = matchedTransaction.value;
+        const tokenAmount = parseInt(valueInHex, 16);
+        // Hash de la transacción
+        const transactionHash = matchedTransaction.hash;
+        // Wallet que envió la transacción
+        const senderWallet = matchedTransaction.from;
+        let tokenFormatter = (divideByDecimals(tokenAmount + "", decimals))
+        let amount = Number(tokenFormatter * price).toFixed(10);
+        if (amount > 0.0001) {
+            amount = Number(amount);
+        }
+        let transaction = {
+            date: Date.now(),
+            receivedAmount: amount,
+            shieldFee: 0,
+            symbol: "USDT",
+            tx: transactionHash.slice(2),
+            walletSend: (ethToTron(senderWallet) + "").toLowerCase(),
+            blockchain: "TRON"
+        }
+        console.log(transaction, "TRON")
+        await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+        let client = await ClientsAddressController.getClientByWalletAddress(transaction.walletSend);
+        if (!client) {
+            client = await ClientsAddressController.getClientByWalletAddress(transaction.walletSend.slice(2));
+        }
+        if (client?.email) {
+            let user = await userModel.findOne({ email: client?.email });
+            if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
+                await TransactionController.createTransaction({
+                    assetId: "usdt-ethereum",
+                    networkId: "ethereum",
+                    userId: user._id,
+                    amount: transaction.receivedAmount,
+                    hash: transaction.tx
+                });
+            }
+        }
+        console.log(client, "client ");
+        let message = formatCurrency(tokenFormatter) + " " + symbol + " was received ,TX :  " + transaction.tx;
+        let message2 = "Shield received " + formatCurrency(tokenFormatter) + " " + symbol + " was received";
+        console.log(message);
+        // if (client) {
+
+        //     if (client?.groupIdWpp) {
+        //         await sendGroupMessage(message, client.groupIdWpp)
+        //     } else if (client?.email) {
+        //         await EmailController.sendGeneralEmail(client?.email, message2, message2)
+        //     }
+        //     await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
+        // }
+        // else {
+        // await sendGroupMessage(message)
+        // await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
+        // }
+    } catch (error) {
+        console.log(error, "error tron tx")
+    }
+
+
     return res.json(response("success"));
 });
 
