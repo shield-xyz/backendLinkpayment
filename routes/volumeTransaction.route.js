@@ -29,6 +29,7 @@ const ClientsAddressController = require('../controllers/clientsAddressControlle
 const NotificationHistoryModel = require('../models/notificationHistory.model');
 const userModel = require('../models/user.model');
 const TransactionController = require('../controllers/transactions.controller');
+const webHookRampableModel = require('../models/rampable/webHookResponse');
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 
 
@@ -493,6 +494,13 @@ router.post('/webhook/', async (req, res) => {
     }
     res.send({ statusCode: 200, response: "success" })
 });
+router.post('/webhook-tron/', async (req, res) => {
+    console.log(req.body, "body webhook tron");
+    let ramp = new webHookRampableModel({ body: req.body })
+    await ramp.save();
+    return res.json(response("success"));
+});
+
 router.get('/totalReceivedAmountByDay', async (req, res) => {
     try {
         const results = await VolumeTransactionController.getCumulativeSumByDay();
