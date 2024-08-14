@@ -112,7 +112,7 @@ function containsNumber(text) {
 
 router.post('/webhook-wpp', async (req, res) => {
 
-    console.log(req.body, "wpp - notification");
+    // console.log(req.body, "wpp - notification");
     if (req.body?.message?.text && req.body?.type == "message" && req.body?.message?.fromMe != true) {
         if (containsNumber(req.body.message.text)) {
             let ia = await enviarMensajeAChatGPT(req.body.message.text);
