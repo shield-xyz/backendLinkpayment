@@ -98,9 +98,9 @@ const enviarMensajeAChatGPT = async (mensaje) => {
         respons = await axios.post(endpoint, data, { headers });
         return respons.data.choices[0].message.content;
     } catch (error) {
-        console.error(error, 'Error al enviar el mensaje a ChatGPT:');
-        if (respons.error) {
-            console.log(respons.error)
+        console.error(JSON.stringify(error), 'Error al enviar el mensaje a ChatGPT:');
+        if (error?.data?.error) {
+            console.log(error.data.error)
         }
         return "Not found";
     }
@@ -117,7 +117,7 @@ router.post('/webhook-wpp', async (req, res) => {
         if (containsNumber(req.body.message.text)) {
             let ia = await enviarMensajeAChatGPT(req.body.message.text);
             console.log(ia);
-            if (!ia.toLowerCase().includes("found") && !ia.toLowerCase().includes("no encontrado")) {
+            if (!ia.toLowerCase().includes("found") && !ia.toLowerCase().includes("no encontrado") && !ia.toLowerCase().includes("encontró") && !ia.toLowerCase().includes("no se enc")) {
                 let newNotification = new NotificationHistoryModel({
                     message: ia,
                     type: 'whatsApp',
