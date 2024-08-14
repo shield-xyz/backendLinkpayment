@@ -91,18 +91,15 @@ async function loadTransactionsExcel() {
         const element = json[i];
         let tx = element["Txn Hash"];
         let receivedAmount = parseCurrencyString(element['Received Amount (USD)']);
-        await volumeTransactionModel.deleteMany({
-            date: new Date(element["Date"]), receivedAmount: receivedAmount, client: element['Client Name']
-        });
+        // await volumeTransactionModel.deleteMany({
+        //     date: new Date(element["Date"]), receivedAmount: receivedAmount, client: element['Client Name']
+        // });
         if (element["Date"] != "" && element['Received Amount (USD)'] != "") {
             if (tx != "") {
                 tx = tx.split("/").pop();
             } else {
                 tx = null;
             }
-
-            console.log(tx);
-
             if (isNaN(receivedAmount)) {
                 continue; // Skip invalid amounts
             }
