@@ -109,7 +109,7 @@ function containsNumber(text) {
     const regex = /\d/; // \d es un atajo para cualquier dígito (0-9)
     return regex.test(text);
 }
-
+// enviarMensajeAChatGPT("heello my friend").then(res=>console.log("res0",res))
 router.post('/webhook-wpp', async (req, res) => {
 
     // console.log(req.body, "wpp - notification");

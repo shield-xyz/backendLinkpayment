@@ -471,9 +471,9 @@ router.post('/webhook/', async (req, res) => {
             }
 
             console.log(client, "client ");
-            let message = formatCurrency((tx.value)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
-            let message2 = "Shield received " + formatCurrency((tx.value)) + " " + transaction.symbol;
-            console.log(message);
+            let message = formatCurrency(Number(tx.value).toFixed(3)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
+            let message2 = "Shield received " + formatCurrency(Number(tx.value).toFixed(3)) + " " + transaction.symbol;
+            console.log(message, message2);
             if (client) {
 
                 if (client?.groupIdWpp) {
@@ -484,7 +484,7 @@ router.post('/webhook/', async (req, res) => {
                 await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
             }
             else {
-                await sendGroupMessage(message)
+                await sendGroupMessage(message + " , client not foud : " + transaction.walletSend)
                 await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
             }
         }
@@ -573,7 +573,7 @@ router.post('/webhook-tron/', async (req, res) => {
                 await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
             }
             else {
-                await sendGroupMessage(message)
+                await sendGroupMessage(message + " , client not foud : " + transaction.walletSend)
                 await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
             }
         }
@@ -583,6 +583,7 @@ router.post('/webhook-tron/', async (req, res) => {
 
     return res.json(response("success"));
 });
+
 
 router.get('/totalReceivedAmountByDay', async (req, res) => {
     try {
