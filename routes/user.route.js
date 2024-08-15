@@ -39,18 +39,14 @@ router.get("/user/foot/:id", auth, async (req, res) => {
   return res.send(response(data));
 });
 
-router.post("/foot/token/:foot_pb", auth, async (req, res) => {
+router.post("/foot/token", auth, async (req, res) => {
   const options = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY,
     },
-    body: JSON.stringify({
-      key: req.params.foot_pb,
-      kind: "onboard",
-      use_implicit_auth: true,
-    }),
+    body: JSON.stringify(req.body),
   };
 
   const resp = await fetch(
