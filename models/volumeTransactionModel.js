@@ -4,6 +4,7 @@ const volumeTransactionSchema = new mongoose.Schema({
     client: {
         type: String, // Corresponde a "Client Name"
     },
+    userId: { type: String },
     date: {
         type: Date,
         default: Date.now,

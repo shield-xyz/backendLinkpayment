@@ -475,7 +475,9 @@ router.post('/webhook/', async (req, res) => {
             let message2 = "Shield received " + formatCurrency(Number(tx.value).toFixed(3)) + " " + transaction.symbol;
             console.log(message, message2);
             if (client) {
-
+                transaction.client = client.name;
+                transaction.userId = client?.userId;
+                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
                 if (client?.groupIdWpp) {
                     await sendGroupMessage(message, client.groupIdWpp)
                 } else if (client?.email) {
@@ -565,6 +567,9 @@ router.post('/webhook-tron/', async (req, res) => {
             let message2 = "Shield received " + formatCurrency(tokenFormatter) + " " + symbol + " was received";
             console.log(message);
             if (client) {
+                transaction.client = client.name;
+                transaction.userId = client?.userId;
+                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
                 if (client?.groupIdWpp) {
                     await sendGroupMessage(message, client.groupIdWpp)
                 } else if (client?.email) {
