@@ -421,74 +421,77 @@ router.post('/webhook/', async (req, res) => {
         console.log(body);
         for (let iActivity = 0; iActivity < body.event.activity.length; iActivity++) {
             const tx = body.event.activity[iActivity];
-            let url = "https://etherscan.io/tx/";
-            tx.value = Number(tx.value).toFixed(tx.rawContract.decimals);
-            let amount = tx.value;
-            console.log(amount, "AMOUNT")
-            let blockchain = ""
-            if (body.event.network == "ETH_MAINNET") {
-                url = "https://etherscan.io/tx/";
-                blockchain = "Ethereum"
+            if (tx.to == "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a") {
+                let url = "https://etherscan.io/tx/";
+                tx.value = Number(tx.value).toFixed(tx.rawContract.decimals);
+                let amount = tx.value;
+                console.log(amount, "AMOUNT")
+                let blockchain = ""
+                if (body.event.network == "ETH_MAINNET") {
+                    url = "https://etherscan.io/tx/";
+                    blockchain = "Ethereum"
 
-            } else if (body.event.network == "MATIC_MAINNET") {
-                url = "https://polygonscan.com/tx/";
-                blockchain = "Polygon"
+                } else if (body.event.network == "MATIC_MAINNET") {
+                    url = "https://polygonscan.com/tx/";
+                    blockchain = "Polygon"
 
-            }
-            if (tx.asset == "ETH" || tx.asset == "MATIC") {
+                }
+                if (tx.asset == "ETH" || tx.asset == "MATIC") {
 
-                let gasPriceInWei = await getPrices();
-                if (tx.asset == "ETH")
-                    amount = Number(amount) * gasPriceInWei.ETHUSDT;
-                if (tx.asset == "MATIC")
-                    amount = Number(amount) * gasPriceInWei.MATICUSDT;
-            }
-            let transaction = {
-                date: Date.now(),
-                receivedAmount: amount,
-                shieldFee: 0,
-                symbol: tx.asset,
-                tx: tx.hash,
-                walletSend: tx.fromAddress,
-                blockchain: blockchain
-            }
-            console.log(transaction)
-            let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
-            if (tx.asset == "USDT" || tx.asset == "USDC" || tx.asset == "ETH" || tx.asset == "MATIC") {
-                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
-                if (client?.email) {
-                    let user = await userModel.findOne({ email: client?.email });
-                    if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
-                        await TransactionController.createTransaction({
-                            assetId: "usdt-ethereum",
-                            networkId: "ethereum",
-                            userId: user._id,
-                            amount: transaction.receivedAmount,
-                            hash: transaction.tx
-                        });
+                    let gasPriceInWei = await getPrices();
+                    if (tx.asset == "ETH")
+                        amount = Number(amount) * gasPriceInWei.ETHUSDT;
+                    if (tx.asset == "MATIC")
+                        amount = Number(amount) * gasPriceInWei.MATICUSDT;
+                }
+                let transaction = {
+                    date: Date.now(),
+                    receivedAmount: amount,
+                    shieldFee: 0,
+                    symbol: tx.asset,
+                    tx: tx.hash,
+                    walletSend: tx.fromAddress,
+                    blockchain: blockchain
+                }
+                console.log(transaction)
+                let client = await ClientsAddressController.getClientByWalletAddress(tx.fromAddress);
+                if (tx.asset == "USDT" || tx.asset == "USDC" || tx.asset == "ETH" || tx.asset == "MATIC") {
+                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+                    if (client?.email) {
+                        let user = await userModel.findOne({ email: client?.email });
+                        if (user) { // si existe usuario y coincide con dicho email , se le carga la transaccion correspondiente .
+                            await TransactionController.createTransaction({
+                                assetId: "usdt-ethereum",
+                                networkId: "ethereum",
+                                userId: user._id,
+                                amount: transaction.receivedAmount,
+                                hash: transaction.tx
+                            });
+                        }
                     }
                 }
+
+                console.log(client, "client ");
+                let message = formatCurrency(Number(tx.value).toFixed(3)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
+                let message2 = "Shield received " + formatCurrency(Number(tx.value).toFixed(3)) + " " + transaction.symbol;
+                console.log(message, message2);
+                if (client) {
+                    transaction.client = client.name;
+                    transaction.userId = client?.userId;
+                    await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
+                    if (client?.groupIdWpp) {
+                        await sendGroupMessage(message, client.groupIdWpp)
+                    } else if (client?.email) {
+                        await EmailController.sendGeneralEmail(client?.email, message2, message2)
+                    }
+                    await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
+                }
+                else {
+                    await sendGroupMessage(message + " , client not foud : " + transaction.walletSend)
+                    await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
+                }
             }
 
-            console.log(client, "client ");
-            let message = formatCurrency(Number(tx.value).toFixed(3)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
-            let message2 = "Shield received " + formatCurrency(Number(tx.value).toFixed(3)) + " " + transaction.symbol;
-            console.log(message, message2);
-            if (client) {
-                transaction.client = client.name;
-                transaction.userId = client?.userId;
-                await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
-                if (client?.groupIdWpp) {
-                    await sendGroupMessage(message, client.groupIdWpp)
-                } else if (client?.email) {
-                    await EmailController.sendGeneralEmail(client?.email, message2, message2)
-                }
-                await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
-            }
-            else {
-                await sendGroupMessage(message + " , client not foud : " + transaction.walletSend)
-                await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2)
-            }
         }
 
     } catch (error) {
@@ -507,7 +510,9 @@ router.post('/webhook-tron/', async (req, res) => {
     let decimals = "";
     let symbol = "";
     const transactionHash = matchedTransaction.hash;
-
+    if (matchedTransaction.to != "0xdfe0b33b515b36d640f26669cd4ee1af514680d5") {
+        return res.json(response("success"));
+    }
     try {
         let exist = await volumeTransactionModel.findOne({ tx: transactionHash });
         console.log(exist);
