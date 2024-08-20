@@ -19,7 +19,13 @@ router.get("/:type", async function (req, res, next) {
     const { type } = QuoteParamsSchema.parse(req.params);
     const { assetIn, assetOut, amountIn } = QuoteQuerySchema.parse(req.query);
 
-    const quote = await getRampQuote(type, assetIn, assetOut, amountIn, "0.01");
+    const quote = await getRampQuote(
+      type,
+      assetIn.toUpperCase(),
+      assetOut.toUpperCase(),
+      amountIn,
+      "0.01"
+    );
 
     if (quote.error) {
       return res.status(400).send(quote);
