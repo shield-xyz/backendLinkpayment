@@ -421,7 +421,7 @@ router.post('/webhook/', async (req, res) => {
         console.log(body);
         for (let iActivity = 0; iActivity < body.event.activity.length; iActivity++) {
             const tx = body.event.activity[iActivity];
-            if (tx.to.toLowerCase() == "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a".toLowerCase()) {
+            if (tx.toAddress.toLowerCase() == "0x62c74109d073d5bd3cf6b4e6a91a77c3d4cf310a".toLowerCase()) {
                 let url = "https://etherscan.io/tx/";
                 tx.value = Number(tx.value).toFixed(tx.rawContract.decimals);
                 let amount = tx.value;
