@@ -475,6 +475,7 @@ router.post('/webhook/', async (req, res) => {
                 let message = formatCurrency(Number(tx.value).toFixed(3)) + " " + tx.asset + " was received ,TX :  " + url + tx.hash;
                 let message2 = "Shield received " + formatCurrency(Number(tx.value).toFixed(3)) + " " + transaction.symbol;
                 console.log(message, message2);
+                console.log("client", client?.email, client?.groupIdWpp)
                 if (client) {
                     transaction.client = client.name;
                     transaction.userId = client?.userId;
@@ -550,6 +551,7 @@ router.post('/webhook-tron/', async (req, res) => {
                 blockchain: "TRON"
             }
             console.log(transaction, "TRON")
+            console.log("client", client?.email, client?.groupIdWpp)
             await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
             let client = await ClientsAddressController.getClientByWalletAddress(transaction.walletSend);
             if (!client) {
