@@ -485,6 +485,7 @@ router.post('/webhook/', async (req, res) => {
                     } else if (client?.email) {
                         await EmailController.sendGeneralEmail(client?.email, message2, message2)
                     }
+                    await sendGroupMessage(message)
                     await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
                 }
                 else {
@@ -582,6 +583,7 @@ router.post('/webhook-tron/', async (req, res) => {
                 } else if (client?.email) {
                     await EmailController.sendGeneralEmail(client?.email, message2, message2)
                 }
+                await sendGroupMessage(message)
                 await EmailController.sendGeneralEmail(process.env.EMAIL_NOTIFICATIONS, message2, message2 + "  a transaction from " + client.name)
             }
             else {
