@@ -12,6 +12,7 @@ const ClientsAddressSchema = new Schema({
         type: [String],
     },
     groupIdWpp: String,
+    email: String,
 });
 
 module.exports = mongoose.model('ClientsAddress', ClientsAddressSchema);
