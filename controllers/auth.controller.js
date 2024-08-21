@@ -1,22 +1,25 @@
-const logger = require("node-color-log");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-const UserModel = require("../models/user.model");
-const { JWT_SECRET } = require("../config");
+const logger = require('node-color-log');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const UserModel = require('../models/user.model');
+const { JWT_SECRET } = require('../config');
 const {
   handleHttpError,
   response,
   footPrintUser,
   footPrintUserEmail,
   isFootprintUserVerified,
-} = require("../utils/index.js");
+} = require('../utils/index.js');
 const secretKey = JWT_SECRET;
 const {
   ensureWalletNetworkUsersForUser,
-} = require("./walletNetworkUser.controller.js");
-const { sendPasswordResetEmail } = require("./email.controller.js");
-const BalanceController = require("./balance.controller.js");
+} = require('./walletNetworkUser.controller.js');
+const {
+  sendPasswordResetEmail,
+  sendConfirmVerificationSubmittedEmail,
+} = require('./email.controller.js');
+const BalanceController = require('./balance.controller.js');
 module.exports = {
   async login(req, res) {
     try {
@@ -27,7 +30,7 @@ module.exports = {
       if (!user) {
         res
           .status(200)
-          .send({ response: "Invalid credentials.", status: "error" });
+          .send({ response: 'Invalid credentials.', status: 'error' });
 
         return;
       }
@@ -37,11 +40,11 @@ module.exports = {
       if (!isMatch) {
         res
           .status(200)
-          .send({ response: "Invalid credentials.", status: "error" });
+          .send({ response: 'Invalid credentials.', status: 'error' });
         return;
       }
 
-      const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: "3h" });
+      const token = jwt.sign({ id: user._id }, secretKey, { expiresIn: '3h' });
       const response = {
         _id: user._id,
         user_name: user.user_name,
@@ -56,7 +59,7 @@ module.exports = {
       };
 
       console.log(response);
-      res.send({ response: response, status: "success" });
+      res.send({ response: response, status: 'success' });
     } catch (error) {
       handleHttpError(error, res);
     }
@@ -76,8 +79,8 @@ module.exports = {
         user = await UserModel.findOne({ footId: fp_id });
         //buscar email en footprint
         let userEmail = await footPrintUserEmail(fp_id);
-        if (!user && userEmail["id.email"]) {
-          user = await UserModel.findOne({ email: userEmail["id.email"] });
+        if (!user && userEmail['id.email']) {
+          user = await UserModel.findOne({ email: userEmail['id.email'] });
           user.footId = fp_id;
           await user.save();
         }
@@ -87,13 +90,13 @@ module.exports = {
         const verified = await isFootprintUserVerified(fp_id);
 
         if (user.verify !== verified) {
-          logger.info("updating user verification status to", verified);
+          logger.info('updating user verification status to', verified);
           user.verify = verified;
           await user.save();
         }
 
         const token = jwt.sign({ id: user._id }, secretKey, {
-          expiresIn: "3h",
+          expiresIn: '3h',
         });
 
         const response = {
@@ -108,9 +111,9 @@ module.exports = {
           footId: user.footId,
           admin: user.admin ? user.admin : false,
         };
-        res.send({ response: response, status: "success" });
+        res.send({ response: response, status: 'success' });
       } else {
-        res.send({ response: "user not found", status: "error" });
+        res.send({ response: 'user not found', status: 'error' });
       }
     } catch (error) {
       handleHttpError(error, res, 200);
@@ -123,13 +126,13 @@ module.exports = {
         req.body;
       let fp_id = null;
       // Obtener el nombre del archivo subido
-      const filename = req.file?.filename ? req.file?.filename : "default.jpg";
+      const filename = req.file?.filename ? req.file?.filename : 'default.jpg';
       // console.log(filename)
 
       const alreadyExists = await UserModel.findOne({ email: email });
 
       if (alreadyExists) {
-        handleHttpError(new Error("Email already taken."), res, 200);
+        handleHttpError(new Error('Email already taken.'), res, 200);
         return;
       }
       // Validar la contraseña
@@ -140,10 +143,10 @@ module.exports = {
       // Validar el email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json(response("Invalid email format.", "error"));
+        return res.status(400).json(response('Invalid email format.', 'error'));
       }
       const salt = bcrypt.genSaltSync(10);
-      let hashed_password = bcrypt.hashSync("passwordSecret123#", salt);
+      let hashed_password = bcrypt.hashSync('passwordSecret123#', salt);
       logger.info({ email, password, user_name });
       if (validation_token) {
         let user_foot = await footPrintUser(validation_token);
@@ -160,14 +163,14 @@ module.exports = {
         password: hashed_password,
         user_name: user_name,
         wallets: [],
-        logo: "uploads/" + filename,
+        logo: 'uploads/' + filename,
         company,
         footId: fp_id,
       };
       const user = new UserModel(newUser);
       await user.save();
       await BalanceController.createBalancesPerUser(user._id);
-      const token = jwt.sign({ email }, secretKey, { expiresIn: "1h" });
+      const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
       //creamos wallets defaults :
       await ensureWalletNetworkUsersForUser(user._id);
 
@@ -177,14 +180,14 @@ module.exports = {
           user_name,
           email,
           token,
-          logo: "uploads/" + filename,
+          logo: 'uploads/' + filename,
           company,
           apiKey: user.apiKey,
           verify: user.verify,
           footId: user.footId,
           admin: user.admin ? user.admin : false,
         },
-        status: "success",
+        status: 'success',
       });
     } catch (error) {
       console.log(error);
@@ -196,23 +199,23 @@ module.exports = {
       const { email } = req.body;
       const user = await UserModel.findOne({ email });
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: 'User not found' });
       }
 
       // Generar y guardar el token de restablecimiento
-      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetToken = crypto.randomBytes(32).toString('hex');
       user.resetPasswordToken = resetToken;
       user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
       await user.save();
-      console.log(user.email, "token", resetToken);
+      console.log(user.email, 'token', resetToken);
       // Enviar email con el token de restablecimiento
 
       const resetUrl = `${process.env.URL_FRONT}/reset-password/${resetToken}`;
       await sendPasswordResetEmail(user.email, resetUrl);
-      res.status(200).json(response("Password reset email sent"));
+      res.status(200).json(response('Password reset email sent'));
     } catch (error) {
       console.log(error);
-      res.status(500).json(response("Error on forgot password", "error"));
+      res.status(500).json(response('Error on forgot password', 'error'));
     }
   },
 
@@ -229,7 +232,7 @@ module.exports = {
       if (!user) {
         return res
           .status(400)
-          .json({ message: "Password reset token is invalid or has expired" });
+          .json({ message: 'Password reset token is invalid or has expired' });
       }
       // // Validar la contraseña
       // const passwordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
@@ -243,10 +246,36 @@ module.exports = {
       user.resetPasswordExpires = undefined;
       await user.save();
 
-      res.status(200).json({ message: "Password has been reset" });
+      res.status(200).json({ message: 'Password has been reset' });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: "Error on reset password", error });
+      res.status(500).json({ message: 'Error on reset password', error });
+    }
+  },
+
+  async confirmVerificationSubmittedByEmail(req, res) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res
+          .status(400)
+          .json({ message: 'Email is required to send confirmation' });
+      }
+
+      await sendConfirmVerificationSubmittedEmail(email);
+
+      res
+        .status(200)
+        .json(
+          response(`Confirm Verification Submission sent by email to ${email}`)
+        );
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: 'Error on confirm verification submit by email',
+        error,
+      });
     }
   },
 };
