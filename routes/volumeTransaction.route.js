@@ -551,10 +551,10 @@ router.post('/webhook-tron/', async (req, res) => {
                 walletSend: (ethToTron(senderWallet) + "").toLowerCase(),
                 blockchain: "TRON"
             }
+            let client = await ClientsAddressController.getClientByWalletAddress(transaction.walletSend);
             console.log(transaction, "TRON")
             console.log("client", client?.email, client?.groupIdWpp)
             await volumeTransactionModel.updateOne({ tx: transaction.tx }, { $set: transaction }, { upsert: true });
-            let client = await ClientsAddressController.getClientByWalletAddress(transaction.walletSend);
             if (!client) {
                 client = await ClientsAddressController.getClientByWalletAddress(transaction.walletSend.slice(2));
             }
