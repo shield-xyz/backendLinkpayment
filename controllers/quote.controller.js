@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const Kraken = require("../services/kraken");
+const PayPal = require("../services/paypal");
 const { truncate } = require("../utils/math");
 
 const getRampQuote = async (type, assetIn, assetOut, amountIn, feeRate) => {
@@ -19,11 +20,11 @@ const getRampQuote = async (type, assetIn, assetOut, amountIn, feeRate) => {
       : truncate(feeDeducted * Number(exchangeRate), 2);
 
   if (
-    // USD amount should be more than $10
-    (type === "onramp" && Number(amountIn) < 10) ||
-    (type === "offramp" && Number(amountOut) < 10)
+    // USD amount should be more than $50
+    (type === "onramp" && Number(amountIn) < 50) ||
+    (type === "offramp" && Number(amountOut) < 50)
   ) {
-    return { error: ["Amount in USD should be more than $10"] };
+    return { error: ["Amount in USD should be more than $50"] };
   }
 
   const payload = {
@@ -41,4 +42,22 @@ const getRampQuote = async (type, assetIn, assetOut, amountIn, feeRate) => {
   return { ...payload, encoded };
 };
 
-module.exports = { getRampQuote };
+const verifyRampQuote = (encoded) => {
+  try {
+    return jwt.verify(encoded, process.env.JWT_SECRET);
+  } catch (err) {
+    return { error: ["Invalid or expired quote"] };
+  }
+};
+
+const createPayPalOrder = async (encoded) => {
+  const quote = verifyRampQuote(encoded);
+  const paypal = new PayPal(
+    process.env.NODE_ENV,
+    process.env.PAYPAL_CLIENT_ID,
+    process.env.PAYPAL_CLIENT_SECRET
+  );
+  return await paypal.createOrder(quote);
+};
+
+module.exports = { getRampQuote, createPayPalOrder };

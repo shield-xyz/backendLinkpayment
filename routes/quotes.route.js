@@ -1,6 +1,10 @@
 const express = require("express");
 const z = require("zod");
-const { getRampQuote } = require("../controllers/quote.controller");
+const {
+  getRampQuote,
+  createPayPalOrder,
+} = require("../controllers/quote.controller");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -32,6 +36,15 @@ router.get("/:type", async function (req, res, next) {
     }
 
     return res.send(quote);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post("/onramp/paypal", auth, async function (req, res, next) {
+  try {
+    const { id } = await createPayPalOrder(req.body.encoded);
+    return res.send({ id });
   } catch (err) {
     return next(err);
   }
