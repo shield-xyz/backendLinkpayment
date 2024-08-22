@@ -19,7 +19,7 @@ router.post(
 router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password/:token', authController.resetPassword);
 router.post(
-  '/verification-submitted-confirmation',
+  '/verification-submitted-confirmation/:validationToken',
   authController.confirmVerificationSubmittedByEmail
 );
 router.post('/generate-api-key', auth, async (req, res) => {

@@ -20,6 +20,7 @@ const {
   sendConfirmVerificationSubmittedEmail,
 } = require('./email.controller.js');
 const BalanceController = require('./balance.controller.js');
+
 module.exports = {
   async login(req, res) {
     try {
@@ -255,20 +256,33 @@ module.exports = {
 
   async confirmVerificationSubmittedByEmail(req, res) {
     try {
-      const { email } = req.body;
+      const validationToken = req.params.validationToken;
+      const isKYC = req.query.isKYC === 'true';
 
-      if (!email) {
+      if (!validationToken) {
         return res
           .status(400)
-          .json({ message: 'Email is required to send confirmation' });
+          .json({ message: 'Validation token is required' });
       }
 
-      await sendConfirmVerificationSubmittedEmail(email);
+      const f_user = await footPrintUser(validationToken);
+      const fp_id = f_user?.user_auth?.fp_id;
+
+      if (!fp_id) {
+        return res.status(404).json({ message: 'Footprint user not found' });
+      }
+
+      const fpEmailRes = await footPrintUserEmail(fp_id, isKYC);
+      const fp_email = fpEmailRes['id.email'];
+
+      await sendConfirmVerificationSubmittedEmail(fp_email);
 
       res
         .status(200)
         .json(
-          response(`Confirm Verification Submission sent by email to ${email}`)
+          response(
+            `Confirm Verification Submission sent by email to ${fp_email}`
+          )
         );
     } catch (error) {
       console.log(error);
