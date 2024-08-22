@@ -1,27 +1,27 @@
 // const TronWeb = require('tronweb'); // there is no types for tronweb
 
-const { ethers } = require("ethers");
-const { Response } = require("express");
-const { validate } = require("bitcoin-address-validation");
-const Airtable = require("airtable");
-const fetch = require("node-fetch");
-const base58 = require("bs58");
-const { Buffer } = require("buffer");
-const TronNetworkUtils = require("./TronNetworkUtils");
-const EthereumNetworkUtils = require("./EthereumNetworkUtils");
-const BitcoinNetworkUtils = require("./BitcoinNetworkUtils");
-const multer = require("multer");
-const path = require("path");
-const logger = require("node-color-log");
+const { ethers } = require('ethers');
+const { Response } = require('express');
+const { validate } = require('bitcoin-address-validation');
+const Airtable = require('airtable');
+const fetch = require('node-fetch');
+const base58 = require('bs58');
+const { Buffer } = require('buffer');
+const TronNetworkUtils = require('./TronNetworkUtils');
+const EthereumNetworkUtils = require('./EthereumNetworkUtils');
+const BitcoinNetworkUtils = require('./BitcoinNetworkUtils');
+const multer = require('multer');
+const path = require('path');
+const logger = require('node-color-log');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Carpeta donde se guardarán las imágenes
+    cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
   },
   filename: function (req, file, cb) {
     // console.log("savefile")
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     console.log(
-      "file . ",
+      'file . ',
       req.merchant?._id
         ? req.merchant._id + path.extname(file.originalname)
         : uniqueSuffix + path.extname(file.originalname),
@@ -35,8 +35,8 @@ const storage = multer.diskStorage({
     );
   },
 });
-const walletNetworkUser = require("../models/walletNetworkUser.model");
-const { default: axios } = require("axios");
+const walletNetworkUser = require('../models/walletNetworkUser.model');
+const { default: axios } = require('axios');
 
 const upload = multer({ storage: storage });
 
@@ -51,11 +51,11 @@ function handleError(error, defaultMessage) {
 
 function handleHttpError(error, res, statusCode = 500) {
   if (error instanceof Error) {
-    res.status(statusCode).send({ response: error.message, status: "error" });
+    res.status(statusCode).send({ response: error.message, status: 'error' });
   } else {
     res
       .status(statusCode)
-      .send({ response: "An error occurred", status: "error" });
+      .send({ response: 'An error occurred', status: 'error' });
   }
   console.error(error);
 }
@@ -69,13 +69,13 @@ const isEmpty = (obj) => {
   return Object.keys(obj).length === 0;
 };
 
-let response = (data, status = "success", another = null) => {
+let response = (data, status = 'success', another = null) => {
   return { response: data, status: status, another: another };
 };
 
 // Función para convertir direcciones de formato hexadecimal a Base58Check
 function convertHexToBase58(hexAddress) {
-  const addressBuffer = Buffer.from(hexAddress, "hex");
+  const addressBuffer = Buffer.from(hexAddress, 'hex');
   const addressBase58 = base58.encode(addressBuffer);
   return addressBase58;
 }
@@ -83,7 +83,7 @@ function limitDecimals(number, decimals) {
   return parseFloat(number.toFixed(decimals));
 }
 function divideByDecimals(value, decimals) {
-  if (typeof value !== "string" || typeof decimals !== "number") {
+  if (typeof value !== 'string' || typeof decimals !== 'number') {
     throw new Error(
       'Invalid input types. "value" should be a string and "decimals" should be a number.'
     );
@@ -91,7 +91,7 @@ function divideByDecimals(value, decimals) {
 
   const numericValue = parseFloat(value);
   if (isNaN(numericValue)) {
-    throw new Error("The provided value is not a valid number.");
+    throw new Error('The provided value is not a valid number.');
   }
 
   const divisor = Math.pow(10, decimals);
@@ -99,13 +99,13 @@ function divideByDecimals(value, decimals) {
 }
 
 async function getPrices() {
-  const url = "https://min-api.cryptocompare.com/data/pricemulti";
+  const url = 'https://min-api.cryptocompare.com/data/pricemulti';
 
   try {
     const response = await axios.get(url, {
       params: {
-        fsyms: "BTC,ETH,MATIC",
-        tsyms: "USDT",
+        fsyms: 'BTC,ETH,MATIC',
+        tsyms: 'USDT',
         api_key: process.env.CRYPTO_COMPARE_API,
       },
     });
@@ -118,7 +118,7 @@ async function getPrices() {
     console.log(prices);
     return prices;
   } catch (error) {
-    console.error("Error al realizar la solicitud:", error);
+    console.error('Error al realizar la solicitud:', error);
     return {};
   }
 
@@ -137,17 +137,17 @@ async function getTransactionOnly(hash, network) {
   try {
     let transactionLog;
     switch (network.networkId) {
-      case "tron":
+      case 'tron':
         transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
         return transactionLog;
 
         break;
-      case "ethereum":
+      case 'ethereum':
         transactionLog = await EthereumNetworkUtils.getTransactionDetails(hash);
         return transactionLog;
 
         break;
-      case "bitcoin":
+      case 'bitcoin':
         transactionLog = await BitcoinNetworkUtils.getTransactionDetails(hash);
         return transactionLog;
 
@@ -180,20 +180,20 @@ async function validatePayment(
       userId: userId,
       networkId: network.networkId,
     });
-    console.log(addressTopay, "addresstopay");
+    console.log(addressTopay, 'addresstopay');
     switch (network.networkId) {
-      case "tron":
+      case 'tron':
         let quantity;
         transactionLog = await TronNetworkUtils.getTransactionDetails(hash);
         console.log(transactionLog);
-        if (process.env.TRON_END_POINT.includes("shasta")) {
-          return response("correct transaction");
+        if (process.env.TRON_END_POINT.includes('shasta')) {
+          return response('correct transaction');
         }
         if (transactionLog?.applied == true) {
-          return response("transaction used for another payment", "error");
+          return response('transaction used for another payment', 'error');
         }
         if (transactionLog.error) {
-          return response("error transaction log", "error");
+          return response('error transaction log', 'error');
         }
         if (!transactionLog.hash || transactionLog.network) {
           //guardamos la informacion del a transaccion log
@@ -206,7 +206,7 @@ async function validatePayment(
         tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // Validar que la transacción sea de hace 10 minutos o menos
         if (transactionTimestamp < tenMinutesAgo) {
-          return response("date greater than 10 minutes", "error");
+          return response('date greater than 10 minutes', 'error');
         }
         for (
           let iData = 0;
@@ -215,11 +215,11 @@ async function validatePayment(
         ) {
           const x = transactionLog.transfersAllList[iData]; // registro de transacciones dentro de la tx .
           logger.fontColorLog(
-            "blue",
-            "network address ->" + addressTopay.address.toLowerCase()
+            'blue',
+            'network address ->' + addressTopay.address.toLowerCase()
           );
           logger.fontColorLog(
-            "blue",
+            'blue',
             x.to_address.toLowerCase() == addressTopay.address.toLowerCase()
           );
           if (x.to_address.toLowerCase() == addressTopay.address.toLowerCase())
@@ -235,18 +235,18 @@ async function validatePayment(
                 isValid = true;
                 transactionLog.applied = true;
                 await transactionLog.save();
-                return response("correct transaction", "success", quantity);
+                return response('correct transaction', 'success', quantity);
               }
             }
         }
         return response(
-          "Payment not found for wallet : " +
-          addressTopay.address.toLowerCase(),
-          "error"
+          'Payment not found for wallet : ' +
+            addressTopay.address.toLowerCase(),
+          'error'
         );
 
         break;
-      case "ethereum":
+      case 'ethereum':
         transactionLog = await EthereumNetworkUtils.getTransactionDetails(hash);
         console.log(transactionLog);
         if (!transactionLog?.network) {
@@ -258,14 +258,14 @@ async function validatePayment(
         await transactionLog.save();
 
         if (transactionLog?.applied == true) {
-          return response("transaction used for another payment", "error");
+          return response('transaction used for another payment', 'error');
         }
         logger.fontColorLog(
-          "blue",
-          "network address ->" + addressTopay.address.toLowerCase()
+          'blue',
+          'network address ->' + addressTopay.address.toLowerCase()
         );
         logger.fontColorLog(
-          "blue",
+          'blue',
           transactionLog.to.toLowerCase() == addressTopay.address.toLowerCase()
         );
         if (
@@ -286,16 +286,16 @@ async function validatePayment(
               isValid = true;
               transactionLog.applied = true;
               await transactionLog.save();
-              return response("correct transaction");
+              return response('correct transaction');
             }
           }
         return response(
-          "Payment not found for wallet : " +
-          addressTopay.address.toLowerCase(),
-          "error"
+          'Payment not found for wallet : ' +
+            addressTopay.address.toLowerCase(),
+          'error'
         );
         break;
-      case "bitcoin":
+      case 'bitcoin':
         transactionLog = await BitcoinNetworkUtils.getTransactionDetails(hash);
         // console.log(transactionLog);
 
@@ -308,7 +308,7 @@ async function validatePayment(
         await transactionLog.save();
         // no fue ya aplicada
         if (transactionLog?.applied == true) {
-          return response("transaction used for another payment", "error");
+          return response('transaction used for another payment', 'error');
         }
         // fecha no mas vieja a 10 minutos.
         transactionTimestamp = new Date(transactionLog.received);
@@ -316,9 +316,9 @@ async function validatePayment(
         // Validar que la transacción sea de hace 10 minutos o menos
         if (
           transactionTimestamp < tenMinutesAgo &&
-          !process.env.TRON_END_POINT.includes("shasta")
+          !process.env.TRON_END_POINT.includes('shasta')
         ) {
-          return response("date greater than 10 minutes", "error");
+          return response('date greater than 10 minutes', 'error');
         }
 
         for (let i = 0; i < transactionLog.outputs.length; i++) {
@@ -326,16 +326,17 @@ async function validatePayment(
           let output = transactionLog.outputs[i];
           console.log(output);
           logger.info(
-            "address in transaccion : " +
-            (output.addresses
-              ? `${output.addresses[0]?.toLowerCase()}  amount: ${output.value
-              }`
-              : "")
+            'address in transaccion : ' +
+              (output.addresses
+                ? `${output.addresses[0]?.toLowerCase()}  amount: ${
+                    output.value
+                  }`
+                : '')
           );
           if (
             output.addresses &&
             output.addresses[0]?.toLowerCase() ==
-            addressTopay.address.toLowerCase()
+              addressTopay.address.toLowerCase()
           ) {
             //si coincide con la nuestra
             if (output.value >= amount) {
@@ -343,47 +344,47 @@ async function validatePayment(
               isValid = true;
               transactionLog.applied = true;
               await transactionLog.save();
-              return response("correct transaction");
+              return response('correct transaction');
             }
           }
         }
         return response(
-          "Payment not found for wallet : " +
-          addressTopay.address.toLowerCase(),
-          "error"
+          'Payment not found for wallet : ' +
+            addressTopay.address.toLowerCase(),
+          'error'
         );
 
         break;
       default:
-        return response("network not found", "error");
+        return response('network not found', 'error');
     }
   } catch (error) {
     console.log(error);
     logger.error(error);
-    return response("incorrect transaction " + error.message, "error");
+    return response('incorrect transaction ' + error.message, 'error');
   }
 }
 async function footPrintUser(validation_token) {
   try {
     const options = {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY,
+        'Content-Type': 'application/json',
+        'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY,
       },
       body: JSON.stringify({
         validation_token: validation_token,
       }),
     };
     const resp = await fetch(
-      "https://api.onefootprint.com/onboarding/session/validate",
+      'https://api.onefootprint.com/onboarding/session/validate',
       options
     );
     const data = await resp.json();
-    return { ...data, status: "success" };
+    return { ...data, status: 'success' };
   } catch (error) {
-    console.log(error, "error in footprintUser");
-    return { status: "error", response: error.message };
+    console.log(error, 'error in footprintUser');
+    return { status: 'error', response: error.message };
   }
 }
 
@@ -391,110 +392,113 @@ async function isFootprintUserVerified(fpId) {
   try {
     const options = {
       headers: {
-        "Content-Type": "application/json",
-        "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY,
+        'Content-Type': 'application/json',
+        'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY,
       },
     };
 
     const resp = await fetch(
-      "https://api.onefootprint.com/users/" + fpId,
+      'https://api.onefootprint.com/users/' + fpId,
       options
     );
 
     const data = await resp.json();
 
-    return data.status === "pass";
+    return data.status === 'pass';
   } catch (error) {
     console.error(error);
-    return { status: "error", response: error.message };
+    return { status: 'error', response: error.message };
   }
 }
 
-async function footPrintUserEmail(fpId) {
+async function footPrintUserEmail(fpId, isUsers = true) {
   try {
+    console.log({ fpId });
     const options = {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY,
+        'Content-Type': 'application/json',
+        'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY,
       },
       body: JSON.stringify({
-        fields: ["id.email"],
-        reason: "Get user email",
+        fields: ['id.email'],
+        reason: 'Get user email',
       }),
     };
     const resp = await fetch(
-      "https://api.onefootprint.com/users/" + fpId + "/vault/decrypt",
+      `https://api.onefootprint.com/${
+        isUsers ? 'users' : 'businesses'
+      }/${fpId}/vault/decrypt`,
       options
     );
     const data = await resp.json();
-    return { ...data, status: "success" };
+    return { ...data, status: 'success' };
   } catch (error) {
-    console.log(error, "error in footPrintUserEmail");
-    return { status: "error", response: error.message };
+    console.log(error, 'error in footPrintUserEmail');
+    return { status: 'error', response: error.message };
   }
 }
 
 async function footPrintGetBankData(fp_id) {
   try {
     const resp = await fetch(
-      "https://api.onefootprint.com/users/" + fp_id + "/vault/decrypt",
+      'https://api.onefootprint.com/users/' + fp_id + '/vault/decrypt',
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "X-Footprint-Secret-Key": process.env.FOOTPRINT_SECRET_KEY,
+          'Content-Type': 'application/json',
+          'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY,
         },
         body: JSON.stringify({
           fields: [
-            "custom.beneficiary_name",
-            "custom.country",
-            "custom.city",
-            "custom.routing_number",
-            "custom.zip_code",
-            "custom.account_number",
-            "custom.state",
-            "custom.bank_name",
-            "custom.street_address",
+            'custom.beneficiary_name',
+            'custom.country',
+            'custom.city',
+            'custom.routing_number',
+            'custom.zip_code',
+            'custom.account_number',
+            'custom.state',
+            'custom.bank_name',
+            'custom.street_address',
           ],
-          reason: "Getting client bank details",
+          reason: 'Getting client bank details',
         }),
       }
     );
     const data = await resp.json();
-    return { ...data, status: "success" };
+    return { ...data, status: 'success' };
   } catch (error) {
-    return { status: "error", response: {} };
+    return { status: 'error', response: {} };
   }
 }
 function parseCurrencyString(currencyString) {
   // Eliminar el símbolo de dólar y las comas
-  let cleanString = currencyString.replace(/[$,]/g, "");
-  cleanString = cleanString.replace(/[€,]/g, "");
+  let cleanString = currencyString.replace(/[$,]/g, '');
+  cleanString = cleanString.replace(/[€,]/g, '');
   // Convertir el string limpio a un número
   const number = parseFloat(cleanString);
   return number;
 }
 function parsePercentageString(percentageStr) {
-  return parseFloat(percentageStr.replace("%", "")) / 100;
+  return parseFloat(percentageStr.replace('%', '')) / 100;
 }
 function formatCurrency(amount) {
   // Convertimos el número a una cadena para mantener todos los decimales
   let amountStr = amount.toString();
 
   // Separamos la parte entera y la parte decimal
-  let [integerPart, decimalPart] = amountStr.split(".");
+  let [integerPart, decimalPart] = amountStr.split('.');
 
   // Formateamos la parte entera
-  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   // Unimos las partes, asegurando que siempre haya al menos dos decimales
   if (decimalPart) {
     if (decimalPart.length === 1) {
-      decimalPart += "0"; // Añadimos un cero si hay solo un decimal
+      decimalPart += '0'; // Añadimos un cero si hay solo un decimal
     }
   } else {
-    decimalPart = "00"; // Añadimos dos ceros si no hay decimales
+    decimalPart = '00'; // Añadimos dos ceros si no hay decimales
   }
 
   return `${integerPart}.${decimalPart}`;
@@ -502,8 +506,8 @@ function formatCurrency(amount) {
 
 function removeCeros(number) {
   let numberString = number.toString();
-  numberString = numberString.replace(/0+$/, "");
-  numberString = numberString.replace(/\.$/, "");
+  numberString = numberString.replace(/0+$/, '');
+  numberString = numberString.replace(/\.$/, '');
   return numberString;
 }
 module.exports = {
@@ -519,9 +523,9 @@ module.exports = {
   isEmpty,
   footPrintUser,
   footPrintGetBankData,
-  ...require("./buildSyncResponse"),
-  ...require("./BlockchainUtils"),
-  ...require("./TwilioUtils"),
+  ...require('./buildSyncResponse'),
+  ...require('./BlockchainUtils'),
+  ...require('./TwilioUtils'),
   parseCurrencyString,
   parsePercentageString,
   getTransactionOnly,
