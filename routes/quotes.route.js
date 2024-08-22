@@ -50,4 +50,13 @@ router.post("/onramp/paypal", auth, async function (req, res, next) {
   }
 });
 
+router.post("/onramp/paypal/webhook", async function (req, res, next) {
+  try {
+    console.log(req.body);
+    return res.send("OK");
+  } catch (err) {
+    return next(err);
+  }
+});
+
 module.exports = router;
