@@ -44,7 +44,7 @@ class PayPal {
     }
   }
 
-  async createOrder(quote, wallet) {
+  async createOrder(quote, asset, wallet) {
     try {
       const token = await this.getAccessToken();
 
@@ -64,7 +64,7 @@ class PayPal {
             {
               description: `${
                 quote.amountOut
-              } ${quote.assetOut.toUpperCase()} ${wallet}`,
+              } ${quote.assetOut.toUpperCase()} ${asset.networkId} ${wallet}`,
               amount: {
                 currency_code: quote.assetIn.toUpperCase(),
                 value: quote.amountIn,

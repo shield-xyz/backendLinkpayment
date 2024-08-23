@@ -47,8 +47,8 @@ router.get("/:type", async function (req, res, next) {
 
 router.post("/onramp/paypal", auth, async function (req, res, next) {
   try {
-    const { encoded, wallet } = req.body;
-    const { id } = await createPayPalOrder(encoded, wallet);
+    const { encoded, asset, wallet } = req.body;
+    const { id } = await createPayPalOrder(encoded, asset, wallet);
     return res.send({ id });
   } catch (err) {
     return next(err);
@@ -61,7 +61,7 @@ router.post("/onramp/paypal/webhook", async function (req, res, next) {
 
     const email = body.resource.payment_source.paypal.email_address;
 
-    const [cryptoAmount, cryptoSymbol, wallet] =
+    const [cryptoAmount, cryptoSymbol, network, wallet] =
       body.resource.purchase_units[0].description.split(" ");
 
     const order = {
@@ -70,7 +70,7 @@ router.post("/onramp/paypal/webhook", async function (req, res, next) {
       amount: body.resource.purchase_units[0].amount.value,
       currency: body.resource.purchase_units[0].amount.currency_code,
       crypto_amount: cryptoAmount,
-      crypto_symbol: cryptoSymbol,
+      crypto_symbol: `${cryptoSymbol} (${network})`,
       wallet,
       order_id: body.resource.id,
       order_date: body.resource.create_time,
