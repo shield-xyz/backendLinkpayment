@@ -80,7 +80,7 @@ router.post("/onramp/paypal/webhook", async function (req, res, next) {
 🚀 New Crypto Purchase Alert!
 
 Amount: $${order.amount} ${order.currency}
-Crypto Purchased: ${cryptoAmount} ${cryptoSymbol}
+Crypto Purchased: ${order.crypto_amount} ${order.crypto_symbol}
 
 👤 Buyer Details:
 
