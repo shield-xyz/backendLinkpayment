@@ -50,14 +50,14 @@ const verifyRampQuote = (encoded) => {
   }
 };
 
-const createPayPalOrder = async (encoded) => {
+const createPayPalOrder = async (encoded, wallet) => {
   const quote = verifyRampQuote(encoded);
   const paypal = new PayPal(
     process.env.NODE_ENV,
     process.env.PAYPAL_CLIENT_ID,
     process.env.PAYPAL_CLIENT_SECRET
   );
-  return await paypal.createOrder(quote);
+  return await paypal.createOrder(quote, wallet);
 };
 
 module.exports = { getRampQuote, createPayPalOrder };
