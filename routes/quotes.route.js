@@ -99,7 +99,7 @@ Payment Source: PayPal
     console.log(order);
 
     await sendGroupMessage(message);
-    await sendPayPalOrderApprovedEmail("achaval.lucas@gmail.com", order);
+    await sendPayPalOrderApprovedEmail(email, order);
 
     return res.send("OK");
   } catch (err) {
