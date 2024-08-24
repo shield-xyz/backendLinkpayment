@@ -9,6 +9,7 @@ const { sendGroupMessage } = require("../utils");
 const {
   sendPayPalOrderApprovedEmail,
 } = require("../controllers/email.controller");
+const { log } = require("handlebars/runtime");
 
 const router = express.Router();
 
@@ -47,8 +48,9 @@ router.get("/:type", async function (req, res, next) {
 
 router.post("/onramp/paypal", auth, async function (req, res, next) {
   try {
-    const { encoded, asset, wallet } = req.body;
-    const { id } = await createPayPalOrder(encoded, asset, wallet);
+    const { encoded, network, wallet } = req.body;
+    console.log("/onramp/paypal", req.body);
+    const { id } = await createPayPalOrder(encoded, network, wallet);
     return res.send({ id });
   } catch (err) {
     return next(err);
