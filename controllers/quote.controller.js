@@ -53,7 +53,6 @@ const verifyRampQuote = (encoded) => {
 const createPayPalOrder = async (encoded, network, wallet) => {
   const quote = verifyRampQuote(encoded);
   const paypal = new PayPal(
-    process.env.NODE_ENV,
     process.env.PAYPAL_CLIENT_ID,
     process.env.PAYPAL_CLIENT_SECRET
   );

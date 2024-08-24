@@ -1,22 +1,16 @@
 const axios = require("axios");
 const { randomUUID } = require("crypto");
-const e = require("express");
-
-const BASE_URLS = {
-  development: "https://api-m.sandbox.paypal.com",
-  production: "https://api-m.paypal.com",
-};
 
 class PayPal {
   clientId;
   clientSecret;
   instance;
 
-  constructor(environment, clientId, clientSecret) {
+  constructor(clientId, clientSecret) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.instance = axios.create({
-      baseURL: BASE_URLS[environment],
+      baseURL: process.env.PAYPAL_API_URL,
       timeout: 10000,
     });
   }
