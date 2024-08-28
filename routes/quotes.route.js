@@ -67,6 +67,8 @@ router.post("/onramp/paypal/webhook", async function (req, res, next) {
   try {
     const body = req.body;
 
+    console.log(`Received PayPal Webhook: ${body.event_type}`);
+
     const email = body.resource.payment_source.paypal.email_address;
 
     const [cryptoAmount, cryptoSymbol, network, wallet] =
