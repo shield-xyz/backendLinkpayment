@@ -20,11 +20,11 @@ const getRampQuote = async (type, assetIn, assetOut, amountIn, feeRate) => {
       : truncate(feeDeducted * Number(exchangeRate), 2);
 
   if (
-    // USD amount should be more than $50
-    (type === "onramp" && Number(amountIn) < 50) ||
-    (type === "offramp" && Number(amountOut) < 50)
+    // USD amount should be more than $10
+    (type === "onramp" && Number(amountIn) < 10) ||
+    (type === "offramp" && Number(amountOut) < 10)
   ) {
-    return { error: ["Amount in USD should be more than $50"] };
+    return { error: ["Amount in USD should be more than $10"] };
   }
 
   const payload = {
