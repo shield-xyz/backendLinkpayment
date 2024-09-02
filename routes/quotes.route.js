@@ -106,7 +106,8 @@ router.get("/onramp", async function (req, res, next) {
       );
 
       if (quote.error) {
-        continue;
+        quotes.push(quote);
+        break;
       }
 
       quotes.push({
