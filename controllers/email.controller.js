@@ -285,6 +285,28 @@ const EmailController = {
 
     await sendEmail(to, subject, replacements, "PayPalOrderApproved.html");
   },
+
+  async sendWireOrderApprovedEmail(to, order) {
+    const subject = "Your Crypto Purchase is Being Processed";
+
+    const replacements = {
+      title: "Your Crypto Purchase is Being Processed",
+      ...order,
+    };
+
+    await sendEmail(to, subject, replacements, "WireOrderApproved.html");
+  },
+
+  async sendOffRampOrderApprovedEmail(to, order) {
+    const subject = "Your Crypto Sale is Being Processed";
+
+    const replacements = {
+      title: "Your Crypto Sale is Being Processed",
+      ...order,
+    };
+
+    await sendEmail(to, subject, replacements, "OffRampOrderApproved.html");
+  },
 };
 
 module.exports = EmailController;
