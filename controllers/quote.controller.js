@@ -2,6 +2,9 @@ const jwt = require("jsonwebtoken");
 const Kraken = require("../services/kraken");
 const PayPal = require("../services/paypal");
 const { truncate } = require("../utils/math");
+const PayPalOderModel = require("../models/PayPalOrder.model");
+const AssetModel = require("../models/asset.model");
+const NetworkModel = require("../models/networks.model");
 
 const getRampQuote = async (type, assetIn, assetOut, amountIn, feeRate) => {
   const kraken = new Kraken();
@@ -13,7 +16,7 @@ const getRampQuote = async (type, assetIn, assetOut, amountIn, feeRate) => {
 
   if (error) return { error };
 
-  const feeDeducted = Number(amountIn) * (1 - Number(feeRate));
+  const feeDeducted = Number(amountIn) * (1 - Number(feeRate)) - 0.5;
   const amountOut =
     type === "onramp"
       ? truncate(feeDeducted / Number(exchangeRate), 6)
@@ -50,13 +53,29 @@ const verifyRampQuote = (encoded) => {
   }
 };
 
-const createPayPalOrder = async (encoded, network, wallet) => {
+const createPayPalOrder = async (user, encoded, networkId, wallet) => {
   const quote = verifyRampQuote(encoded);
+
   const paypal = new PayPal(
     process.env.PAYPAL_CLIENT_ID,
     process.env.PAYPAL_CLIENT_SECRET
   );
-  return await paypal.createOrder(quote, network, wallet);
+
+  const order = await paypal.createOrder(quote.assetIn, quote.amountIn);
+
+  const asset = await AssetModel.findOne({ symbol: quote.assetOut }).orFail();
+  const network = await NetworkModel.findOne({ networkId }).orFail();
+
+  await PayPalOderModel.create({
+    order_id: order.id,
+    user,
+    amount: quote.amountOut,
+    asset: asset._id,
+    network: network._id,
+    wallet,
+  });
+
+  return order;
 };
 
 module.exports = { getRampQuote, createPayPalOrder };

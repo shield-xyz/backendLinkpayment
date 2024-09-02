@@ -2,9 +2,9 @@ const axios = require("axios");
 const { randomUUID } = require("crypto");
 
 class PayPal {
+  instance;
   clientId;
   clientSecret;
-  instance;
 
   constructor(clientId, clientSecret) {
     this.clientId = clientId;
@@ -12,74 +12,83 @@ class PayPal {
     this.instance = axios.create({
       baseURL: process.env.PAYPAL_API_URL,
       timeout: 10000,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
 
-  async getAccessToken() {
-    try {
-      const { data } = await this.instance.post(
-        "/v1/oauth2/token",
-        "grant_type=client_credentials",
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          auth: {
-            username: this.clientId,
-            password: this.clientSecret,
-          },
-        }
-      );
+  async auth() {
+    const res = await this.instance.post(
+      "/v1/oauth2/token",
+      "grant_type=client_credentials",
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        auth: {
+          username: this.clientId,
+          password: this.clientSecret,
+        },
+      }
+    );
 
-      return data.access_token;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
+    return res.data;
   }
 
-  async createOrder(quote, network, wallet) {
-    try {
-      const token = await this.getAccessToken();
+  async request(config) {
+    const { access_token } = await this.auth();
 
-      if (!token) {
-        return null;
-      }
+    return await this.instance.request({
+      ...config,
+      headers: { Authorization: `Bearer ${access_token}`, ...config.headers },
+    });
+  }
 
-      const { data } = await this.instance.post(
-        "/v2/checkout/orders",
+  async createOrder(symbol, amount) {
+    const data = {
+      purchase_units: [
         {
-          intent: "CAPTURE",
-          application_context: {
-            brand_name: "Shield Security Inc.",
-            shipping_preference: "NO_SHIPPING",
+          amount: {
+            currency_code: symbol,
+            value: amount,
           },
-          purchase_units: [
-            {
-              description: `${
-                quote.amountOut
-              } ${quote.assetOut.toUpperCase()} ${network} ${wallet}`,
-              amount: {
-                currency_code: quote.assetIn.toUpperCase(),
-                value: quote.amountIn,
-              },
-            },
-          ],
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "PayPal-Request-Id": randomUUID(),
+      ],
+      intent: "CAPTURE",
+      payment_source: {
+        paypal: {
+          experience_context: {
+            payment_method_preference: "IMMEDIATE_PAYMENT_REQUIRED",
+            brand_name: "Shield Security Inc.",
+            locale: "en-US",
+            shipping_preference: "NO_SHIPPING",
+            user_action: "PAY_NOW",
+            return_url: `${process.env.URL_FRONT}/buy-sell`,
+            cancel_url: `${process.env.URL_FRONT}/buy-sell`,
           },
-        }
-      );
+        },
+      },
+    };
 
-      return data;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
+    const headers = { "PayPal-Request-Id": randomUUID() };
+
+    const res = await this.request({
+      url: "/v2/checkout/orders",
+      method: "POST",
+      data,
+      headers,
+    });
+
+    return res.data;
+  }
+
+  async captureOrder(id) {
+    const res = await this.request({
+      url: `/v2/checkout/orders/${id}/capture`,
+      method: "POST",
+    });
+    return res.data;
   }
 }
 

@@ -11,6 +11,8 @@ const {
 } = require("../controllers/email.controller");
 const { log } = require("handlebars/runtime");
 const TycMiddleware = require("../middleware/TycMiddleware");
+const PayPalOrderModel = require("../models/PayPalOrder.model");
+const PayPal = require("../services/paypal");
 
 const router = express.Router();
 
@@ -34,7 +36,7 @@ router.get("/:type", async function (req, res, next) {
       assetIn.toUpperCase(),
       assetOut.toUpperCase(),
       amountIn,
-      "0.01"
+      "0.0449"
     );
 
     if (quote.error) {
@@ -55,7 +57,12 @@ router.post(
     try {
       const { encoded, network, wallet } = req.body;
       console.log("/onramp/paypal", req.body);
-      const { id } = await createPayPalOrder(encoded, network, wallet);
+      const { id } = await createPayPalOrder(
+        req.user._id,
+        encoded,
+        network,
+        wallet
+      );
       return res.send({ id });
     } catch (err) {
       return next(err);
@@ -65,51 +72,69 @@ router.post(
 
 router.post("/onramp/paypal/webhook", async function (req, res, next) {
   try {
-    const body = req.body;
+    const { event_type, resource } = req.body;
 
-    console.log(`Received PayPal Webhook: ${body.event_type}`);
+    console.log(`Received PayPal Webhook: ${event_type}`);
 
-    const email = body.resource.payment_source.paypal.email_address;
+    const order = await PayPalOrderModel.findOne({ order_id: resource.id })
+      .populate(["user", "asset", "network"])
+      .orFail();
 
-    const [cryptoAmount, cryptoSymbol, network, wallet] =
-      body.resource.purchase_units[0].description.split(" ");
+    const paypal = new PayPal(
+      process.env.PAYPAL_CLIENT_ID,
+      process.env.PAYPAL_CLIENT_SECRET
+    );
 
-    const order = {
-      name: body.resource.payment_source.paypal.name.given_name,
-      surname: body.resource.payment_source.paypal.name.surname,
-      amount: body.resource.purchase_units[0].amount.value,
-      currency: body.resource.purchase_units[0].amount.currency_code,
-      crypto_amount: cryptoAmount,
-      crypto_symbol: `${cryptoSymbol} (${network})`,
-      wallet,
-      order_id: body.resource.id,
-      order_date: body.resource.create_time,
+    const capture = await paypal.captureOrder(resource.id);
+
+    console.log(JSON.stringify(capture, null, 2));
+
+    await order.updateOne({ status: capture.status });
+
+    if (capture.status !== "COMPLETED") {
+      return res.send("OK");
+    }
+
+    const email = order.user.email;
+
+    const payload = {
+      name: resource.payment_source.paypal.name.given_name,
+      surname: resource.payment_source.paypal.name.surname,
+      amount: resource.purchase_units[0].amount.value,
+      currency: resource.purchase_units[0].amount.currency_code,
+      crypto_amount: order.amount,
+      crypto_symbol: order.asset.symbol,
+      network: order.network.name,
+      wallet: order.wallet,
+      order_id: resource.id,
+      order_date: resource.create_time,
     };
 
     const message = `
-🚀 New Crypto Purchase Alert!
+    🚀 New Crypto Purchase Alert!
 
-Amount: $${order.amount} ${order.currency}
-Crypto Purchased: ${order.crypto_amount} ${order.crypto_symbol}
+    Amount: $${payload.amount} ${payload.currency}
+    Crypto Purchased: ${payload.crypto_amount} ${payload.crypto_symbol}
+    Network: ${payload.network}
 
-👤 Buyer Details:
+    👤 Buyer Details:
 
-- Name: ${order.name} ${order.surname}
-- Email: ${email}
-- Country: ${body.resource.payment_source.paypal.address.country_code}
-- PayPal Account Status: ${body.resource.payment_source.paypal.account_status}
-- Wallet Address: ${wallet}
+    - Name: ${payload.name} ${payload.surname}
+    - Email: ${email}
+    - Country: ${resource.payment_source.paypal.address.country_code}
+    - PayPal Account Status: ${resource.payment_source.paypal.account_status}
+    - Wallet Address: ${payload.wallet}
 
-Order ID: ${order.order_id}
-Order Date: ${order.order_date}
-Payment Source: PayPal
+    Order ID: ${payload.order_id}
+    Order Date: ${payload.order_date}
+    Payment Source: PayPal
 
-✅ Order Status: Approved`;
+    ✅ Order Status: Approved`;
 
-    console.log(order);
+    console.log(payload);
 
     await sendGroupMessage(message);
-    await sendPayPalOrderApprovedEmail(email, order);
+    await sendPayPalOrderApprovedEmail(email, payload);
 
     return res.send("OK");
   } catch (err) {
