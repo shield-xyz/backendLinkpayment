@@ -411,9 +411,8 @@ async function isFootprintUserVerified(fpId) {
   }
 }
 
-async function footPrintUserEmail(fpId, isUsers = true) {
+async function getFootPrintUserData(fpId, isUsers = true) {
   try {
-    console.log({ fpId });
     const options = {
       method: 'POST',
       headers: {
@@ -421,7 +420,7 @@ async function footPrintUserEmail(fpId, isUsers = true) {
         'X-Footprint-Secret-Key': process.env.FOOTPRINT_SECRET_KEY,
       },
       body: JSON.stringify({
-        fields: ['id.email'],
+        fields: ['id.email', 'id.first_name', 'id.last_name'],
         reason: 'Get user email',
       }),
     };
@@ -434,7 +433,7 @@ async function footPrintUserEmail(fpId, isUsers = true) {
     const data = await resp.json();
     return { ...data, status: 'success' };
   } catch (error) {
-    console.log(error, 'error in footPrintUserEmail');
+    console.log(error, 'error in getFootPrintUserData');
     return { status: 'error', response: error.message };
   }
 }
@@ -532,5 +531,5 @@ module.exports = {
   formatCurrency,
   removeCeros,
   isFootprintUserVerified,
-  footPrintUserEmail,
+  getFootPrintUserData,
 };

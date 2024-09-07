@@ -8,7 +8,7 @@ const {
   handleHttpError,
   response,
   footPrintUser,
-  footPrintUserEmail,
+  getFootPrintUserData,
   isFootprintUserVerified,
 } = require('../utils/index.js');
 const secretKey = JWT_SECRET;
@@ -79,7 +79,7 @@ module.exports = {
         fp_id = user_foot?.user_auth?.fp_id;
         user = await UserModel.findOne({ footId: fp_id });
         //buscar email en footprint
-        let userEmail = await footPrintUserEmail(fp_id);
+        let userEmail = await getFootPrintUserData(fp_id);
         if (!user && userEmail['id.email']) {
           user = await UserModel.findOne({ email: userEmail['id.email'] });
           user.footId = fp_id;
@@ -258,6 +258,7 @@ module.exports = {
     try {
       const validationToken = req.params.validationToken;
       const isKYC = req.query.isKYC === 'true';
+      const foundersEmail = process.env.EMAIL_CONTACT_US;
 
       if (!validationToken) {
         return res
@@ -272,10 +273,23 @@ module.exports = {
         return res.status(404).json({ message: 'Footprint user not found' });
       }
 
-      const fpEmailRes = await footPrintUserEmail(fp_id, isKYC);
-      const fp_email = fpEmailRes['id.email'];
+      const footPrintUserData = await getFootPrintUserData(fp_id, isKYC);
+      const fp_email = footPrintUserData['id.email'];
+      const fp_first_name = footPrintUserData['id.first_name'];
+      const fp_last_name = footPrintUserData['id.last_name'];
 
-      await sendConfirmVerificationSubmittedEmail(fp_email);
+      await Promise.all([
+        sendConfirmVerificationSubmittedEmail(
+          fp_email,
+          fp_first_name,
+          fp_last_name
+        ),
+        sendConfirmVerificationSubmittedEmail(
+          foundersEmail,
+          fp_first_name,
+          fp_last_name
+        ),
+      ]);
 
       res
         .status(200)
