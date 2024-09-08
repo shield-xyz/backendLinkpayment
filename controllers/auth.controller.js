@@ -20,6 +20,7 @@ const {
   sendConfirmVerificationSubmittedEmail,
 } = require('./email.controller.js');
 const BalanceController = require('./balance.controller.js');
+const userModel = require('../models/user.model');
 
 module.exports = {
   async login(req, res) {
@@ -57,6 +58,7 @@ module.exports = {
         verify: user.verify,
         footId: user.footId,
         admin: user.admin ? user.admin : false,
+        isVerifySubmitted: user.isVerifySubmitted,
       };
 
       console.log(response);
@@ -111,6 +113,7 @@ module.exports = {
           verify: user.verify,
           footId: user.footId,
           admin: user.admin ? user.admin : false,
+          isVerifySubmitted: user.isVerifySubmitted,
         };
         res.send({ response: response, status: 'success' });
       } else {
@@ -187,6 +190,7 @@ module.exports = {
           verify: user.verify,
           footId: user.footId,
           admin: user.admin ? user.admin : false,
+          isVerifySubmitted: user.isVerifySubmitted,
         },
         status: 'success',
       });
@@ -266,6 +270,7 @@ module.exports = {
           .json({ message: 'Validation token is required' });
       }
 
+      // Get FootPrint user
       const f_user = await footPrintUser(validationToken);
       const fp_id = f_user?.user_auth?.fp_id;
 
@@ -273,11 +278,19 @@ module.exports = {
         return res.status(404).json({ message: 'Footprint user not found' });
       }
 
+      // Get user data from FootPrint
       const footPrintUserData = await getFootPrintUserData(fp_id, isKYC);
       const fp_email = footPrintUserData['id.email'];
       const fp_first_name = footPrintUserData['id.first_name'];
       const fp_last_name = footPrintUserData['id.last_name'];
 
+      // Update user isVerifySubmitted
+      await userModel.updateOne(
+        { email: fp_email },
+        { isVerifySubmitted: true }
+      );
+
+      // Send emails
       await Promise.all([
         sendConfirmVerificationSubmittedEmail(
           fp_email,
