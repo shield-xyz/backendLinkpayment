@@ -35,7 +35,7 @@ class Kraken {
 
     if (error) return { error };
 
-    const exchangeRate = truncate(result.c[0], 2);
+    const exchangeRate = truncate(result.c[0], 4);
     return { pair, exchangeRate };
   }
 
