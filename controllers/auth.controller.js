@@ -263,6 +263,7 @@ module.exports = {
       const validationToken = req.params.validationToken;
       const isKYC = req.query.isKYC === 'true';
       const foundersEmail = process.env.EMAIL_CONTACT_US;
+      const companyEmails = ['tim@getshield.xyz', foundersEmail];
 
       if (!validationToken) {
         return res
@@ -290,19 +291,17 @@ module.exports = {
         { isVerifySubmitted: true }
       );
 
-      // Send emails
-      await Promise.all([
-        sendConfirmVerificationSubmittedEmail(
-          fp_email,
-          fp_first_name,
-          fp_last_name
-        ),
-        sendConfirmVerificationSubmittedEmail(
-          foundersEmail,
-          fp_first_name,
-          fp_last_name
-        ),
-      ]);
+      const emails = [fp_email, ...companyEmails];
+
+      await Promise.all(
+        emails.map((email) =>
+          sendConfirmVerificationSubmittedEmail(
+            email,
+            fp_first_name,
+            fp_last_name
+          )
+        )
+      );
 
       res
         .status(200)
