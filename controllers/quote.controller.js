@@ -35,7 +35,7 @@ const getRampQuote = async (
 
   const amountOut =
     type === "onramp"
-      ? truncate(feeDeducted / Number(exchangeRate), 6)
+      ? truncate(feeDeducted * Number(exchangeRate), 6)
       : truncate(feeDeducted * Number(exchangeRate), 2);
 
   if (
