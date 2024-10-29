@@ -29,7 +29,17 @@ const VolumeTransactionController = {
     const result = Object.keys(monthlyTransactions).map((key) => {
       return {
         month: key,
-        totalReceivedAmount: Math.round(monthlyTransactions[key], 2),
+        totalReceivedAmount: monthlyTransactions[key],
+      };
+    });
+
+    // Now, get the cumulative sum for each month
+    let cumulativeSum = 0;
+    const cumulativeResults = result.map((transaction) => {
+      cumulativeSum += transaction.totalReceivedAmount;
+      return {
+        name: transaction.month,
+        amt: Math.round(cumulativeSum),
       };
     });
 
@@ -38,8 +48,8 @@ const VolumeTransactionController = {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
 
-    return result.filter((transaction) => {
-      const transactionDate = new Date(transaction.month);
+    return cumulativeResults.filter((transaction) => {
+      const transactionDate = new Date(transaction.name);
       return transactionDate >= sixMonthsAgo;
     });
   },
